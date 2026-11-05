@@ -62,8 +62,8 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($gurus as $g)
                         @php
-                            $guruJadwal  = $jadwals->where('teacher_id', $g->id)->count();
-                            $guruJurnal  = $journals->whereIn('schedule_id', $jadwals->where('teacher_id',$g->id)->pluck('id'))->count();
+                            $guruJadwal = $guruJadwalCounts[$g->id] ?? $jadwals->where('teacher_id', $g->id)->count();
+                            $guruJurnal = $guruJurnalCounts[$g->id] ?? $journals->whereIn('schedule_id', $jadwals->where('teacher_id', $g->id)->pluck('id'))->count();
                         @endphp
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-4 py-3.5 font-bold">
@@ -110,12 +110,21 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($siswas as $s)
                         @php
-                            $siswaAtt = $attendances->where('student_id', $s->id);
-                            $hadir = $siswaAtt->where('status','Hadir')->count();
-                            $izin  = $siswaAtt->where('status','Izin')->count();
-                            $sakit = $siswaAtt->where('status','Sakit')->count();
-                            $alpha = $siswaAtt->where('status','Alpha')->count();
-                            $total = $siswaAtt->count();
+                            if (isset($studentAttendanceCounts[$s->id])) {
+                                $att = $studentAttendanceCounts[$s->id];
+                                $hadir = $att['hadir'];
+                                $izin = $att['izin'];
+                                $sakit = $att['sakit'];
+                                $alpha = $att['alpha'];
+                                $total = $att['total'];
+                            } else {
+                                $siswaAtt = $attendances->where('student_id', $s->id);
+                                $hadir = $siswaAtt->where('status', 'Hadir')->count();
+                                $izin = $siswaAtt->where('status', 'Izin')->count();
+                                $sakit = $siswaAtt->where('status', 'Sakit')->count();
+                                $alpha = $siswaAtt->where('status', 'Alpha')->count();
+                                $total = $siswaAtt->count();
+                            }
                         @endphp
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-4 py-3.5 font-bold text-slate-800">{{ $s->name }}</td>

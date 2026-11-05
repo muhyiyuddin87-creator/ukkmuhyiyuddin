@@ -1,4 +1,6 @@
-@php($iconClass = 'h-5 w-5 shrink-0')
+@php
+    $iconClass = 'h-5 w-5 shrink-0';
+@endphp
 @switch($icon)
     @case('dashboard')
         <svg class="{{ $iconClass }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

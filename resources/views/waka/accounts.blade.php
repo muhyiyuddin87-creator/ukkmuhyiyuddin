@@ -32,7 +32,7 @@
                 <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h3 class="text-xl font-bold text-slate-800">Daftar Akun</h3>
-                        <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ $accounts->count() }}</span> akun{{ ($search ?? '') !== '' ? ' untuk pencarian "' . $search . '"' : '' }}. Gunakan tombol Ubah untuk memperbarui data; sandi lama tidak ditampilkan.</p>
+                        <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ method_exists($accounts, 'total') ? $accounts->total() : $accounts->count() }}</span> akun{{ ($search ?? '') !== '' ? ' untuk pencarian "' . $search . '"' : '' }}. Gunakan tombol Ubah untuk memperbarui data; sandi lama tidak ditampilkan.</p>
                     </div>
                     <form method="GET" action="{{ route('waka.accounts') }}" class="flex gap-2">
                         <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Cari nama, username, siswa, kelas..." class="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
@@ -48,6 +48,9 @@
                     @foreach($accounts as $account)
                         <form id="update-account-{{ $account->id }}" method="POST" action="{{ route('waka.accounts.update', $account->id) }}" autocomplete="off">@csrf @method('PATCH')</form>
                     @endforeach
+                    @php
+                        $classesById = $schoolClasses->keyBy('id');
+                    @endphp
                     <table class="w-full min-w-[1780px] text-left text-sm">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
@@ -134,7 +137,8 @@
                                     <td class="px-3 py-3">
                                         @php
                                             $assignedWaliIds = $accountClassIds->get($account->id, []);
-                                            $assignedWaliNames = $schoolClasses->whereIn('id', $assignedWaliIds)->pluck('name');
+                                            $assignedWaliFlip = array_flip($assignedWaliIds);
+                                            $assignedWaliNames = collect($assignedWaliIds)->map(fn ($id) => $classesById[$id]->name ?? null)->filter();
                                         @endphp
                                         @if($assignedWaliNames->isNotEmpty())
                                             <div class="mb-1.5 flex flex-wrap gap-1 max-w-xs">
@@ -147,7 +151,7 @@
                                         @endif
                                         <select form="update-account-{{ $account->id }}" name="class_ids[]" data-editable data-class-link multiple disabled class="h-24 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
                                             @foreach($schoolClasses as $schoolClass)
-                                                <option value="{{ $schoolClass->id }}" @selected(in_array((int) $schoolClass->id, $assignedWaliIds, true))>{{ $schoolClass->name }}</option>
+                                                <option value="{{ $schoolClass->id }}" @selected(isset($assignedWaliFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                             @endforeach
                                         </select>
                                         <p class="mt-1 text-xs text-slate-500">Penugasan opsional untuk guru.</p>
@@ -155,7 +159,8 @@
                                     <td class="px-3 py-3">
                                         @php
                                             $assignedBkIds = $accountBkClassIds->get($account->id, []);
-                                            $assignedBkNames = $schoolClasses->whereIn('id', $assignedBkIds)->pluck('name');
+                                            $assignedBkFlip = array_flip($assignedBkIds);
+                                            $assignedBkNames = collect($assignedBkIds)->map(fn ($id) => $classesById[$id]->name ?? null)->filter();
                                         @endphp
                                         @if($assignedBkNames->isNotEmpty())
                                             <div class="mb-1.5 flex flex-wrap gap-1 max-w-xs">
@@ -168,7 +173,7 @@
                                         @endif
                                         <select form="update-account-{{ $account->id }}" name="bk_class_ids[]" data-editable data-bk-class-link multiple disabled class="h-24 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
                                             @foreach($schoolClasses as $schoolClass)
-                                                <option value="{{ $schoolClass->id }}" @selected(in_array((int) $schoolClass->id, $assignedBkIds, true))>{{ $schoolClass->name }}</option>
+                                                <option value="{{ $schoolClass->id }}" @selected(isset($assignedBkFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                             @endforeach
                                         </select>
                                         <p class="mt-1 text-xs text-slate-500">Penugasan BK opsional.</p>
@@ -210,6 +215,12 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if(method_exists($accounts, 'hasPages') && $accounts->hasPages())
+                    <div class="mt-4 px-2">
+                        {{ $accounts->links() }}
+                    </div>
+                @endif
             </section>
 @endsection
 

@@ -43,13 +43,18 @@
                 <button type="submit" class="shrink-0 whitespace-nowrap rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 transition shadow-sm">Impor Data</button>
             </form>
         </div>
+        @if(method_exists($siswas, 'hasPages') && $siswas->hasPages())
+            <div class="mt-4 px-2">
+                {{ $siswas->links() }}
+            </div>
+        @endif
     </section>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <h3 class="text-xl font-bold text-slate-800">Daftar Siswa</h3>
-                <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ $siswas->count() }}</span> siswa{{ $search !== '' ? ' untuk pencarian "' . $search . '"' : '' }}</p>
+                <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ method_exists($siswas, 'total') ? $siswas->total() : $siswas->count() }}</span> siswa{{ $search !== '' ? ' untuk pencarian "' . $search . '"' : '' }}</p>
             </div>
             <form method="GET" action="{{ route('waka.siswa') }}" class="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
                 <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, NIS, nomor HP..." class="w-full sm:w-auto min-w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
@@ -95,7 +100,9 @@
             @foreach($siswas as $s)
                 <form id="update-student-{{ $s->id }}" method="POST" action="{{ route('waka.siswa.update', $s->id) }}">@csrf @method('PATCH')</form>
             @endforeach
-            @php($jurusanOptions = ['RPL', 'TKJ', 'DKV', 'AKL', 'MP', 'BR', 'BD', 'LPS'])
+            @php
+                $jurusanOptions = ['RPL', 'TKJ', 'DKV', 'AKL', 'MP', 'BR', 'BD', 'LPS'];
+            @endphp
             <table class="w-full min-w-[1250px] text-left text-sm">
                 <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
                     <tr>
@@ -163,6 +170,11 @@
                 </tbody>
             </table>
         </div>
+        @if(method_exists($siswas, 'hasPages') && $siswas->hasPages())
+            <div class="mt-4 px-2">
+                {{ $siswas->links() }}
+            </div>
+        @endif
     </section>
 
     <!-- Hapus Siswa per Kelas (Diletakkan di Bawah Daftar Siswa) -->

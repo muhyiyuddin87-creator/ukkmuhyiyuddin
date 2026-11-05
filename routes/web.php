@@ -972,7 +972,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         if (! empty($filters['kelas'])) {
             $query->where('kelas', $filters['kelas']);
         }
-        $siswas = $query->get();
+        $siswas = $query->paginate(50)->withQueryString();
 
         $availableClasses = DB::table('siswas')
             ->select('kelas', DB::raw('count(*) as total'))
@@ -2102,7 +2102,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
 
         $ortus = $query->get();
-        $siswas = DB::table('siswas')->orderBy('kelas')->orderBy('name')->get();
+        $siswas = DB::table('siswas')->select('id', 'name', 'kelas')->orderBy('kelas')->orderBy('name')->get();
 
         return view('waka.data_orang_tua', [
             'user' => Auth::user(),
@@ -2242,7 +2242,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             });
         }
 
-        $accounts = $query->get();
+        $accounts = $query->paginate(25)->withQueryString();
         $siswas = DB::table('siswas')
             ->leftJoin('users as assigned_users', function ($join) {
                 $join->on('siswas.id', '=', 'assigned_users.student_id')
@@ -2574,9 +2574,10 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
             $jadwals = $query->orderBy('schedules.day_of_week')
                 ->orderBy('schedules.start_time')
-                ->get();
+                ->paginate(50)
+                ->withQueryString();
         } else {
-            $jadwals = collect();
+            $jadwals = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 50);
         }
 
         $gurus = DB::table('users')->whereIn('role_id', [2, 4])->select('id', 'fullname', 'username', 'nip')->orderBy('fullname')->get();
@@ -3457,6 +3458,38 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 ->get()
             : collect();
 
+        $jadwalsByTeacher = $jadwals->groupBy('teacher_id');
+        $journalScheduleIds = $journals->pluck('schedule_id')->flip();
+        $guruJadwalCounts = [];
+        $guruJurnalCounts = [];
+        foreach ($gurus as $g) {
+            $tJadwals = $jadwalsByTeacher->get($g->id, collect());
+            $guruJadwalCounts[$g->id] = $tJadwals->count();
+            $guruJurnalCounts[$g->id] = $tJadwals->filter(fn ($j) => isset($journalScheduleIds[$j->id]))->count();
+        }
+
+        $studentAttendanceCounts = [];
+        $attendancesByStudent = $attendances->groupBy('student_id');
+        foreach ($attendancesByStudent as $sId => $records) {
+            $h = 0; $i = 0; $s = 0; $a = 0;
+            foreach ($records as $rec) {
+                match ($rec->status) {
+                    'Hadir' => $h++,
+                    'Izin' => $i++,
+                    'Sakit' => $s++,
+                    'Alpha' => $a++,
+                    default => null,
+                };
+            }
+            $studentAttendanceCounts[$sId] = [
+                'hadir' => $h,
+                'izin' => $i,
+                'sakit' => $s,
+                'alpha' => $a,
+                'total' => $records->count(),
+            ];
+        }
+
         return view('waka.laporan', [
             'user' => Auth::user(),
             'siswas' => $siswas,
@@ -3473,6 +3506,9 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'totalGuru' => $gurus->count(),
             'totalJadwal' => $jadwals->count(),
             'totalPresensi' => $attendances->count(),
+            'guruJadwalCounts' => $guruJadwalCounts,
+            'guruJurnalCounts' => $guruJurnalCounts,
+            'studentAttendanceCounts' => $studentAttendanceCounts,
         ]);
     })->name('waka.laporan');
 

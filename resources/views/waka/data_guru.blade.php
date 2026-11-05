@@ -64,6 +64,9 @@
             @foreach($gurus as $g)
                 <form id="update-teacher-{{ $g->id }}" method="POST" action="{{ route('waka.guru.update', $g->id) }}">@csrf @method('PATCH')</form>
             @endforeach
+            @php
+                $classesById = $schoolClasses->keyBy('id');
+            @endphp
             <table class="w-full min-w-[1950px] text-left text-sm">
                 <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
                     <tr>
@@ -130,7 +133,8 @@
                         <td class="px-3 py-3">
                             @php
                                 $assignedWaliIds = $teacherClassIds->get($g->id, []);
-                                $assignedWaliNames = $schoolClasses->whereIn('id', $assignedWaliIds)->pluck('name');
+                                $assignedWaliFlip = array_flip($assignedWaliIds);
+                                $assignedWaliNames = collect($assignedWaliIds)->map(fn ($id) => $classesById[$id]->name ?? null)->filter();
                             @endphp
                             @if($assignedWaliNames->isNotEmpty())
                                 <div class="mb-1.5 flex flex-wrap gap-1 max-w-xs">
@@ -143,14 +147,15 @@
                             @endif
                             <select form="update-teacher-{{ $g->id }}" name="class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" aria-label="Penugasan wali kelas {{ $g->fullname }}">
                                 @foreach($schoolClasses as $schoolClass)
-                                    <option value="{{ $schoolClass->id }}" @selected(in_array((int) $schoolClass->id, $assignedWaliIds, true))>{{ $schoolClass->name }}</option>
+                                    <option value="{{ $schoolClass->id }}" @selected(isset($assignedWaliFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                 @endforeach
                             </select>
                         </td>
                         <td class="px-3 py-3">
                             @php
                                 $assignedBkIds = $teacherBkClassIds->get($g->id, []);
-                                $assignedBkNames = $schoolClasses->whereIn('id', $assignedBkIds)->pluck('name');
+                                $assignedBkFlip = array_flip($assignedBkIds);
+                                $assignedBkNames = collect($assignedBkIds)->map(fn ($id) => $classesById[$id]->name ?? null)->filter();
                             @endphp
                             @if($assignedBkNames->isNotEmpty())
                                 <div class="mb-1.5 flex flex-wrap gap-1 max-w-xs">
@@ -163,7 +168,7 @@
                             @endif
                             <select form="update-teacher-{{ $g->id }}" name="bk_class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" aria-label="Penugasan guru BK {{ $g->fullname }}">
                                 @foreach($schoolClasses as $schoolClass)
-                                    <option value="{{ $schoolClass->id }}" @selected(in_array((int) $schoolClass->id, $assignedBkIds, true))>{{ $schoolClass->name }}</option>
+                                    <option value="{{ $schoolClass->id }}" @selected(isset($assignedBkFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                 @endforeach
                             </select>
                         </td>

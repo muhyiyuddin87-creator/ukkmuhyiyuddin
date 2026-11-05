@@ -162,7 +162,7 @@
                 <div>
                     <h3 class="text-xl font-bold text-slate-800">Jadwal Putaran {{ $activeCycle }}</h3>
                     <p class="text-sm text-slate-500 mt-1">
-                        Menampilkan <span class="font-bold text-sky-700">{{ $jadwals->count() }}</span> jadwal
+                        Menampilkan <span class="font-bold text-sky-700">{{ method_exists($jadwals, 'total') ? $jadwals->total() : $jadwals->count() }}</span> jadwal
                         @if(($selectedJurusan ?? '') !== '' || ($selectedTingkat ?? '') !== '' || ($search ?? '') !== '')
                             <span class="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-800 ml-1">Hasil Pencarian</span>
                         @endif
@@ -232,7 +232,9 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($jadwals as $j)
-                        @php($currentPeriodCode = \App\Support\SchoolTimetable::codeFor($j->day_of_week, $j->start_time, $j->end_time))
+                        @php
+                            $currentPeriodCode = \App\Support\SchoolTimetable::codeFor($j->day_of_week, $j->start_time, $j->end_time);
+                        @endphp
                             <tr class="hover:bg-slate-50 transition" data-period-row data-original-day="{{ $j->day_of_week }}" data-legacy-start="{{ substr($j->start_time, 0, 5) }}" data-legacy-end="{{ substr($j->end_time, 0, 5) }}" data-legacy-code="{{ $currentPeriodCode ?? 'legacy' }}">
                             <td class="px-2 py-3"><select form="update-schedule-{{ $j->id }}" name="day_of_week" required data-day-select class="w-full rounded-lg border border-slate-300 px-2 py-2">
                             @foreach(\App\Support\SchoolTimetable::DAYS as $day)<option value="{{ $day }}" @selected($j->day_of_week === $day)>{{ $day }}</option>@endforeach
@@ -254,7 +256,9 @@
                                 <span data-period-preview class="mt-1 block text-xs text-slate-500"></span>
                             </td>
                             <td class="px-2 py-3">
-                                @php($scheduleClass = $j->class_name ?? ($j->class_id !== null ? (string) $j->class_id : ''))
+                                @php
+                                    $scheduleClass = $j->class_name ?? ($j->class_id !== null ? (string) $j->class_id : '');
+                                @endphp
                                 <select form="update-schedule-{{ $j->id }}" name="class_name" class="w-full min-w-32 rounded-lg border border-slate-300 px-2 py-2">
                                     <option value="">Pilih kelas</option>
                                     @foreach($classOptions as $className)
@@ -314,6 +318,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if(method_exists($jadwals, 'hasPages') && $jadwals->hasPages())
+                <div class="mt-4 px-2">
+                    {{ $jadwals->links() }}
+                </div>
+            @endif
         </section>
 
         <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
