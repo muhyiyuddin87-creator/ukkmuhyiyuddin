@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* Batas tinggi tabel maks ~10 baris data dengan scroll internal & sticky header */
+.overflow-x-auto:has(table),
+.table-scroll-container {
+    max-height: 520px;
+    overflow-y: auto;
+    overflow-x: auto;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.overflow-x-auto:has(table) table,
+.table-scroll-container table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.overflow-x-auto:has(table) thead,
+.table-scroll-container thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: #f8fafc;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.overflow-x-auto:has(table) thead th,
+.table-scroll-container thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: inherit;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Scrollbar kustom halus */
+.overflow-x-auto:has(table)::-webkit-scrollbar,
+.table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.overflow-x-auto:has(table)::-webkit-scrollbar-track,
+.table-scroll-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+.overflow-x-auto:has(table)::-webkit-scrollbar-thumb,
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.overflow-x-auto:has(table)::-webkit-scrollbar-thumb:hover,
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
