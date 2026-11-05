@@ -2580,7 +2580,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
 
         $gurus = DB::table('users')->whereIn('role_id', [2, 4])->select('id', 'fullname', 'username', 'nip')->orderBy('fullname')->get();
-        $rooms = DB::table('ruangan')->select('id', 'nama_ruangan', 'jenis_ruangan', 'keterangan')->orderBy('nama_ruangan')->get();
+        $rooms = DB::table('ruangan')->orderBy('nama_ruangan')->get();
         $classOptions = DB::table('school_classes')->orderBy('name')->pluck('name');
         if ($classOptions->isEmpty()) {
             $classOptions = DB::table('siswas')
