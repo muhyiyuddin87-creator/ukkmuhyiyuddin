@@ -60,7 +60,22 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                Mysql::ATTR_SSL_CA => (function () {
+                    $ca = env('MYSQL_ATTR_SSL_CA');
+                    if ($ca && file_exists($ca)) {
+                        return $ca;
+                    }
+                    foreach ([
+                        '/etc/ssl/certs/ca-certificates.crt',
+                        'C:\\laragon\\etc\\ssl\\cacert.pem',
+                        'C:\\Program Files\\Common Files\\SSL\\cert.pem',
+                    ] as $path) {
+                        if (file_exists($path)) {
+                            return $path;
+                        }
+                    }
+                    return $ca;
+                })(),
             ]) : [],
         ],
 
@@ -80,7 +95,22 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                Mysql::ATTR_SSL_CA => (function () {
+                    $ca = env('MYSQL_ATTR_SSL_CA');
+                    if ($ca && file_exists($ca)) {
+                        return $ca;
+                    }
+                    foreach ([
+                        '/etc/ssl/certs/ca-certificates.crt',
+                        'C:\\laragon\\etc\\ssl\\cacert.pem',
+                        'C:\\Program Files\\Common Files\\SSL\\cert.pem',
+                    ] as $path) {
+                        if (file_exists($path)) {
+                            return $path;
+                        }
+                    }
+                    return $ca;
+                })(),
             ]) : [],
         ],
 

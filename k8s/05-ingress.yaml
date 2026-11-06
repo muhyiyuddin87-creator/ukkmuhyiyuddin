@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ukk-laravel-ingress
+  namespace: ukk-muhyiyuddin
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+spec:
+  ingressClassName: "traefik"
+  rules:
+  - host: ukk.kuroscp.tech
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ukk-laravel-service
+            port:
+              number: 80
+

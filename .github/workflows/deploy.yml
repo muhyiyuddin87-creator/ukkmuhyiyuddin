@@ -1,0 +1,70 @@
+name: Auto-Deploy to Production VPS (Native LEMP)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # =========================================================
+  # JOB 1: Security Audit (SAST Scan)
+  # =========================================================
+  security_scan:
+    name: 🛡️ Semgrep Code Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep SAST
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/php
+        continue-on-error: true
+
+  # =========================================================
+  # JOB 2: Deploy ke VPS via SSH
+  # =========================================================
+  deploy:
+    name: 🚀 Deploy ke VPS Ubuntu (Native LEMP)
+    needs: [security_scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Menghubungi VPS dan Menjalankan Update Otomatis
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          script: |
+            echo "🚀 Menjalankan deployment di VPS..."
+            cd /var/www/ukkmuhyiyuddin
+
+            # Tarik kode terbaru dari GitHub
+            git config --global --add safe.directory /var/www/ukkmuhyiyuddin
+            git pull origin main
+
+            # Install dependensi PHP & build frontend Tailwind CSS
+            composer install --no-dev --optimize-autoloader --no-interaction
+            npm install
+            npm run build
+
+            # Migrasi database TiDB Cloud jika ada perubahan tabel
+            php artisan migrate --force
+
+            # Optimalkan cache Laravel
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # Restart worker & reload PHP-FPM
+            systemctl reload php8.4-fpm
+            systemctl restart ukk-worker.service 2>/dev/null || true
+
+            echo "✅ Deployment Selesai & Aplikasi Live di https://tugasukk.web.id!"
+

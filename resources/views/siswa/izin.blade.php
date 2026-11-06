@@ -60,7 +60,7 @@
                             ])
                         </div>
                         <div class="md:col-span-2">
-                            <button id="submit-leave-request" type="submit" class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60">
+                            <button id="submit-leave-request" type="submit" class="h-10 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-700 shadow-xs active:scale-95 disabled:cursor-wait disabled:opacity-60">
                                 Kirim Pengajuan
                             </button>
                         </div>

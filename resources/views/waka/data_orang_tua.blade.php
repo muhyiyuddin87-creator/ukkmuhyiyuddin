@@ -34,11 +34,11 @@
                 <h3 class="text-xl font-bold text-slate-800">Daftar Akun Orang Tua</h3>
                 <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ $ortus->count() }}</span> akun orang tua{{ $search !== '' ? ' untuk pencarian "' . $search . '"' : '' }}</p>
             </div>
-            <form method="GET" action="{{ route('waka.ortu') }}" class="flex gap-2">
-                <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, username, siswa, HP..." class="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Cari</button>
+            <form method="GET" action="{{ route('waka.ortu') }}" class="flex items-center gap-2">
+                <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, username, siswa, HP..." class="h-10 w-64 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
+                <button type="submit" class="h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-700 transition inline-flex items-center justify-center shadow-sm">Cari</button>
                 @if($search !== '')
-                    <a href="{{ route('waka.ortu') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Reset</a>
+                    <a href="{{ route('waka.ortu') }}" class="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition inline-flex items-center justify-center">Reset</a>
                 @endif
             </form>
         </div>
@@ -65,14 +65,14 @@
                 <tbody class="divide-y divide-slate-100">
                     <!-- Baris Tambah Baru -->
                     <tr class="bg-sky-50/70">
-                        <td class="px-3 py-3 text-slate-400 font-bold text-center">+</td>
-                        <td class="px-3 py-3">
-                            <input form="create-ortu" name="fullname" required maxlength="100" placeholder="Nama orang tua/wali" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5 text-slate-400 font-bold text-center">+</td>
+                        <td class="px-3 py-2.5">
+                            <input form="create-ortu" name="fullname" required maxlength="100" placeholder="Nama orang tua/wali" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
+                        <td class="px-3 py-2.5">
                             <div class="space-y-1">
-                                <input type="text" data-student-filter placeholder="🔍 Cari siswa..." class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none">
-                                <select form="create-ortu" name="student_id" data-student-link required class="w-full min-w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                                <input type="text" data-student-filter placeholder="🔍 Cari siswa..." class="h-7 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none">
+                                <select form="create-ortu" name="student_id" data-student-link required class="h-9 w-full min-w-56 rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                     <option value="">-- Pilih Siswa --</option>
                                     @foreach($siswas as $siswa)
                                         <option value="{{ $siswa->id }}">{{ $siswa->name }} ({{ $siswa->kelas }})</option>
@@ -80,37 +80,37 @@
                                 </select>
                             </div>
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="create-ortu" name="username" required maxlength="50" autocomplete="off" placeholder="Username login" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="create-ortu" name="username" required maxlength="50" autocomplete="off" placeholder="Username login" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="create-ortu" type="tel" name="phone" maxlength="20" placeholder="08xxxxxxxx" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="create-ortu" type="tel" name="phone" maxlength="20" placeholder="08xxxxxxxx" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="create-ortu" type="email" name="email" maxlength="255" placeholder="ortu@email.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="create-ortu" type="email" name="email" maxlength="255" placeholder="ortu@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="create-ortu" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Min. 8 karakter" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="create-ortu" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Min. 8 karakter" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3 text-slate-500 text-xs">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Aktif</span>
+                        <td class="px-3 py-2.5 text-slate-500 text-xs">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">Aktif</span>
                         </td>
-                        <td class="px-3 py-3">
-                            <button form="create-ortu" type="submit" class="whitespace-nowrap rounded-lg bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700 transition shadow-sm">Tambah Orang Tua</button>
+                        <td class="px-3 py-2.5">
+                            <button form="create-ortu" type="submit" class="h-9 whitespace-nowrap rounded-lg bg-sky-600 px-4 text-xs font-semibold text-white hover:bg-sky-700 transition inline-flex items-center justify-center shadow-sm">Tambah Orang Tua</button>
                         </td>
                     </tr>
 
                     <!-- Baris Data Akun Orang Tua yang Ada -->
                     @forelse($ortus as $i => $o)
                     <tr class="hover:bg-slate-50 transition align-middle">
-                        <td class="px-4 py-3.5 text-slate-400 font-mono text-xs text-center">{{ $i + 1 }}</td>
-                        <td class="px-3 py-3">
-                            <input form="update-ortu-{{ $o->id }}" name="fullname" required maxlength="100" value="{{ $o->fullname }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-4 py-2.5 text-slate-400 font-mono text-xs text-center">{{ $i + 1 }}</td>
+                        <td class="px-3 py-2.5">
+                            <input form="update-ortu-{{ $o->id }}" name="fullname" required maxlength="100" value="{{ $o->fullname }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
+                        <td class="px-3 py-2.5">
                             <div class="space-y-1">
-                                <input type="text" data-student-filter placeholder="🔍 Cari siswa..." class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none">
-                                <select form="update-ortu-{{ $o->id }}" name="student_id" data-student-link required class="w-full min-w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                                <input type="text" data-student-filter placeholder="🔍 Cari siswa..." class="h-7 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none">
+                                <select form="update-ortu-{{ $o->id }}" name="student_id" data-student-link required class="h-9 w-full min-w-56 rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                     <option value="">-- Pilih Siswa --</option>
                                     @foreach($siswas as $siswa)
                                         <option value="{{ $siswa->id }}" @selected((int) $o->student_id === (int) $siswa->id)>{{ $siswa->name }} ({{ $siswa->kelas }})</option>
@@ -118,20 +118,20 @@
                                 </select>
                             </div>
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="update-ortu-{{ $o->id }}" name="username" required maxlength="50" autocomplete="off" value="{{ $o->username }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="update-ortu-{{ $o->id }}" name="username" required maxlength="50" autocomplete="off" value="{{ $o->username }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="update-ortu-{{ $o->id }}" type="tel" name="phone" maxlength="20" value="{{ $o->phone }}" placeholder="Nomor HP" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="update-ortu-{{ $o->id }}" type="tel" name="phone" maxlength="20" value="{{ $o->phone }}" placeholder="Nomor HP" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="update-ortu-{{ $o->id }}" type="email" name="email" maxlength="255" value="{{ $o->email }}" placeholder="nama@email.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="update-ortu-{{ $o->id }}" type="email" name="email" maxlength="255" value="{{ $o->email }}" placeholder="nama@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <input form="update-ortu-{{ $o->id }}" type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Tidak diubah" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <td class="px-3 py-2.5">
+                            <input form="update-ortu-{{ $o->id }}" type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Tidak diubah" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                         </td>
-                        <td class="px-3 py-3">
-                            <select form="update-ortu-{{ $o->id }}" name="is_active" class="w-28 rounded-lg border border-slate-300 px-2 py-2 text-xs">
+                        <td class="px-3 py-2.5">
+                            <select form="update-ortu-{{ $o->id }}" name="is_active" class="h-9 w-28 rounded-lg border border-slate-300 bg-white px-2 text-xs focus:border-sky-500 focus:outline-none">
                                 <option value="1" @selected((bool) $o->is_active)>Aktif</option>
                                 <option value="0" @selected(! (bool) $o->is_active)>Nonaktif</option>
                             </select>
@@ -139,16 +139,16 @@
                                 <span class="mt-1 block rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 border border-amber-200">Wajib Ganti Sandi</span>
                             @endif
                         </td>
-                        <td class="px-3 py-3">
-                            <div class="flex items-center gap-2">
-                                <button form="update-ortu-{{ $o->id }}" type="submit" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 transition shadow-sm">Simpan</button>
+                        <td class="px-3 py-2.5">
+                            <div class="flex items-center gap-1.5">
+                                <button form="update-ortu-{{ $o->id }}" type="submit" class="h-9 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 transition inline-flex items-center justify-center shadow-sm">Simpan</button>
                                 <form method="POST" action="{{ route('waka.ortu.reset_password', $o->id) }}" onsubmit="return confirm('Reset sandi akun orang tua {{ $o->username }} ke sandi bawaan?')">
                                     @csrf
-                                    <button type="submit" class="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-600 transition shadow-sm" title="Reset Sandi ke Bawaan">Reset</button>
+                                    <button type="submit" class="h-9 rounded-lg bg-amber-500 px-3 text-xs font-semibold text-white hover:bg-amber-600 transition inline-flex items-center justify-center shadow-sm" title="Reset Sandi ke Bawaan">Reset</button>
                                 </form>
                                 <form method="POST" action="{{ route('waka.ortu.destroy', $o->id) }}" onsubmit="return confirm('Hapus akun orang tua {{ $o->fullname }} ({{ $o->username }})?')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="rounded-lg bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-200 transition">Hapus</button>
+                                    <button type="submit" class="h-9 rounded-lg bg-rose-100 px-3 text-xs font-semibold text-rose-700 hover:bg-rose-200 transition inline-flex items-center justify-center">Hapus</button>
                                 </form>
                             </div>
                         </td>

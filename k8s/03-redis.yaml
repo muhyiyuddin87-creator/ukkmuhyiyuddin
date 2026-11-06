@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ukk-redis
+  namespace: ukk-muhyiyuddin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ukk-redis
+  template:
+    metadata:
+      labels:
+        app: ukk-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ukk-redis-service
+  namespace: ukk-muhyiyuddin
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: ukk-redis
+

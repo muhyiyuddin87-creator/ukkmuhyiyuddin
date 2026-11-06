@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ukk-laravel-app
+  namespace: ukk-muhyiyuddin
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ukk-laravel-app
+  template:
+    metadata:
+      labels:
+        app: ukk-laravel-app
+    spec:
+      initContainers:
+      - name: laravel-init
+        image: ghcr.io/muhyiyuddin87-creator/ukkmuhyiyuddin:latest
+        imagePullPolicy: Always
+        command:
+        - "sh"
+        - "-c"
+        - >
+          php artisan config:cache &&
+          php artisan route:cache &&
+          php artisan view:cache &&
+          php artisan storage:link &&
+          php artisan migrate --force
+        envFrom:
+        - configMapRef:
+            name: ukk-laravel-config
+        - secretRef:
+            name: ukk-laravel-secrets
+        volumeMounts:
+        - name: media-storage
+          mountPath: /var/www/html/storage/app/public
+      containers:
+      - name: laravel-web
+        image: ghcr.io/muhyiyuddin87-creator/ukkmuhyiyuddin:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: ukk-laravel-config
+        - secretRef:
+            name: ukk-laravel-secrets
+        volumeMounts:
+        - name: media-storage
+          mountPath: /var/www/html/storage/app/public
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "150m"
+          limits:
+            memory: "640Mi"
+            cpu: "800m"
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /login
+            port: 80
+          initialDelaySeconds: 25
+          periodSeconds: 10
+      volumes:
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: ukk-media-nvme-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ukk-laravel-worker
+  namespace: ukk-muhyiyuddin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ukk-laravel-worker
+  template:
+    metadata:
+      labels:
+        app: ukk-laravel-worker
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/muhyiyuddin87-creator/ukkmuhyiyuddin:latest
+        imagePullPolicy: Always
+        command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=90", "--memory=192"]
+        envFrom:
+        - configMapRef:
+            name: ukk-laravel-config
+        - secretRef:
+            name: ukk-laravel-secrets
+        volumeMounts:
+        - name: media-storage
+          mountPath: /var/www/html/storage/app/public
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "384Mi"
+            cpu: "400m"
+      volumes:
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: ukk-media-nvme-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ukk-laravel-service
+  namespace: ukk-muhyiyuddin
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: ukk-laravel-app
+

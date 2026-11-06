@@ -11,7 +11,7 @@
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <div class="rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700">
-                            Rekap & Riwayat Izin Siswa
+                            Verifikasi & Riwayat Izin Siswa
                         </div>
                         <div class="rounded-full bg-orange-100 px-4 py-2 text-sm font-semibold text-orange-700">
                             Saat ini putaran ke-{{ $activeCycle }}
@@ -32,7 +32,7 @@
 
             <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 {{ (isset($jadwals) && $jadwals->isNotEmpty()) || (isset($bkClassNames) && $bkClassNames->isNotEmpty()) ? 'lg:grid-cols-4' : '' }}">
                 <div class="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
-                    <p class="text-sm font-medium text-slate-500">Izin Menunggu Wali Kelas</p>
+                    <p class="text-sm font-medium text-slate-500">Izin Menunggu Persetujuan</p>
                     <p class="mt-2 text-3xl font-bold text-amber-700">{{ $stats['pending_izin'] ?? 0 }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -105,7 +105,7 @@
 
             <section class="mt-6 flex flex-wrap gap-3">
                 <a href="{{ route('kesiswaan.izin') }}" class="inline-flex rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white shadow transition hover:bg-amber-700">
-                    Lihat Riwayat Izin Siswa
+                    Verifikasi & Riwayat Izin Siswa
                 </a>
                 <a href="{{ route('guru.jadwal') }}" class="inline-flex rounded-xl bg-sky-700 px-5 py-3 font-semibold text-white shadow transition hover:bg-sky-800">
                     Jadwal Mengajar

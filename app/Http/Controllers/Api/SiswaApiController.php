@@ -50,6 +50,14 @@ class SiswaApiController extends Controller
 
     public function store(Request $request)
     {
+        $user = $request->user();
+        if ($user && (int) $user->role_id !== 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Role Anda tidak memiliki hak akses untuk menambah data siswa. Penambahan siswa hanya dapat dilakukan oleh Administrator.',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'kelas' => 'required|string|max:100',
@@ -80,6 +88,14 @@ class SiswaApiController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = $request->user();
+        if ($user && (int) $user->role_id !== 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Role Anda tidak memiliki hak akses untuk mengubah data siswa.',
+            ], 403);
+        }
+
         $siswa = Siswa::find($id);
 
         if (! $siswa) {
@@ -112,8 +128,16 @@ class SiswaApiController extends Controller
         ], 200);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
+        if ($user && (int) $user->role_id !== 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Role Anda tidak memiliki hak akses untuk menghapus data siswa.',
+            ], 403);
+        }
+
         $siswa = Siswa::find($id);
 
         if (! $siswa) {

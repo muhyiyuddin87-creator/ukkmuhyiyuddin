@@ -50,12 +50,12 @@
             
             <form method="GET" action="{{ route('wali-kelas.siswa') }}" class="flex items-center gap-2">
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama atau NIS..."
-                    class="rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100">
-                <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
+                    class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+                <button type="submit" class="h-10 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-xs active:scale-95">
                     Cari
                 </button>
                 @if(request('q'))
-                    <a href="{{ route('wali-kelas.siswa') }}" class="rounded-xl bg-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-300 transition">
+                    <a href="{{ route('wali-kelas.siswa') }}" class="h-10 inline-flex items-center justify-center rounded-lg bg-slate-200 px-3 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition">
                         Reset
                     </a>
                 @endif
@@ -130,7 +130,7 @@
                                     <form method="POST" action="{{ route('wali-kelas.siswa.reset_password', $item->account_id) }}" 
                                         onsubmit="return confirm('Apakah Anda yakin ingin mereset kata sandi akun {{ $item->name }} ({{ $item->account_username }})? Sandi akan disetel ke default dan siswa wajib menggantinya saat login.')">
                                         @csrf
-                                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-amber-600 transition">
+                                        <button type="submit" class="h-8 inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 text-xs font-semibold text-white shadow-xs hover:bg-amber-600 transition active:scale-95">
                                             Reset Sandi
                                         </button>
                                     </form>

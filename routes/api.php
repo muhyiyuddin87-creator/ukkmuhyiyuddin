@@ -35,9 +35,6 @@ Route::get('/journals/{id}', [JournalApiController::class, 'show']);
 Route::get('/leave-requests', [LeaveRequestApiController::class, 'index']);
 Route::get('/leave-requests/{id}', [LeaveRequestApiController::class, 'show']);
 
-// Fallback write endpoints for direct testing without sanctum token if needed
-Route::post('/siswas/create', [SiswaApiController::class, 'store']);
-
 // Sanctum Protected Endpoints
 Route::middleware(['auth:sanctum', 'active.account'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

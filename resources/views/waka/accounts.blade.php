@@ -34,11 +34,11 @@
                         <h3 class="text-xl font-bold text-slate-800">Daftar Akun</h3>
                         <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ method_exists($accounts, 'total') ? $accounts->total() : $accounts->count() }}</span> akun{{ ($search ?? '') !== '' ? ' untuk pencarian "' . $search . '"' : '' }}. Gunakan tombol Ubah untuk memperbarui data; sandi lama tidak ditampilkan.</p>
                     </div>
-                    <form method="GET" action="{{ route('waka.accounts') }}" class="flex gap-2">
-                        <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Cari nama, username, siswa, kelas..." class="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                        <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Cari</button>
+                    <form method="GET" action="{{ route('waka.accounts') }}" class="flex items-center gap-2">
+                        <input type="search" name="q" value="{{ $search ?? '' }}" placeholder="Cari nama, username, siswa, kelas..." class="h-10 w-64 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
+                        <button type="submit" class="h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-700 transition inline-flex items-center justify-center shadow-sm">Cari</button>
                         @if(($search ?? '') !== '')
-                            <a href="{{ route('waka.accounts') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Reset</a>
+                            <a href="{{ route('waka.accounts') }}" class="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition inline-flex items-center justify-center">Reset</a>
                         @endif
                     </form>
                 </div>
@@ -68,22 +68,22 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             <tr class="bg-sky-50/70">
-                                <td class="px-3 py-3"><input form="create-account" type="text" name="fullname" value="{{ old('fullname') }}" maxlength="100" required placeholder="Nama lengkap" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                                <td class="px-3 py-3"><input form="create-account" type="text" name="username" value="{{ old('username') }}" maxlength="50" required autocomplete="off" placeholder="Username" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                                <td class="px-3 py-3"><input form="create-account" type="email" name="email" value="{{ old('email') }}" maxlength="255" placeholder="nama@email.com" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                                <td class="px-3 py-3"><input form="create-account" type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="Min. 8 karakter" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                                <td class="px-3 py-3">
-                                    <select form="create-account" name="role_id" required data-account-role class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                                <td class="px-3 py-2.5"><input form="create-account" type="text" name="fullname" value="{{ old('fullname') }}" maxlength="100" required placeholder="Nama lengkap" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                                <td class="px-3 py-2.5"><input form="create-account" type="text" name="username" value="{{ old('username') }}" maxlength="50" required autocomplete="off" placeholder="Username" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                                <td class="px-3 py-2.5"><input form="create-account" type="email" name="email" value="{{ old('email') }}" maxlength="255" placeholder="nama@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                                <td class="px-3 py-2.5"><input form="create-account" type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="Min. 8 karakter" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                                <td class="px-3 py-2.5">
+                                    <select form="create-account" name="role_id" required data-account-role class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                         <option value="">Pilih role</option>
                                         @foreach([1 => 'Waka', 2 => 'Guru', 3 => 'Siswa', 4 => 'Kesiswaan', 6 => 'Orang Tua'] as $roleId => $roleName)
                                             <option value="{{ $roleId }}" @selected(old('role_id') == $roleId)>{{ $roleName }}</option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td class="px-3 py-3">
+                                <td class="px-3 py-2.5">
                                     <div class="space-y-1">
-                                        <input type="text" data-student-filter placeholder="🔍 Cari siswa..." disabled class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400">
-                                        <select form="create-account" name="student_id" data-student-link required disabled class="w-full min-w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-100">
+                                        <input type="text" data-student-filter placeholder="🔍 Cari siswa..." disabled class="h-7 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400">
+                                        <select form="create-account" name="student_id" data-student-link required disabled class="h-9 w-full min-w-56 rounded-lg border border-slate-300 bg-white px-2.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                             <option value="">Pilih siswa</option>
                                             @foreach($siswas as $siswa)
                                                 <option value="{{ $siswa->id }}" data-assigned-student="{{ $siswa->assigned_student_account_id ? '1' : '0' }}" @disabled($siswa->assigned_student_account_id && old('role_id') == 3)>{{ $siswa->name }} — {{ $siswa->kelas }}</option>
@@ -91,42 +91,43 @@
                                         </select>
                                     </div>
                                 </td>
-                                <td class="px-3 py-3">
-                                    <select form="create-account" name="class_ids[]" data-class-link multiple disabled class="h-24 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
+                                <td class="px-3 py-2.5">
+                                    <select form="create-account" name="class_ids[]" data-class-link multiple disabled class="h-20 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                         @foreach($schoolClasses as $schoolClass)
                                             <option value="{{ $schoolClass->id }}">{{ $schoolClass->name }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="mt-1 text-xs text-slate-500">Pilih kelas jika ditugaskan sebagai wali kelas.</p>
+                                    <p class="mt-1 text-[11px] text-slate-500">Pilih kelas jika ditugaskan sebagai wali kelas.</p>
                                 </td>
-                                <td class="px-3 py-3">
-                                    <select form="create-account" name="bk_class_ids[]" data-bk-class-link multiple disabled class="h-24 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
+                                <td class="px-3 py-2.5">
+                                    <select form="create-account" name="bk_class_ids[]" data-bk-class-link multiple disabled class="h-20 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                         @foreach($schoolClasses as $schoolClass)
                                             <option value="{{ $schoolClass->id }}">{{ $schoolClass->name }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="mt-1 text-xs text-slate-500">Pilih kelas jika ditugaskan sebagai guru BK.</p>
+                                    <p class="mt-1 text-[11px] text-slate-500">Pilih kelas jika ditugaskan sebagai guru BK.</p>
                                 </td>
-                                <td class="px-3 py-3"><button form="create-account" type="submit" class="whitespace-nowrap rounded-lg bg-sky-600 px-4 py-2 font-semibold text-white transition hover:bg-sky-700">Tambah Akun</button></td>
+                                <td class="px-3 py-2.5 text-slate-400 text-xs">Aktif</td>
+                                <td class="px-3 py-2.5"><button form="create-account" type="submit" class="h-9 whitespace-nowrap rounded-lg bg-sky-600 px-4 text-xs font-semibold text-white transition hover:bg-sky-700 inline-flex items-center justify-center shadow-sm">Tambah Akun</button></td>
                             </tr>
 
                             @forelse($accounts as $account)
-                                <tr class="align-middle hover:bg-slate-50" data-account-row>
-                                    <td class="px-3 py-3"><input form="update-account-{{ $account->id }}" data-editable readonly type="text" name="fullname" value="{{ $account->fullname }}" maxlength="100" required class="w-full rounded-lg border border-slate-300 px-3 py-2 read-only:bg-slate-100"></td>
-                                    <td class="px-3 py-3"><input form="update-account-{{ $account->id }}" data-editable readonly type="text" name="username" value="{{ $account->username }}" maxlength="50" required autocomplete="off" class="w-full rounded-lg border border-slate-300 px-3 py-2 read-only:bg-slate-100"></td>
-                                    <td class="px-3 py-3"><input form="update-account-{{ $account->id }}" data-editable readonly type="email" name="email" value="{{ $account->email }}" maxlength="255" placeholder="nama@email.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 read-only:bg-slate-100"></td>
-                                    <td class="px-3 py-3"><input form="update-account-{{ $account->id }}" data-editable disabled type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Tidak diubah" class="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100"></td>
-                                    <td class="px-3 py-3">
-                                        <select form="update-account-{{ $account->id }}" name="role_id" required data-editable data-account-role disabled class="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
+                                <tr class="align-middle hover:bg-slate-50 transition" data-account-row>
+                                    <td class="px-3 py-2.5"><input form="update-account-{{ $account->id }}" data-editable readonly type="text" name="fullname" value="{{ $account->fullname }}" maxlength="100" required class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none read-only:bg-slate-100"></td>
+                                    <td class="px-3 py-2.5"><input form="update-account-{{ $account->id }}" data-editable readonly type="text" name="username" value="{{ $account->username }}" maxlength="50" required autocomplete="off" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none read-only:bg-slate-100"></td>
+                                    <td class="px-3 py-2.5"><input form="update-account-{{ $account->id }}" data-editable readonly type="email" name="email" value="{{ $account->email }}" maxlength="255" placeholder="nama@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none read-only:bg-slate-100"></td>
+                                    <td class="px-3 py-2.5"><input form="update-account-{{ $account->id }}" data-editable disabled type="password" name="password" minlength="8" autocomplete="new-password" placeholder="Tidak diubah" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none disabled:bg-slate-100"></td>
+                                    <td class="px-3 py-2.5">
+                                        <select form="update-account-{{ $account->id }}" name="role_id" required data-editable data-account-role disabled class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                             @foreach([1 => 'Waka', 2 => 'Guru', 3 => 'Siswa', 4 => 'Kesiswaan', 6 => 'Orang Tua'] as $roleId => $roleName)
                                                 <option value="{{ $roleId }}" @selected((int) $account->role_id === $roleId || ((int) $account->role_id === 5 && $roleId === 2))>{{ $roleName }}</option>
                                             @endforeach
                                         </select>
                                     </td>
-                                    <td class="px-3 py-3">
+                                    <td class="px-3 py-2.5">
                                         <div class="space-y-1">
-                                            <input type="text" data-student-filter placeholder="🔍 Cari siswa..." disabled class="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400">
-                                            <select form="update-account-{{ $account->id }}" name="student_id" data-editable data-student-link required disabled class="w-full min-w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-100">
+                                            <input type="text" data-student-filter placeholder="🔍 Cari siswa..." disabled class="h-7 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400">
+                                            <select form="update-account-{{ $account->id }}" name="student_id" data-editable data-student-link required disabled class="h-9 w-full min-w-56 rounded-lg border border-slate-300 bg-white px-2.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                                 <option value="">Pilih siswa</option>
                                                 @foreach($siswas as $siswa)
                                                     <option value="{{ $siswa->id }}" data-assigned-student="{{ $siswa->assigned_student_account_id && (int) $siswa->assigned_student_account_id !== (int) $account->id ? '1' : '0' }}" @selected((int) $account->student_id === (int) $siswa->id) @disabled($siswa->assigned_student_account_id && (int) $siswa->assigned_student_account_id !== (int) $account->id && (int) $account->role_id === 3)>{{ $siswa->name }} — {{ $siswa->kelas }}</option>
@@ -134,7 +135,7 @@
                                             </select>
                                         </div>
                                     </td>
-                                    <td class="px-3 py-3">
+                                    <td class="px-3 py-2.5">
                                         @php
                                             $assignedWaliIds = $accountClassIds->get($account->id, []);
                                             $assignedWaliFlip = array_flip($assignedWaliIds);
@@ -149,14 +150,14 @@
                                                 @endforeach
                                             </div>
                                         @endif
-                                        <select form="update-account-{{ $account->id }}" name="class_ids[]" data-editable data-class-link multiple disabled class="h-24 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
+                                        <select form="update-account-{{ $account->id }}" name="class_ids[]" data-editable data-class-link multiple disabled class="h-20 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                             @foreach($schoolClasses as $schoolClass)
                                                 <option value="{{ $schoolClass->id }}" @selected(isset($assignedWaliFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                             @endforeach
                                         </select>
-                                        <p class="mt-1 text-xs text-slate-500">Penugasan opsional untuk guru.</p>
+                                        <p class="mt-1 text-[11px] text-slate-500">Penugasan opsional untuk guru.</p>
                                     </td>
-                                    <td class="px-3 py-3">
+                                    <td class="px-3 py-2.5">
                                         @php
                                             $assignedBkIds = $accountBkClassIds->get($account->id, []);
                                             $assignedBkFlip = array_flip($assignedBkIds);
@@ -171,15 +172,15 @@
                                                 @endforeach
                                             </div>
                                         @endif
-                                        <select form="update-account-{{ $account->id }}" name="bk_class_ids[]" data-editable data-bk-class-link multiple disabled class="h-24 w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
+                                        <select form="update-account-{{ $account->id }}" name="bk_class_ids[]" data-editable data-bk-class-link multiple disabled class="h-20 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                             @foreach($schoolClasses as $schoolClass)
                                                 <option value="{{ $schoolClass->id }}" @selected(isset($assignedBkFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                             @endforeach
                                         </select>
-                                        <p class="mt-1 text-xs text-slate-500">Penugasan BK opsional.</p>
+                                        <p class="mt-1 text-[11px] text-slate-500">Penugasan BK opsional.</p>
                                     </td>
-                                    <td class="px-3 py-3">
-                                        <select form="update-account-{{ $account->id }}" name="is_active" data-editable disabled class="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100">
+                                    <td class="px-3 py-2.5">
+                                        <select form="update-account-{{ $account->id }}" name="is_active" data-editable disabled class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs disabled:bg-slate-100 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                             <option value="1" @selected((bool) $account->is_active)>Aktif</option>
                                             <option value="0" @selected(! (bool) $account->is_active)>Tidak Aktif</option>
                                         </select>
@@ -189,23 +190,22 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="px-3 py-3">
-                                        <div class="flex flex-wrap gap-2">
-                                            <button type="button" data-edit-button class="rounded-lg bg-sky-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-sky-700">Ubah</button>
-                                            <button form="update-account-{{ $account->id }}" type="submit" data-save-button hidden class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700">Simpan</button>
-                                            <button type="button" data-cancel-button hidden class="rounded-lg bg-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-300">Batal</button>
+                                    <td class="px-3 py-2.5">
+                                        <div class="flex items-center gap-1.5">
+                                            {{-- Tombol Awal: Hanya Ubah & Hapus --}}
+                                            <button type="button" data-edit-button class="h-9 rounded-lg bg-sky-600 px-3 text-xs font-semibold text-white transition hover:bg-sky-700 inline-flex items-center justify-center">Ubah</button>
                                             @if((int) $account->id !== (int) $user->getKey())
-                                                <form method="POST" action="{{ route('waka.accounts.reset_password', $account->id) }}" onsubmit="return confirm('Reset sandi akun {{ $account->username }} ke sandi bawaan? Pengguna wajib mengganti sandi saat login berikutnya.')">
-                                                    @csrf
-                                                    <button type="submit" class="rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-600 shadow-sm" title="Reset ke Sandi Bawaan">Reset Sandi</button>
-                                                </form>
-                                                <form method="POST" action="{{ route('waka.accounts.destroy', $account->id) }}" onsubmit="return confirm('Yakin ingin menghapus akun {{ $account->username }}?')">
+                                                <form method="POST" action="{{ route('waka.accounts.destroy', $account->id) }}" onsubmit="return confirm('Yakin ingin menghapus akun {{ $account->username }}?')" class="inline" data-delete-form>
                                                     @csrf @method('DELETE')
-                                                    <button type="submit" class="rounded-lg bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-200">Hapus</button>
+                                                    <button type="submit" class="h-9 rounded-lg bg-rose-100 px-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-200 inline-flex items-center justify-center">Hapus</button>
                                                 </form>
                                             @else
-                                                <span class="self-center text-xs text-slate-400">Akun Anda</span>
+                                                <span class="self-center text-xs text-slate-400" data-self-label>Akun Anda</span>
                                             @endif
+
+                                            {{-- Tombol Saat Ubah: Hanya Simpan & Batal (Awalnya tersembunyi) --}}
+                                            <button form="update-account-{{ $account->id }}" type="submit" data-save-button hidden style="display: none;" class="h-9 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white transition hover:bg-emerald-700 items-center justify-center">Simpan</button>
+                                            <button type="button" data-cancel-button hidden style="display: none;" class="h-9 rounded-lg bg-slate-200 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-300 items-center justify-center">Batal</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -249,6 +249,36 @@
             const editButton = row.querySelector('[data-edit-button]');
             const saveButton = row.querySelector('[data-save-button]');
             const cancelButton = row.querySelector('[data-cancel-button]');
+            const deleteForm = row.querySelector('[data-delete-form]');
+            const selfLabel = row.querySelector('[data-self-label]');
+
+            // Snapshot nilai awal untuk reset saat tombol Batal diklik
+            const snapshotInitialValues = () => {
+                editableFields.forEach((field) => {
+                    if (field.matches('select[multiple]')) {
+                        field._initialSelected = Array.from(field.options).map(o => ({ value: o.value, selected: o.selected }));
+                    } else {
+                        field._initialValue = field.value;
+                    }
+                });
+            };
+
+            const restoreInitialValues = () => {
+                editableFields.forEach((field) => {
+                    if (field.matches('select[multiple]')) {
+                        if (field._initialSelected) {
+                            field._initialSelected.forEach(item => {
+                                const opt = Array.from(field.options).find(o => o.value === item.value);
+                                if (opt) opt.selected = item.selected;
+                            });
+                        }
+                    } else if (field._initialValue !== undefined) {
+                        field.value = field._initialValue;
+                    }
+                });
+            };
+
+            snapshotInitialValues();
 
             const setEditing = (isEditing) => {
                 editableFields.forEach((field) => {
@@ -277,13 +307,30 @@
                     bkClassSelect.disabled = !isEditing || !isTeacherOrKesiswaan;
                     bkClassSelect.required = false;
                 }
-                editButton.hidden = isEditing;
-                saveButton.hidden = !isEditing;
-                cancelButton.hidden = !isEditing;
+
+                if (isEditing) {
+                    editButton.style.display = 'none';
+                    if (deleteForm) deleteForm.style.display = 'none';
+                    if (selfLabel) selfLabel.style.display = 'none';
+                    saveButton.style.display = 'inline-flex';
+                    cancelButton.style.display = 'inline-flex';
+                } else {
+                    editButton.style.display = 'inline-flex';
+                    if (deleteForm) deleteForm.style.display = 'inline';
+                    if (selfLabel) selfLabel.style.display = 'inline';
+                    saveButton.style.display = 'none';
+                    cancelButton.style.display = 'none';
+                }
             };
 
-            editButton.addEventListener('click', () => setEditing(true));
-            cancelButton.addEventListener('click', () => window.location.reload());
+            editButton.addEventListener('click', () => {
+                snapshotInitialValues();
+                setEditing(true);
+            });
+            cancelButton.addEventListener('click', () => {
+                restoreInitialValues();
+                setEditing(false);
+            });
             roleSelect.addEventListener('change', () => {
                 const isStudentOrParent = roleSelect.value === '3' || roleSelect.value === '6';
                 studentSelect.disabled = roleSelect.disabled || !isStudentOrParent;

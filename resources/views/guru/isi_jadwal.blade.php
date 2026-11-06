@@ -56,6 +56,7 @@
                                 <th class="px-4 py-3">Mata Pelajaran</th>
                                 <th class="px-4 py-3">Waktu Mengajar</th>
                                 <th class="px-4 py-3">Kelas</th>
+                                <th class="px-4 py-3">Ruangan</th>
                                 <th class="px-4 py-3">Putaran</th>
                                 <th class="px-4 py-3">Jenis</th>
                             </tr>
@@ -67,6 +68,15 @@
                                 <td class="px-4 py-3 font-medium text-slate-700">{{ $j->subject }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ \App\Support\SchoolTimetable::labelFor($j->day_of_week, $j->start_time, $j->end_time) ?? 'Waktu tersimpan' }} · {{ substr($j->start_time,0,5) }} - {{ substr($j->end_time,0,5) }}</td>
                                 <td class="px-4 py-3 font-semibold text-indigo-700">{{ $j->class_name ?? $j->class_id ?? '-' }}</td>
+                                <td class="px-4 py-3 font-medium text-slate-700">
+                                    @if(!empty($j->nama_ruangan))
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            {{ $j->nama_ruangan }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 italic text-xs">-</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3">Putaran {{ $j->cycle_number }}</td>
                                 <td class="px-4 py-3">
                                     <span class="rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1 text-xs font-bold">{{ $j->cycle_type }}</span>
@@ -74,7 +84,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-slate-400 italic">Belum ada jadwal tersimpan untuk putaran ini.</td>
+                                <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">Belum ada jadwal tersimpan untuk putaran ini.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -103,7 +113,7 @@
                             <tbody id="jadwal-tbody" class="divide-y divide-slate-100">
                                 <tr class="jadwal-row">
                                     <td class="px-3 py-4">
-                                        <select name="day_of_week[]" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white outline-none">
+                                        <select name="day_of_week[]" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none">
                                             <option>Senin</option>
                                             <option>Selasa</option>
                                             <option>Rabu</option>
@@ -112,19 +122,19 @@
                                         </select>
                                     </td>
                                     <td class="px-3 py-4">
-                                        <input type="text" name="subject[]" placeholder="Mata pelajaran" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white outline-none" required>
+                                        <input type="text" name="subject[]" placeholder="Mata pelajaran" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none" required>
                                     </td>
                                     <td class="px-3 py-4">
-                                        <input type="time" name="start_time[]" value="07:30" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white outline-none" required>
+                                        <input type="time" name="start_time[]" value="07:30" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none" required>
                                     </td>
                                     <td class="px-3 py-4">
-                                        <input type="time" name="end_time[]" value="09:00" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white outline-none" required>
+                                        <input type="time" name="end_time[]" value="09:00" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none" required>
                                     </td>
                                     <td class="px-3 py-4">
-                                        <input type="number" name="class_id[]" min="1" placeholder="ID kelas" class="w-28 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white outline-none">
+                                        <input type="number" name="class_id[]" min="1" placeholder="ID kelas" class="h-9 w-28 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none">
                                     </td>
                                     <td class="px-3 py-4">
-                                        <select name="cycle_type[]" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-indigo-500 focus:bg-white outline-none">
+                                        <select name="cycle_type[]" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none">
                                             <option value="Normada">Normada</option>
                                             <option value="Jurusan">Jurusan</option>
                                         </select>
@@ -134,10 +144,10 @@
                         </table>
                     </div>
                     <div class="mt-5 flex justify-end gap-3">
-                        <button type="button" id="btn-tambah" onclick="addRow()" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition active:scale-95">
+                        <button type="button" id="btn-tambah" onclick="addRow()" class="h-10 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition active:scale-95 shadow-xs">
                             + Tambah baris
                         </button>
-                        <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-md hover:shadow-lg active:scale-95">
+                        <button type="submit" class="h-10 inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-500 transition shadow-xs hover:shadow active:scale-95">
                             Simpan Jadwal ke Database
                         </button>
                     </div>
@@ -154,24 +164,24 @@
             tr.className = 'jadwal-row';
             tr.innerHTML = `
                 <td class="px-3 py-4">
-                    <select name="day_of_week[]" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none">
+                    <select name="day_of_week[]" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none">
                         <option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option>
                     </select>
                 </td>
                 <td class="px-3 py-4">
-                    <input type="text" name="subject[]" placeholder="Mata pelajaran" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none" required>
+                    <input type="text" name="subject[]" placeholder="Mata pelajaran" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none" required>
                 </td>
                 <td class="px-3 py-4">
-                    <input type="time" name="start_time[]" value="07:30" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none" required>
+                    <input type="time" name="start_time[]" value="07:30" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none" required>
                 </td>
                 <td class="px-3 py-4">
-                    <input type="time" name="end_time[]" value="09:00" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none" required>
+                    <input type="time" name="end_time[]" value="09:00" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none" required>
                 </td>
                 <td class="px-3 py-4">
-                    <input type="number" name="class_id[]" min="1" placeholder="ID kelas" class="w-28 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none">
+                    <input type="number" name="class_id[]" min="1" placeholder="ID kelas" class="h-9 w-28 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none">
                 </td>
                 <td class="px-3 py-4">
-                    <select name="cycle_type[]" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none">
+                    <select name="cycle_type[]" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-indigo-500 outline-none">
                         <option value="Normada">Normada</option>
                         <option value="Jurusan">Jurusan</option>
                     </select>

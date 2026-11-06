@@ -30,20 +30,26 @@
             </div>
         </div>
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <form method="GET" action="{{ route('waka.laporan') }}" class="flex flex-col gap-4 sm:flex-row sm:items-end flex-wrap">
-                <label class="text-sm font-semibold text-slate-700 w-full sm:w-auto">Periode laporan
-                    <select name="period" class="mt-1 block w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2">
+                <div>
+                    <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">Periode laporan</label>
+                    <select name="period" class="h-10 w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
                         <option value="hari" @selected($period === 'hari')>Per hari</option>
                         <option value="minggu" @selected($period === 'minggu')>Per minggu</option>
                         <option value="bulan" @selected($period === 'bulan')>Per bulan</option>
                     </select>
-                </label>
-                <label class="text-sm font-semibold text-slate-700 w-full sm:w-auto">Pilih tanggal
-                    <input type="date" name="date" value="{{ $referenceDate->toDateString() }}" min="{{ today()->toDateString() }}" class="mt-1 block w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2">
-                </label>
-                <button type="submit" class="w-full sm:w-auto rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500">Tampilkan</button>
-                <p class="text-sm text-slate-500 sm:ml-auto">Rentang: <span class="font-semibold text-slate-700">{{ $reportStart->format("d/m/Y") }} - {{ $reportEnd->format("d/m/Y") }}</span></p>
+                </div>
+                <div>
+                    <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600">Pilih tanggal</label>
+                    <input type="date" name="date" value="{{ $referenceDate->toDateString() }}" class="h-10 w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
+                </div>
+                <div>
+                    <button type="submit" class="h-10 w-full sm:w-auto rounded-lg bg-sky-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 transition inline-flex items-center justify-center">Tampilkan</button>
+                </div>
+                <div class="sm:ml-auto flex items-center h-10">
+                    <p class="text-sm text-slate-500">Rentang: <span class="font-semibold text-slate-700">{{ $reportStart->format("d/m/Y") }} - {{ $reportEnd->format("d/m/Y") }}</span></p>
+                </div>
             </form>
         </section>
 

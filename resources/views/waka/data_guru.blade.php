@@ -51,11 +51,11 @@
                 <h3 class="text-xl font-bold text-slate-800">Daftar Guru</h3>
                 <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ $gurus->count() }}</span> guru{{ $search !== '' ? ' untuk pencarian "' . $search . '"' : '' }}</p>
             </div>
-            <form method="GET" action="{{ route('waka.guru') }}" class="flex gap-2">
-                <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, username, NIP, HP, mapel..." class="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Cari</button>
+            <form method="GET" action="{{ route('waka.guru') }}" class="flex items-center gap-2">
+                <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, username, NIP, HP, mapel..." class="h-10 w-64 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
+                <button type="submit" class="h-10 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-700 transition inline-flex items-center justify-center shadow-sm">Cari</button>
                 @if($search !== '')
-                    <a href="{{ route('waka.guru') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700">Reset</a>
+                    <a href="{{ route('waka.guru') }}" class="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition inline-flex items-center justify-center">Reset</a>
                 @endif
             </form>
         </div>
@@ -86,51 +86,51 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <tr class="bg-sky-50/70">
-                        <td class="px-3 py-3 text-slate-400">+</td>
-                        <td class="px-3 py-3"><input form="create-teacher" name="fullname" required maxlength="100" placeholder="Nama lengkap" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-teacher" name="username" required maxlength="50" placeholder="Username" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3 text-slate-400">Diatur melalui jadwal</td>
-                        <td class="px-3 py-3"><input form="create-teacher" name="nip" maxlength="30" placeholder="NIP" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-teacher" type="tel" name="phone" maxlength="20" placeholder="Nomor HP" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-teacher" type="email" name="email" maxlength="255" placeholder="nama@email.com" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-teacher" type="password" name="password" required minlength="8" placeholder="Min. 8 karakter" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
-                            <select form="create-teacher" name="class_ids[]" multiple class="h-24 w-full min-w-40 rounded-lg border border-slate-300 px-3 py-2 text-xs" aria-label="Penugasan wali kelas">
+                        <td class="px-3 py-2.5 text-slate-400 font-bold">+</td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" name="fullname" required maxlength="100" placeholder="Nama lengkap" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" name="username" required maxlength="50" placeholder="Username" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5 text-slate-400 text-xs">Diatur melalui jadwal</td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" name="nip" maxlength="30" placeholder="NIP" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" type="tel" name="phone" maxlength="20" placeholder="Nomor HP" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" type="email" name="email" maxlength="255" placeholder="nama@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" type="password" name="password" required minlength="8" placeholder="Min. 8 karakter" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
+                            <select form="create-teacher" name="class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none" aria-label="Penugasan wali kelas">
                                 @foreach($schoolClasses as $schoolClass)
                                     <option value="{{ $schoolClass->id }}">{{ $schoolClass->name }}</option>
                                 @endforeach
                             </select>
-                            <span class="text-xs text-slate-500">Opsional, pilih kelas.</span>
+                            <span class="text-[11px] text-slate-500 mt-1 block">Opsional, pilih kelas.</span>
                         </td>
-                        <td class="px-3 py-3">
-                            <select form="create-teacher" name="bk_class_ids[]" multiple class="h-24 w-full min-w-40 rounded-lg border border-slate-300 px-3 py-2 text-xs" aria-label="Penugasan guru BK">
+                        <td class="px-3 py-2.5">
+                            <select form="create-teacher" name="bk_class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none" aria-label="Penugasan guru BK">
                                 @foreach($schoolClasses as $schoolClass)
                                     <option value="{{ $schoolClass->id }}">{{ $schoolClass->name }}</option>
                                 @endforeach
                             </select>
-                            <span class="text-xs text-slate-500">Opsional, kelas BK.</span>
+                            <span class="text-[11px] text-slate-500 mt-1 block">Opsional, kelas BK.</span>
                         </td>
-                        <td class="px-3 py-3"><input form="create-teacher" type="number" name="class_id" min="1" placeholder="Opsional" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><button form="create-teacher" type="submit" class="whitespace-nowrap rounded-lg bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700">Tambah Guru</button></td>
+                        <td class="px-3 py-2.5"><input form="create-teacher" type="number" name="class_id" min="1" placeholder="Opsional" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><button form="create-teacher" type="submit" class="h-9 whitespace-nowrap rounded-lg bg-sky-600 px-4 text-xs font-semibold text-white hover:bg-sky-700 transition inline-flex items-center justify-center shadow-sm">Tambah Guru</button></td>
                     </tr>
                     @forelse($gurus as $i => $g)
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="px-4 py-3.5 text-slate-400 font-mono text-xs">{{ $i + 1 }}</td>
-                        <td class="px-3 py-3"><input form="update-teacher-{{ $g->id }}" name="fullname" required maxlength="100" value="{{ $g->fullname }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
-                            <input form="update-teacher-{{ $g->id }}" name="username" required maxlength="50" value="{{ $g->username }}" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                        <td class="px-4 py-2.5 text-slate-400 font-mono text-xs">{{ $i + 1 }}</td>
+                        <td class="px-3 py-2.5"><input form="update-teacher-{{ $g->id }}" name="fullname" required maxlength="100" value="{{ $g->fullname }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
+                            <input form="update-teacher-{{ $g->id }}" name="username" required maxlength="50" value="{{ $g->username }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                             @if((int)($g->role_id ?? 0) === 4)
                                 <div class="mt-1">
                                     <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200">Kesiswaan</span>
                                 </div>
                             @endif
                         </td>
-                        <td class="px-3 py-3">{{ $g->subjects !== '' ? $g->subjects : '-' }}</td>
-                        <td class="px-3 py-3"><input form="update-teacher-{{ $g->id }}" name="nip" maxlength="30" value="{{ $g->nip }}" placeholder="NIP" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="update-teacher-{{ $g->id }}" type="tel" name="phone" maxlength="20" value="{{ $g->phone }}" placeholder="Nomor HP" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="update-teacher-{{ $g->id }}" type="email" name="email" maxlength="255" value="{{ $g->email }}" placeholder="nama@email.com" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="update-teacher-{{ $g->id }}" type="password" name="password" minlength="8" placeholder="Tidak diubah" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
+                        <td class="px-3 py-2.5 text-xs text-slate-700">{{ $g->subjects !== '' ? $g->subjects : '-' }}</td>
+                        <td class="px-3 py-2.5"><input form="update-teacher-{{ $g->id }}" name="nip" maxlength="30" value="{{ $g->nip }}" placeholder="NIP" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-teacher-{{ $g->id }}" type="tel" name="phone" maxlength="20" value="{{ $g->phone }}" placeholder="Nomor HP" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-teacher-{{ $g->id }}" type="email" name="email" maxlength="255" value="{{ $g->email }}" placeholder="nama@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-teacher-{{ $g->id }}" type="password" name="password" minlength="8" placeholder="Tidak diubah" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
                             @php
                                 $assignedWaliIds = $teacherClassIds->get($g->id, []);
                                 $assignedWaliFlip = array_flip($assignedWaliIds);
@@ -145,13 +145,13 @@
                                     @endforeach
                                 </div>
                             @endif
-                            <select form="update-teacher-{{ $g->id }}" name="class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" aria-label="Penugasan wali kelas {{ $g->fullname }}">
+                            <select form="update-teacher-{{ $g->id }}" name="class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none" aria-label="Penugasan wali kelas {{ $g->fullname }}">
                                 @foreach($schoolClasses as $schoolClass)
                                     <option value="{{ $schoolClass->id }}" @selected(isset($assignedWaliFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                 @endforeach
                             </select>
                         </td>
-                        <td class="px-3 py-3">
+                        <td class="px-3 py-2.5">
                             @php
                                 $assignedBkIds = $teacherBkClassIds->get($g->id, []);
                                 $assignedBkFlip = array_flip($assignedBkIds);
@@ -166,19 +166,19 @@
                                     @endforeach
                                 </div>
                             @endif
-                            <select form="update-teacher-{{ $g->id }}" name="bk_class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs" aria-label="Penugasan guru BK {{ $g->fullname }}">
+                            <select form="update-teacher-{{ $g->id }}" name="bk_class_ids[]" multiple class="h-20 w-full min-w-40 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none" aria-label="Penugasan guru BK {{ $g->fullname }}">
                                 @foreach($schoolClasses as $schoolClass)
                                     <option value="{{ $schoolClass->id }}" @selected(isset($assignedBkFlip[$schoolClass->id]))>{{ $schoolClass->name }}</option>
                                 @endforeach
                             </select>
                         </td>
-                        <td class="px-3 py-3"><input form="update-teacher-{{ $g->id }}" type="number" name="class_id" min="1" value="{{ $g->class_id }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
-                            <div class="flex gap-2">
-                                <button form="update-teacher-{{ $g->id }}" type="submit" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">Simpan</button>
+                        <td class="px-3 py-2.5"><input form="update-teacher-{{ $g->id }}" type="number" name="class_id" min="1" value="{{ $g->class_id }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
+                            <div class="flex items-center gap-1.5">
+                                <button form="update-teacher-{{ $g->id }}" type="submit" class="h-9 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 transition inline-flex items-center justify-center">Simpan</button>
                                 <form method="POST" action="{{ route('waka.guru.destroy', $g->id) }}" onsubmit="return confirm('Hapus akun guru {{ $g->fullname }}?')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="rounded-lg bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-200">Hapus</button>
+                                    <button type="submit" class="h-9 rounded-lg bg-rose-100 px-3 text-xs font-semibold text-rose-700 hover:bg-rose-200 transition inline-flex items-center justify-center">Hapus</button>
                                 </form>
                             </div>
                         </td>

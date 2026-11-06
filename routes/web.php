@@ -713,6 +713,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 DB::table('siswas')->where('id', $user->student_id)->update([
                     'nis' => $validated['nis'] ?? null,
                     'phone' => $validated['phone'] ?? null,
+                    'email' => isset($validated['email']) ? strtolower($validated['email']) : null,
                     'updated_at' => now(),
                 ]);
             }
@@ -890,11 +891,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
     $downloadStudentWorkbook = function (array $rows, string $filename) {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->fromArray(['Nama', 'NIS', 'Kelas', 'Jurusan', 'No HP', 'Alamat'], null, 'A1');
+        $sheet->fromArray(['Nama', 'NIS', 'Kelas', 'Jurusan', 'No HP', 'Email', 'Alamat'], null, 'A1');
         if ($rows !== []) {
             $sheet->fromArray($rows, null, 'A2');
         }
-        foreach (range('A', 'F') as $column) {
+        foreach (range('A', 'G') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
@@ -915,11 +916,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
 
         return $downloadStudentWorkbook([
-            ['Dinda Safitri', 'IMP26001', 'X RPL 1', 'RPL', '081200000001', 'Jl. Melati No. 1'],
-            ['Rizky Maulana', 'IMP26002', 'X TKJ 1', 'TKJ', '081200000002', 'Jl. Kenanga No. 2'],
-            ['Aulia Rahma', 'IMP26003', 'XI DKV 1', 'DKV', '081200000003', 'Jl. Mawar No. 3'],
-            ['Fajar Ramadhan', 'IMP26004', 'XI AKL 1', 'AKL', '081200000004', 'Jl. Anggrek No. 4'],
-            ['Nabila Putri', 'IMP26005', 'XII MP 1', 'MP', '081200000005', 'Jl. Cempaka No. 5'],
+            ['Dinda Safitri', 'IMP26001', 'X RPL 1', 'RPL', '081200000001', '', 'Jl. Melati No. 1'],
+            ['Rizky Maulana', 'IMP26002', 'X TKJ 1', 'TKJ', '081200000002', '', 'Jl. Kenanga No. 2'],
+            ['Aulia Rahma', 'IMP26003', 'XI DKV 1', 'DKV', '081200000003', '', 'Jl. Mawar No. 3'],
+            ['Fajar Ramadhan', 'IMP26004', 'XI AKL 1', 'AKL', '081200000004', '', 'Jl. Anggrek No. 4'],
+            ['Nabila Putri', 'IMP26005', 'XII MP 1', 'MP', '081200000005', '', 'Jl. Cempaka No. 5'],
         ], 'contoh_import_siswa_5_data.xlsx');
     })->name('waka.siswa.example');
 
@@ -941,7 +942,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                     ->orWhere('jurusan', 'like', "%{$search}%")
                     ->orWhere('alamat', 'like', "%{$search}%")
                     ->orWhere('nis', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
         if (! empty($filters['jurusan'])) {
@@ -1048,6 +1050,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'no_hp' => 'phone',
             'nomor hp' => 'phone',
             'phone' => 'phone',
+            'email' => 'email',
+            'email pemulihan' => 'email',
         ];
 
         $firstSheet = $spreadsheet->getSheet(0);
@@ -1101,7 +1105,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 }
 
                 $student = [];
-                foreach (['name', 'nis', 'kelas', 'jurusan', 'alamat', 'phone'] as $field) {
+                foreach (['name', 'nis', 'kelas', 'jurusan', 'alamat', 'phone', 'email'] as $field) {
                     $value = isset($columnIndexes[$field]) ? ($row[$columnIndexes[$field]] ?? null) : null;
                     $student[$field] = is_scalar($value) ? trim((string) $value) : '';
                     if ($student[$field] === '') {
@@ -1120,6 +1124,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                     'jurusan' => ['required', 'string', Rule::in(['RPL', 'TKJ', 'DKV', 'AKL', 'MP', 'BR', 'BD', 'LPS'])],
                     'alamat' => ['required', 'string', 'max:2000'],
                     'phone' => ['nullable', 'string', 'max:20'],
+                    'email' => ['nullable', 'string', 'max:255'],
                 ]);
                 if ($student['nis'] !== null && isset($seenNis[$student['nis']])) {
                     $validator->errors()->add('nis', 'NIS duplikat di dalam file.');
@@ -1233,6 +1238,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                             'jurusan' => $currentJurusan,
                             'alamat' => 'Bantul',
                             'phone' => null,
+                            'email' => null,
                         ];
                     }
                 }
@@ -1256,6 +1262,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                             'jurusan' => $student['jurusan'],
                             'alamat' => $student['alamat'],
                             'phone' => $student['phone'] ?? $existing->phone,
+                            'email' => $student['email'] ?? $existing->email,
                             'updated_at' => now(),
                         ]);
                         continue;
@@ -1287,7 +1294,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'alamat' => ['required', 'string', 'max:2000'],
             'nis' => ['nullable', 'string', 'max:30', 'unique:siswas,nis'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'string', 'max:255'],
         ]);
+        if (isset($data['email'])) {
+            $data['email'] = strtolower(trim($data['email'])) ?: null;
+        }
         DB::table('siswas')->insert([...$data, 'created_at' => now(), 'updated_at' => now()]);
 
         return redirect()->route('waka.siswa')->with('success', 'Data siswa berhasil ditambahkan.');
@@ -1303,8 +1314,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'alamat' => ['required', 'string', 'max:2000'],
             'nis' => ['nullable', 'string', 'max:30', Rule::unique('siswas', 'nis')->ignore($id)],
             'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'string', 'max:255'],
         ]);
+        if (isset($data['email'])) {
+            $data['email'] = strtolower(trim($data['email'])) ?: null;
+        }
         DB::table('siswas')->where('id', $id)->update([...$data, 'updated_at' => now()]);
+        if (array_key_exists('email', $data)) {
+            DB::table('users')->where('student_id', $id)->where('role_id', 3)->update(['email' => $data['email']]);
+        }
 
         return redirect()->route('waka.siswa')->with('success', 'Data siswa berhasil diperbarui.');
     })->name('waka.siswa.update');
@@ -2243,14 +2261,23 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
 
         $accounts = $query->paginate(25)->withQueryString();
+        $assignedCounts = DB::table('users')
+            ->where('role_id', 3)
+            ->whereNotNull('student_id')
+            ->select('student_id', DB::raw('count(*) as count'))
+            ->groupBy('student_id')
+            ->pluck('count', 'student_id');
+
         $siswas = DB::table('siswas')
-            ->leftJoin('users as assigned_users', function ($join) {
-                $join->on('siswas.id', '=', 'assigned_users.student_id')
-                    ->where('assigned_users.role_id', '=', 3);
-            })
-            ->select('siswas.id', 'siswas.name', 'siswas.kelas', 'assigned_users.id as assigned_student_account_id')
+            ->select('siswas.id', 'siswas.name', 'siswas.kelas')
             ->orderBy('siswas.name')
-            ->get();
+            ->get()
+            ->map(function ($s) use ($assignedCounts) {
+                $count = (int) ($assignedCounts->get($s->id, 0));
+                $s->assigned_student_account_id = $count >= 2 ? 1 : 0;
+                $s->account_count = $count;
+                return $s;
+            });
         $schoolClasses = DB::table('school_classes')->orderBy('name')->get();
         $accountClassIds = DB::table('user_school_classes')
             ->get()
@@ -2290,7 +2317,25 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                     'required',
                     'integer',
                     'exists:siswas,id',
-                    Rule::unique('users', 'student_id')->where('role_id', 3),
+                    function ($attribute, $value, $fail) use ($data) {
+                        $username = strtolower(trim((string) ($data['username'] ?? '')));
+                        $isParentAccount = str_ends_with($username, 'p');
+
+                        $existing = DB::table('users')
+                            ->where('student_id', $value)
+                            ->where('role_id', 3)
+                            ->pluck('username');
+
+                        if ($isParentAccount) {
+                            if ($existing->contains(fn ($u) => str_ends_with(strtolower($u), 'p'))) {
+                                $fail('Akun orang tua untuk siswa ini sudah ada.');
+                            }
+                        } else {
+                            if ($existing->contains(fn ($u) => ! str_ends_with(strtolower($u), 'p'))) {
+                                $fail('Akun siswa untuk siswa ini sudah terdaftar.');
+                            }
+                        }
+                    },
                 ]
                 : ((int) $data['role_id'] === 6
                     ? ['required', 'integer', 'exists:siswas,id']
@@ -2376,7 +2421,26 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                     'required',
                     'integer',
                     'exists:siswas,id',
-                    Rule::unique('users', 'student_id')->where('role_id', 3)->ignore($id),
+                    function ($attribute, $value, $fail) use ($data, $id) {
+                        $username = strtolower(trim((string) ($data['username'] ?? '')));
+                        $isParentAccount = str_ends_with($username, 'p');
+
+                        $existing = DB::table('users')
+                            ->where('student_id', $value)
+                            ->where('role_id', 3)
+                            ->where('id', '!=', $id)
+                            ->pluck('username');
+
+                        if ($isParentAccount) {
+                            if ($existing->contains(fn ($u) => str_ends_with(strtolower($u), 'p'))) {
+                                $fail('Akun orang tua untuk siswa ini sudah ada.');
+                            }
+                        } else {
+                            if ($existing->contains(fn ($u) => ! str_ends_with(strtolower($u), 'p'))) {
+                                $fail('Akun siswa untuk siswa ini sudah terdaftar.');
+                            }
+                        }
+                    },
                 ]
                 : ((int) $data['role_id'] === 6
                     ? ['required', 'integer', 'exists:siswas,id']
@@ -3541,19 +3605,24 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $scheduleLocked = (bool) ($config->{$lockedColumn} ?? false);
         $jadwals = Schema::hasTable('schedules')
             ? DB::table('schedules')
-                ->where('teacher_id', $teacherId)
-                ->where('cycle_number', $activeCycle)
+                ->leftJoin('ruangan', 'schedules.room_id', '=', 'ruangan.id_ruangan')
+                ->select('schedules.*', 'ruangan.nama_ruangan', 'ruangan.jenis as room_type')
+                ->where('schedules.teacher_id', $teacherId)
+                ->where('schedules.cycle_number', $activeCycle)
                 ->where(function ($query) use ($currentAcademicYear) {
-                    $query->where('academic_year', $currentAcademicYear)->orWhereNull('academic_year');
+                    $query->where('schedules.academic_year', $currentAcademicYear)->orWhereNull('schedules.academic_year');
                 })
-                ->orderBy('day_of_week')
-                ->orderBy('start_time')
+                ->orderBy('schedules.day_of_week')
+                ->orderBy('schedules.start_time')
                 ->get()
             : collect();
+
+        $rooms = DB::table('ruangan')->orderBy('nama_ruangan')->get(['id_ruangan', 'nama_ruangan']);
 
         return view('guru.isi_jadwal', [
             'user' => Auth::user(),
             'jadwals' => $jadwals,
+            'rooms' => $rooms,
             'activeCycle' => $activeCycle,
             'scheduleLocked' => $scheduleLocked,
             'academicYear' => $currentAcademicYear,
@@ -4057,8 +4126,31 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return response()->json(['data' => $pendingRequests]);
     })->name('kesiswaan.izin.updates');
 
-    Route::patch('/kesiswaan/izin/{id}/approval', function () {
-        abort(403, 'Persetujuan izin hanya dapat dilakukan oleh Wali Kelas.');
+    Route::patch('/kesiswaan/izin/{id}/approval', function (Request $request, int $id) {
+        abort_unless(in_array((int) (Auth::user()->role_id ?? 0), [1, 4], true), 403);
+        $status = $request->validate([
+            'status_approval' => ['required', 'in:Approved,Rejected'],
+        ]);
+        $leave = DB::table('leave_requests')->where('id', $id)->first();
+        abort_if(! $leave, 404);
+
+        $updated = DB::table('leave_requests')
+            ->where('id', $id)
+            ->where('status_approval', 'Pending')
+            ->update([
+                'status_approval' => $status['status_approval'],
+                'verified_by' => Auth::user()->getKey(),
+                'updated_at' => now(),
+            ]);
+        abort_if($updated === 0, 409, 'Pengajuan izin ini sudah diproses.');
+
+        if ($status['status_approval'] === 'Approved') {
+            App\Http\Controllers\Api\AttendanceApiController::syncApprovedLeaves($leave->student_id);
+        }
+
+        $label = $status['status_approval'] === 'Approved' ? 'disetujui' : 'ditolak';
+
+        return redirect()->route('kesiswaan.izin')->with('success', "Pengajuan izin berhasil {$label}.");
     })->name('kesiswaan.izin.approval');
 
     Route::get('/wali-kelas/presensi', fn () => redirect()->route('guru.jurnal'))->name('wali-kelas.presensi');
@@ -4122,6 +4214,70 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
     Route::post('/wali-kelas/jurnal', fn () => redirect()->route('guru.jurnal'))->name('wali-kelas.jurnal.store');
     Route::patch('/wali-kelas/jurnal/{id}', fn () => redirect()->route('guru.jurnal'))->name('wali-kelas.jurnal.update');
 
-    Route::get('/wali-kelas/siswa', fn () => redirect()->route('dashboard.role', ['role' => 'guru']))->name('wali-kelas.siswa');
-    Route::post('/wali-kelas/siswa/{accountId}/reset-password', fn () => redirect()->route('dashboard.role', ['role' => 'guru']))->name('wali-kelas.siswa.reset_password');
+    Route::get('/wali-kelas/siswa', function (Request $request) use ($waliClassNames, $canManageWaliClasses) {
+        abort_unless($canManageWaliClasses((int) Auth::user()->getKey()), 403);
+        $classNames = $waliClassNames((int) Auth::user()->getKey());
+
+        $q = trim((string) $request->input('q', ''));
+        $query = DB::table('siswas')
+            ->leftJoin('users', 'siswas.id', '=', 'users.student_id')
+            ->whereIn('siswas.kelas', $classNames)
+            ->select(
+                'siswas.id',
+                'siswas.name',
+                'siswas.nis',
+                'siswas.kelas',
+                'users.id as account_id',
+                'users.username as account_username',
+                'users.email as account_email',
+                'users.is_active as account_active',
+                'users.must_change_password'
+            )
+            ->orderBy('siswas.name');
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('siswas.name', 'like', "%{$q}%")
+                    ->orWhere('siswas.nis', 'like', "%{$q}%")
+                    ->orWhere('users.username', 'like', "%{$q}%");
+            });
+        }
+
+        $students = $query->get();
+
+        return view('wali_kelas.siswa', [
+            'classNames' => $classNames,
+            'students' => $students,
+            'user' => Auth::user(),
+        ]);
+    })->name('wali-kelas.siswa');
+
+    Route::post('/wali-kelas/siswa/{accountId}/reset-password', function (Request $request, int $accountId) use ($waliClassNames, $canManageWaliClasses) {
+        abort_unless($canManageWaliClasses((int) Auth::user()->getKey()), 403);
+        $classNames = $waliClassNames((int) Auth::user()->getKey());
+
+        $studentAccount = User::where('id', $accountId)
+            ->where('role_id', 3)
+            ->firstOrFail();
+
+        $studentData = DB::table('siswas')
+            ->where('id', $studentAccount->student_id)
+            ->whereIn('kelas', $classNames)
+            ->first();
+
+        abort_unless($studentData !== null, 403, 'Siswa bukan bagian dari kelas yang Anda ampu.');
+
+        $defaultPassword = config('auth.default_student_password', 'siswa123');
+        $temporaryPassword = ($studentData && ! empty($studentData->nis)) ? $studentData->nis : $defaultPassword;
+        DB::table('users')->where('id', $studentAccount->id)->update([
+            'password' => Hash::make($temporaryPassword),
+            'must_change_password' => 1,
+            'password_reset_at' => now(),
+        ]);
+
+        return redirect()->route('wali-kelas.siswa')->with('reset_info', [
+            'message' => 'Kata sandi untuk ' . ($studentAccount->fullname ?: $studentAccount->username) . ' berhasil direset.',
+            'temporary_password' => $temporaryPassword,
+        ]);
+    })->name('wali-kelas.siswa.reset_password');
 });

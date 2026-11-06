@@ -17,6 +17,8 @@ class Siswa extends Model
         'kelas',
         'jurusan',
         'alamat',
+        'phone',
+        'email',
     ];
 
     public function attendances()

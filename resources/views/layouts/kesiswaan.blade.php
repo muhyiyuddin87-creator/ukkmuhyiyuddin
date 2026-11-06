@@ -79,6 +79,66 @@
         .table-scroll-container::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* Unified Form Controls */
+        .form-control-standard {
+            height: 40px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 0.75rem;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .form-control-standard:focus {
+            border-color: #d97706;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+        }
+
+        .table-input {
+            height: 36px;
+            font-size: 0.8125rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.375rem 0.625rem;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .table-input:focus {
+            border-color: #d97706;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+        }
+
+        .btn-standard {
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .btn-table {
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
     </style>
     @stack('styles')
 </head>
@@ -139,12 +199,6 @@
                         <span class="h-2 w-2 rounded-full {{ request()->routeIs('guru.jurnal*') ? 'bg-white' : 'bg-amber-400' }}"></span>
                         Isi Jurnal
                     </a>
-                    @if($hasTeachingSchedules)
-                    <a href="{{ route('guru.presensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.presensi*') ? 'bg-amber-600 font-semibold text-white shadow' : 'text-amber-100 hover:bg-amber-900 hover:text-white' }}">
-                        <span class="h-2 w-2 rounded-full {{ request()->routeIs('guru.presensi*') ? 'bg-white' : 'bg-amber-400' }}"></span>
-                        Presensi Siswa
-                    </a>
-                    @endif
 
                     @if($isBk)
                         <div class="pt-4 pb-1">

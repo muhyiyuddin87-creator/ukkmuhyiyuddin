@@ -56,36 +56,36 @@
                 <h3 class="text-xl font-bold text-slate-800">Daftar Siswa</h3>
                 <p class="mt-1 text-sm text-slate-500">Menampilkan <span class="font-bold text-sky-700">{{ method_exists($siswas, 'total') ? $siswas->total() : $siswas->count() }}</span> siswa{{ $search !== '' ? ' untuk pencarian "' . $search . '"' : '' }}</p>
             </div>
-            <form method="GET" action="{{ route('waka.siswa') }}" class="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
-                <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, NIS, nomor HP..." class="w-full sm:w-auto min-w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm">
-                <select name="jurusan" class="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <form method="GET" action="{{ route('waka.siswa') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full lg:w-auto items-stretch sm:items-center">
+                <input type="search" name="q" value="{{ $search }}" placeholder="Cari nama, NIS, nomor HP, email..." class="h-10 w-full sm:w-auto min-w-64 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
+                <select name="jurusan" class="h-10 w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
                     <option value="">Semua jurusan</option>
                     @foreach(['RPL', 'TKJ', 'DKV', 'AKL', 'MP', 'BR', 'BD', 'LPS'] as $jurusan)
                         <option value="{{ $jurusan }}" @selected($selectedJurusan === $jurusan)>{{ $jurusan }}</option>
                     @endforeach
                 </select>
-                <select name="tingkat" class="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <select name="tingkat" class="h-10 w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
                     <option value="">Semua tingkat</option>
                     @foreach(['X', 'XI', 'XII'] as $tingkat)
                         <option value="{{ $tingkat }}" @selected($selectedTingkat === $tingkat)>{{ $tingkat }}</option>
                     @endforeach
                 </select>
-                <select name="rombel" class="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <select name="rombel" class="h-10 w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
                     <option value="">Semua rombel</option>
                     @foreach(['1', '2', '3', '4'] as $rombel)
                         <option value="{{ $rombel }}" @selected(($selectedRombel ?? '') === $rombel)>Rombel {{ $rombel }}</option>
                     @endforeach
                 </select>
-                <select name="kelas" class="w-full sm:w-auto rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <select name="kelas" class="h-10 w-full sm:w-auto rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none">
                     <option value="">Semua kelas</option>
                     @foreach($availableClasses ?? [] as $c)
                         <option value="{{ $c->kelas }}" @selected(($selectedKelas ?? '') === $c->kelas)>{{ $c->kelas }}</option>
                     @endforeach
                 </select>
                 <div class="flex gap-2">
-                    <button type="submit" class="flex-1 sm:flex-none rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Tampilkan</button>
+                    <button type="submit" class="h-10 flex-1 sm:flex-none rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-700 transition inline-flex items-center justify-center shadow-sm">Tampilkan</button>
                     @if($search !== '' || $selectedJurusan !== '' || $selectedTingkat !== '' || ($selectedRombel ?? '') !== '' || ($selectedKelas ?? '') !== '')
-                        <a href="{{ route('waka.siswa') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 text-center">Reset</a>
+                        <a href="{{ route('waka.siswa') }}" class="h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition inline-flex items-center justify-center">Reset</a>
                     @endif
                 </div>
             </form>
@@ -103,13 +103,14 @@
             @php
                 $jurusanOptions = ['RPL', 'TKJ', 'DKV', 'AKL', 'MP', 'BR', 'BD', 'LPS'];
             @endphp
-            <table class="w-full min-w-[1250px] text-left text-sm">
+            <table class="w-full min-w-[1450px] text-left text-sm">
                 <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
                     <tr>
                         <th class="px-4 py-3 rounded-l-lg">#</th>
                         <th class="px-4 py-3">Nama Siswa</th>
                         <th class="px-4 py-3">NIS</th>
                         <th class="px-4 py-3">Nomor HP</th>
+                        <th class="px-4 py-3">Email Pemulihan</th>
                         <th class="px-4 py-3">Kelas</th>
                         <th class="px-4 py-3">Jurusan</th>
                         <th class="px-4 py-3">Alamat</th>
@@ -118,31 +119,33 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <tr class="bg-sky-50/70">
-                        <td class="px-3 py-3 text-slate-400">+</td>
-                        <td class="px-3 py-3"><input form="create-student" name="name" required maxlength="255" placeholder="Nama siswa" value="{{ old('name') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-student" name="nis" maxlength="30" placeholder="NIS" value="{{ old('nis') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-student" type="tel" name="phone" maxlength="20" placeholder="Nomor HP" value="{{ old('phone') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="create-student" name="kelas" list="school-class-list" required maxlength="255" placeholder="Kelas (misal: X RPL 1)" value="{{ old('kelas') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
-                            <select form="create-student" name="jurusan" required class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                        <td class="px-3 py-2.5 text-slate-400 font-bold">+</td>
+                        <td class="px-3 py-2.5"><input form="create-student" name="name" required maxlength="255" placeholder="Nama siswa" value="{{ old('name') }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-student" name="nis" maxlength="30" placeholder="NIS" value="{{ old('nis') }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-student" type="tel" name="phone" maxlength="20" placeholder="Nomor HP" value="{{ old('phone') }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-student" type="email" name="email" maxlength="255" placeholder="nama@email.com" value="{{ old('email') }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="create-student" name="kelas" list="school-class-list" required maxlength="255" placeholder="Kelas (misal: X RPL 1)" value="{{ old('kelas') }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
+                            <select form="create-student" name="jurusan" required class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                 <option value="">Pilih jurusan</option>
                                 @foreach($jurusanOptions as $jurusan)
                                     <option value="{{ $jurusan }}" @selected(old('jurusan') === $jurusan)>{{ $jurusan }}</option>
                                 @endforeach
                             </select>
                         </td>
-                        <td class="px-3 py-3"><input form="create-student" name="alamat" required maxlength="2000" placeholder="Alamat" value="{{ old('alamat') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><button form="create-student" type="submit" class="whitespace-nowrap rounded-lg bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-700">Tambah Siswa</button></td>
+                        <td class="px-3 py-2.5"><input form="create-student" name="alamat" required maxlength="2000" placeholder="Alamat" value="{{ old('alamat') }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><button form="create-student" type="submit" class="h-9 whitespace-nowrap rounded-lg bg-sky-600 px-4 text-xs font-semibold text-white hover:bg-sky-700 transition inline-flex items-center justify-center shadow-sm">Tambah Siswa</button></td>
                     </tr>
                     @forelse($siswas as $i => $s)
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="px-4 py-3.5 text-slate-400 font-mono text-xs">{{ $i + 1 }}</td>
-                        <td class="px-3 py-3"><input form="update-student-{{ $s->id }}" name="name" required maxlength="255" value="{{ $s->name }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="update-student-{{ $s->id }}" name="nis" maxlength="30" value="{{ $s->nis }}" placeholder="NIS" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="update-student-{{ $s->id }}" type="tel" name="phone" maxlength="20" value="{{ $s->phone }}" placeholder="Nomor HP" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3"><input form="update-student-{{ $s->id }}" name="kelas" list="school-class-list" required maxlength="255" value="{{ $s->kelas }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
-                            <select form="update-student-{{ $s->id }}" name="jurusan" required class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                        <td class="px-4 py-2.5 text-slate-400 font-mono text-xs">{{ $i + 1 }}</td>
+                        <td class="px-3 py-2.5"><input form="update-student-{{ $s->id }}" name="name" required maxlength="255" value="{{ $s->name }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-student-{{ $s->id }}" name="nis" maxlength="30" value="{{ $s->nis }}" placeholder="NIS" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-student-{{ $s->id }}" type="tel" name="phone" maxlength="20" value="{{ $s->phone }}" placeholder="Nomor HP" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-student-{{ $s->id }}" type="email" name="email" maxlength="255" value="{{ $s->email }}" placeholder="nama@email.com" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5"><input form="update-student-{{ $s->id }}" name="kelas" list="school-class-list" required maxlength="255" value="{{ $s->kelas }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
+                            <select form="update-student-{{ $s->id }}" name="jurusan" required class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                 @if(!in_array($s->jurusan, $jurusanOptions, true))
                                     <option value="{{ $s->jurusan }}" selected>{{ $s->jurusan }}</option>
                                 @endif
@@ -151,20 +154,20 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td class="px-3 py-3"><input form="update-student-{{ $s->id }}" name="alamat" required maxlength="2000" value="{{ $s->alamat }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></td>
-                        <td class="px-3 py-3">
-                            <div class="flex gap-2">
-                                <button form="update-student-{{ $s->id }}" type="submit" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">Simpan</button>
+                        <td class="px-3 py-2.5"><input form="update-student-{{ $s->id }}" name="alamat" required maxlength="2000" value="{{ $s->alamat }}" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none"></td>
+                        <td class="px-3 py-2.5">
+                            <div class="flex items-center gap-1.5">
+                                <button form="update-student-{{ $s->id }}" type="submit" class="h-9 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 transition inline-flex items-center justify-center">Simpan</button>
                                 <form method="POST" action="{{ route('waka.siswa.destroy', $s->id) }}" onsubmit="return confirm('Hapus data siswa {{ $s->name }}?')">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="rounded-lg bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-200">Hapus</button>
+                                    <button type="submit" class="h-9 rounded-lg bg-rose-100 px-3 text-xs font-semibold text-rose-700 hover:bg-rose-200 transition inline-flex items-center justify-center">Hapus</button>
                                 </form>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-slate-400 italic">Belum ada data siswa yang cocok.</td>
+                        <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic">Belum ada data siswa yang cocok.</td>
                     </tr>
                     @endforelse
                 </tbody>

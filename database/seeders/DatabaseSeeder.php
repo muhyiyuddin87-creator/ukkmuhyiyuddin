@@ -68,19 +68,108 @@ class DatabaseSeeder extends Seeder
         $this->call(SiswaPerKelasSeeder::class);
         $this->call(RuanganSeeder::class);
 
+        // 1. Pastikan siswa MUHYIYUDDIN ada di kelas XII RPL 2
+        $classRpl2 = \Illuminate\Support\Facades\DB::table('school_classes')->where('name', 'XII RPL 2')->first();
+        $classId = $classRpl2 ? $classRpl2->id : 90;
+
         $targetStudent = \Illuminate\Support\Facades\DB::table('siswas')
             ->where('name', 'like', '%MUHYIYUDDIN%')
-            ->first() ?? \Illuminate\Support\Facades\DB::table('siswas')->first();
+            ->first();
 
-        if ($targetStudent) {
-            User::where('username', 'siswa')->update([
-                'student_id' => $targetStudent->id,
-                'fullname' => $targetStudent->name,
+        if (! $targetStudent) {
+            $studentId = \Illuminate\Support\Facades\DB::table('siswas')->insertGetId([
+                'name' => 'MUHYIYUDDIN',
+                'kelas' => 'XII RPL 2',
+                'jurusan' => 'RPL',
+                'alamat' => 'Yogyakarta',
+                'nis' => '202611001',
+                'phone' => '081234567890',
+                'email' => 'muhyiyuddin@sekolah.sch.id',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
-            User::where('username', 'ortu')->update([
-                'student_id' => $targetStudent->id,
-                'fullname' => 'Orang Tua ' . $targetStudent->name,
-            ]);
+            $targetStudent = \Illuminate\Support\Facades\DB::table('siswas')->where('id', $studentId)->first();
         }
+
+        // 2. Setup Akun Siswa & Ortu MUHYIYUDDIN
+        if ($targetStudent) {
+            User::updateOrCreate(
+                ['username' => 'siswa'],
+                [
+                    'role_id' => 3,
+                    'student_id' => $targetStudent->id,
+                    'class_id' => $classId,
+                    'fullname' => $targetStudent->name,
+                    'password' => Hash::make('siswa123'),
+                    'is_active' => true,
+                ]
+            );
+
+            User::updateOrCreate(
+                ['username' => 'muhyiyuddin'],
+                [
+                    'role_id' => 3,
+                    'student_id' => $targetStudent->id,
+                    'class_id' => $classId,
+                    'fullname' => $targetStudent->name,
+                    'password' => Hash::make('siswa123'),
+                    'is_active' => true,
+                ]
+            );
+
+            User::updateOrCreate(
+                ['username' => 'ortu'],
+                [
+                    'role_id' => 6,
+                    'student_id' => $targetStudent->id,
+                    'fullname' => 'Orang Tua ' . $targetStudent->name,
+                    'password' => Hash::make('ortu123'),
+                    'is_active' => true,
+                ]
+            );
+
+            User::updateOrCreate(
+                ['username' => 'ortu.muhyiyuddin'],
+                [
+                    'role_id' => 6,
+                    'student_id' => $targetStudent->id,
+                    'fullname' => 'Orang Tua ' . $targetStudent->name,
+                    'password' => Hash::make('ortu123'),
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        // 3. Setup Akun Kesiswaan 1
+        User::updateOrCreate(
+            ['username' => 'kesiswaan1'],
+            [
+                'role_id' => 4,
+                'fullname' => 'Kesiswaan 1',
+                'password' => Hash::make('kesiswaan123'),
+                'is_active' => true,
+            ]
+        );
+
+        // 4. Setup Akun Wali Kelas: ROSYIDA RAMADHANI, S.Pd (XII RPL 2)
+        $wali = User::updateOrCreate(
+            ['username' => 'rosyida.ramadhani.s.pd'],
+            [
+                'role_id' => 2,
+                'class_id' => $classId,
+                'fullname' => 'ROSYIDA RAMADHANI, S.Pd',
+                'password' => Hash::make('guru123'),
+                'is_active' => true,
+            ]
+        );
+
+        \Illuminate\Support\Facades\DB::table('user_school_classes')->updateOrInsert(
+            ['school_class_id' => $classId],
+            [
+                'user_id' => $wali->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 }

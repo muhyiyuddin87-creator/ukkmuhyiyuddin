@@ -36,12 +36,12 @@
                 @if($editJournal) @method('PATCH') @endif
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Tanggal
-                        <input type="date" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800">
+                        <span class="mb-1.5 block">Tanggal</span>
+                        <input type="date" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
                     </label>
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Jadwal / Mata Pelajaran
-                        <select name="schedule_id" required class="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800">
+                        <span class="mb-1.5 block">Jadwal / Mata Pelajaran</span>
+                        <select name="schedule_id" required class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
                             <option value="">Pilih jadwal</option>
                             @foreach($schedules as $schedule)
                                 <option value="{{ $schedule->id }}" @selected(old('schedule_id', $editJournal->schedule_id ?? '') == $schedule->id)>{{ $schedule->class_name }} — {{ $schedule->day_of_week }} {{ substr($schedule->start_time, 0, 5) }}–{{ substr($schedule->end_time, 0, 5) }} — {{ $schedule->subject }}</option>
@@ -49,12 +49,12 @@
                         </select>
                     </label>
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 md:col-span-2">
-                        Materi / Kegiatan Pembelajaran
-                        <textarea name="topic_description" rows="4" required placeholder="Tuliskan materi dan kegiatan pembelajaran..." class="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800">{{ old('topic_description', $editJournal->topic_description ?? '') }}</textarea>
+                        <span class="mb-1.5 block">Materi / Kegiatan Pembelajaran</span>
+                        <textarea name="topic_description" rows="4" required placeholder="Tuliskan materi dan kegiatan pembelajaran..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">{{ old('topic_description', $editJournal->topic_description ?? '') }}</textarea>
                     </label>
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Bukti Foto (opsional, JPG/PNG/WEBP, maks. 5 MB)
-                        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+                        <span class="mb-1.5 block">Bukti Foto (opsional, JPG/PNG/WEBP, maks. 5 MB)</span>
+                        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 file:mr-3 file:h-7 file:rounded-md file:border-0 file:bg-indigo-100 file:text-indigo-700 file:font-semibold file:px-2.5 file:text-xs">
                         @if($editJournal?->photo_path)
                             <span class="mt-2 block normal-case tracking-normal">Foto saat ini: <a href="{{ asset('storage/' . $editJournal->photo_path) }}" target="_blank" rel="noopener" class="text-sky-700 underline">Lihat foto</a>. Biarkan kosong agar tetap digunakan.</span>
                         @endif
@@ -62,9 +62,9 @@
                 </div>
                 <div class="mt-5 flex justify-end gap-3">
                     @if($editJournal)
-                        <a href="{{ route('wali-kelas.jurnal') }}#journal-form" class="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-600">Batal</a>
+                        <a href="{{ route('wali-kelas.jurnal') }}#journal-form" class="h-10 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition active:scale-95">Batal</a>
                     @endif
-                    <button type="submit" class="rounded-xl bg-sky-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-sky-800">{{ $editJournal ? 'Simpan Perubahan' : 'Simpan Jurnal' }}</button>
+                    <button type="submit" class="h-10 inline-flex items-center justify-center rounded-lg bg-sky-700 px-6 text-sm font-semibold text-white hover:bg-sky-800 transition shadow-xs active:scale-95">{{ $editJournal ? 'Simpan Perubahan' : 'Simpan Jurnal' }}</button>
                 </div>
             </form>
         @endif

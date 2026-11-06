@@ -1,22 +1,26 @@
 @extends('layouts.siswa')
 
-@section('title', ((int) (Auth::user()->role_id ?? 0) === 6 ? 'Dashboard Orang Tua - School System' : 'Dashboard Siswa - School System'))
+@php
+    $isParentAccess = (int) (Auth::user()->role_id ?? 0) === 6 || str_ends_with(strtolower(Auth::user()->username ?? ''), 'p');
+@endphp
+
+@section('title', ($isParentAccess ? 'Dashboard Orang Tua - School System' : 'Dashboard Siswa - School System'))
 
 @section('content')
             <header class="mb-8 rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Selamat datang</p>
-                        <h2 class="mt-2 text-3xl font-bold text-slate-800">{{ (int) (Auth::user()->role_id ?? 0) === 6 ? 'Dashboard Orang Tua' : 'Dashboard Siswa' }}</h2>
+                        <h2 class="mt-2 text-3xl font-bold text-slate-800">{{ $isParentAccess ? 'Dashboard Orang Tua' : 'Dashboard Siswa' }}</h2>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        @if((int) (Auth::user()->role_id ?? 0) === 6 && isset($student) && $student)
+                        @if($isParentAccess && isset($student) && $student)
                             <div class="rounded-full bg-sky-100 px-4 py-2 text-sm font-semibold text-sky-700">
                                 Siswa: {{ $student->name }} ({{ $student->kelas }})
                             </div>
                         @endif
                         <div class="rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700">
-                            {{ (int) (Auth::user()->role_id ?? 0) === 6 ? 'Aktivitas belajar putra/putri Anda' : 'Aktivitas belajar Anda' }}
+                            {{ $isParentAccess ? 'Aktivitas belajar putra/putri Anda' : 'Aktivitas belajar Anda' }}
                         </div>
                         <div class="rounded-full bg-teal-100 px-4 py-2 text-sm font-semibold text-teal-700">
                             Saat ini putaran ke-{{ $activeCycle }}

@@ -78,8 +78,8 @@
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Pilih Jurnal</label>
-                            <select name="journal_id" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm focus:border-emerald-500 focus:bg-white outline-none" required>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Pilih Jurnal</label>
+                            <select name="journal_id" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition" required>
                                 <option value="">-- Pilih Jurnal --</option>
                                 @foreach($journals as $j)
                                 <option value="{{ $j->id }}" @selected(old('journal_id') == $j->id)>{{ $j->date }} - {{ $j->subject }} - {{ $j->topic_description }}</option>
@@ -87,8 +87,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Tanggal</label>
-                            <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm focus:border-emerald-500 focus:bg-white outline-none" required>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Tanggal</label>
+                            <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition" required>
                         </div>
                     </div>
 
@@ -103,10 +103,10 @@
                             <tbody class="divide-y divide-slate-100">
                                 @forelse($siswas as $s)
                                 <tr>
-                                    <td class="px-3 py-4 font-medium">{{ $s->name }}</td>
-                                    <td class="px-3 py-4">
+                                    <td class="px-3 py-3 font-medium">{{ $s->name }}</td>
+                                    <td class="px-3 py-3">
                                         <input type="hidden" name="student_ids[]" value="{{ $s->id }}">
-                                        <select name="statuses[]" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:border-emerald-500 focus:bg-white outline-none">
+                                        <select name="statuses[]" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:border-emerald-500 outline-none">
                                             <option value="Hadir" @selected(old('statuses.' . $loop->index, 'Hadir') === 'Hadir')>Hadir</option>
                                             <option value="Sakit" @selected(old('statuses.' . $loop->index) === 'Sakit')>Sakit</option>
                                             <option value="Izin" @selected(old('statuses.' . $loop->index) === 'Izin')>Izin</option>
@@ -125,7 +125,7 @@
 
                     @if(!$siswas->isEmpty())
                     <div class="mt-5 flex justify-end">
-                        <button type="submit" class="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition shadow-md active:scale-95">
+                        <button type="submit" class="h-10 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-6 text-sm font-semibold text-white hover:bg-emerald-500 transition shadow-xs active:scale-95">
                             Simpan Presensi ke Database
                         </button>
                     </div>

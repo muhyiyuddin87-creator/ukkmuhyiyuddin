@@ -5,8 +5,13 @@ import pdfplumber
 
 KNOWN_ROOMS = [
     'LAB 1', 'LAB 2', 'LAB 3', 'LAB 4', 'LAB 5', 'LAB 6', 'LAB 7', 'LAB 8', 'LAB 9',
-    'LAB 10', 'LAB 11', 'LAB 12', 'LAB 13', 'LAB 14', 'LAB 16', 'LAB 17', 'LAB 18',
-    'LAB 19', 'LAB 20', 'LAB 21', 'LAB IPA', 'OR1', 'OR2', 'OR3'
+    'LAB 10', 'LAB 11', 'LAB 12', 'LAB 13', 'LAB 14', 'LAB 15', 'LAB 16', 'LAB 17', 'LAB 18',
+    'LAB 19', 'LAB 20', 'LAB 21', 'LAB 22', 'LAB IPA', 'LAB PB',
+    'RUANG 1', 'RUANG 2', 'RUANG 3', 'RUANG 4', 'RUANG 5', 'RUANG 6', 'RUANG 7', 'RUANG 8', 'RUANG 9',
+    'RUANG 10', 'RUANG 11', 'RUANG 12', 'RUANG 13', 'RUANG 14', 'RUANG 15', 'RUANG 16', 'RUANG 17', 'RUANG 18',
+    'RUANG 19', 'RUANG 20', 'RUANG 21', 'RUANG 22', 'RUANG 23', 'RUANG 24', 'RUANG 25', 'RUANG 26', 'RUANG 27',
+    'RUANG 28', 'RUANG 29', 'RUANG 30', 'RUANG 31', 'RUANG 32', 'RUANG 33', 'RUANG 34',
+    'HALL', 'SINIAR', 'OR1', 'OR2', 'OR3', 'OR'
 ]
 
 CLASS_PATTERN = re.compile(r'\b(X|XI|XII)\s*(AKL|AK|BD|BR|DKV|LPS|MP|RPL|TKJ)\s*(\d+)?\b', re.IGNORECASE)
@@ -52,25 +57,30 @@ def parse_class_cell(words_in_cell, class_name):
     if not text or text in ['---', '-x-'] or re.match(r'^(\s*---?\s*)+$', text) or re.match(r'^(\s*-x-?\s*)+$', text):
         return None
         
-    tm = re.search(r'"(\d+[.,\s]*[A-Za-z][A-Za-z\s.,\'\-]+?)(?:"|$)', text)
-    teacher = None
-    subj_part = text
-    if tm:
-        teacher = re.sub(r'^\d+[.,\s]*', '', tm.group(1).strip()).rstrip(' ."\'')
-        subj_part = subj_part.replace(tm.group(0), ' ')
-    else:
-        tm2 = re.search(r'\b\d{1,3}\.([A-Za-z][A-Za-z\s.,\'\-]+)', text)
-        if tm2:
-            teacher = tm2.group(1).strip().rstrip(' ."\'')
-            subj_part = subj_part.replace(tm2.group(0), ' ')
-            
     room = None
+    subj_part = text
     for kr in KNOWN_ROOMS:
         pat = re.compile(r'\b' + kr.replace(' ', r'\s*') + r'\b', re.IGNORECASE)
         if pat.search(subj_part):
             room = kr
             subj_part = pat.sub(' ', subj_part)
             break
+
+    teacher = None
+    tm = re.search(r'"(\d{1,3})[.,\s]*([A-Za-z][A-Za-z\s.,\'\-]+?)(?:"|$)', subj_part)
+    if tm:
+        teacher = tm.group(2).strip().rstrip(' ."\'')
+        subj_part = subj_part.replace(tm.group(0), ' ')
+    else:
+        tm2 = re.search(r'\b(\d{1,3})[.,\s]+([A-Za-z][A-Za-z\s.,\'\-]+?)(?:$|\s+(?:LAB|RUANG|OR|HALL))', subj_part)
+        if tm2:
+            teacher = tm2.group(2).strip().rstrip(' ."\'')
+            subj_part = subj_part.replace(tm2.group(0), ' ')
+        else:
+            tm3 = re.search(r'"?(\d{1,3})[.,\s]+([A-Za-z][^"\d]+)', subj_part)
+            if tm3:
+                teacher = tm3.group(2).strip().rstrip(' ."\'')
+                subj_part = subj_part.replace(tm3.group(0), ' ')
             
     clean_subj = clean_subject_text(subj_part)
     if not teacher:

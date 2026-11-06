@@ -23,8 +23,8 @@
                 @csrf
                 <div class="mb-5 grid grid-cols-1 gap-5 md:grid-cols-3">
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Pilih Jurnal
-                        <select id="attendance-journal" name="journal_id" required class="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800">
+                        <span class="mb-1.5 block">Pilih Jurnal</span>
+                        <select id="attendance-journal" name="journal_id" required class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
                             <option value="">Pilih jurnal</option>
                             @foreach($journals as $journal)
                                 <option value="{{ $journal->id }}" data-class="{{ $journal->class_name }}" @selected(old('journal_id', $journals->first()->id) == $journal->id)>{{ $journal->date }} · {{ $journal->class_name }} · {{ $journal->subject }} · {{ $journal->topic_description }}</option>
@@ -32,8 +32,8 @@
                         </select>
                     </label>
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Tanggal Presensi
-                        <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="mt-1 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800">
+                        <span class="mb-1.5 block">Tanggal Presensi</span>
+                        <input type="date" name="date" value="{{ old('date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
                     </label>
                 </div>
                 <div class="overflow-x-auto table-scroll-container">
@@ -44,11 +44,11 @@
                         <tbody class="divide-y divide-slate-100">
                             @foreach($siswas as $student)
                                 <tr data-student-class="{{ $student->kelas }}">
-                                    <td class="px-3 py-4 font-medium">{{ $student->name }}</td>
-                                    <td class="px-3 py-4">{{ $student->kelas }}</td>
-                                    <td class="px-3 py-4">
+                                    <td class="px-3 py-3 font-medium">{{ $student->name }}</td>
+                                    <td class="px-3 py-3">{{ $student->kelas }}</td>
+                                    <td class="px-3 py-3">
                                         <input type="hidden" name="student_ids[]" value="{{ $student->id }}" disabled>
-                                        <select name="statuses[]" class="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm" disabled>
+                                        <select name="statuses[]" class="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-indigo-500" disabled>
                                             <option value="Hadir">Hadir</option>
                                             <option value="Sakit">Sakit</option>
                                             <option value="Izin">Izin</option>
@@ -61,7 +61,7 @@
                     </table>
                 </div>
                 <div class="mt-5 flex justify-end">
-                    <button type="submit" class="rounded-xl bg-sky-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-sky-800">Simpan Presensi</button>
+                    <button type="submit" class="h-10 inline-flex items-center justify-center rounded-lg bg-sky-700 px-6 text-sm font-semibold text-white hover:bg-sky-800 transition shadow-xs active:scale-95">Simpan Presensi</button>
                 </div>
             </form>
             <script>

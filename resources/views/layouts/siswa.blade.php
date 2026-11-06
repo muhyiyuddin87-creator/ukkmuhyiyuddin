@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', ((int) (Auth::user()->role_id ?? 0) === 6 ? 'Orang Tua - School System' : 'Siswa - School System'))</title>
+    <title>@yield('title', ((int) (Auth::user()->role_id ?? 0) === 6 || str_ends_with(strtolower(Auth::user()->username ?? ''), 'p') ? 'Orang Tua - School System' : 'Siswa - School System'))</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -66,6 +66,66 @@
         .table-scroll-container::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* Unified Form Controls */
+        .form-control-standard {
+            height: 40px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 0.75rem;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .form-control-standard:focus {
+            border-color: #059669;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+        }
+
+        .table-input {
+            height: 36px;
+            font-size: 0.8125rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.375rem 0.625rem;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .table-input:focus {
+            border-color: #059669;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+        }
+
+        .btn-standard {
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .btn-table {
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
     </style>
     @stack('styles')
 </head>
@@ -80,7 +140,7 @@
             </button>
             <div>
                 <span class="text-[10px] font-bold uppercase tracking-widest text-emerald-300">School System</span>
-                <h1 class="text-sm font-bold leading-tight text-white">{{ (int) (Auth::user()->role_id ?? 0) === 6 ? 'Portal Orang Tua' : 'Portal Siswa' }}</h1>
+                <h1 class="text-sm font-bold leading-tight text-white">{{ (int) (Auth::user()->role_id ?? 0) === 6 || str_ends_with(strtolower(Auth::user()->username ?? ''), 'p') ? 'Portal Orang Tua' : 'Portal Siswa' }}</h1>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -100,7 +160,7 @@
                 <div class="mb-8 flex items-center justify-between">
                     <div>
                         <div class="text-xs uppercase tracking-[0.3em] text-emerald-300">School System</div>
-                        <h2 class="mt-2 text-2xl font-bold tracking-tight text-white">{{ (int) (Auth::user()->role_id ?? 0) === 6 ? 'Orang Tua' : 'Siswa' }}</h2>
+                        <h2 class="mt-2 text-2xl font-bold tracking-tight text-white">{{ (int) (Auth::user()->role_id ?? 0) === 6 || str_ends_with(strtolower(Auth::user()->username ?? ''), 'p') ? 'Orang Tua' : 'Siswa' }}</h2>
                     </div>
                     <button type="button" onclick="toggleSidebar()" aria-label="Tutup Menu" class="rounded-lg p-1.5 text-emerald-300 hover:bg-emerald-900 hover:text-white lg:hidden">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -66,6 +66,66 @@
         .table-scroll-container::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* Unified Form Controls */
+        .form-control-standard {
+            height: 40px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 0.75rem;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .form-control-standard:focus {
+            border-color: #4f46e5;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .table-input {
+            height: 36px;
+            font-size: 0.8125rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            padding: 0.375rem 0.625rem;
+            background-color: #ffffff;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+        .table-input:focus {
+            border-color: #4f46e5;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-standard {
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .btn-table {
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            box-sizing: border-box;
+        }
     </style>
     @stack('styles')
 </head>

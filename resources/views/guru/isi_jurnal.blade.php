@@ -109,12 +109,12 @@
                     @endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Tanggal</label>
-                            <input type="date" id="journal-date-input" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm {{ $roleId === 4 ? 'focus:border-amber-500' : 'focus:border-indigo-500' }} focus:bg-white outline-none" required>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Tanggal</label>
+                            <input type="date" id="journal-date-input" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Pilih Jadwal</label>
-                            <select id="journal-schedule-select" name="schedule_id" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm {{ $roleId === 4 ? 'focus:border-amber-500' : 'focus:border-indigo-500' }} focus:bg-white outline-none" required>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Pilih Jadwal</label>
+                            <select id="journal-schedule-select" name="schedule_id" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
                                 <option value="">-- Pilih Jadwal --</option>
                                 @foreach($jadwals as $j)
                                 <option value="{{ $j->id }}" @selected(old('schedule_id', $editJournal->schedule_id ?? '') == $j->id)>{{ $j->day_of_week }} - {{ $j->subject }} ({{ $j->class_name ?? $j->class_id ?? '-' }})</option>
@@ -122,12 +122,12 @@
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Materi / Kegiatan Pembelajaran</label>
-                            <textarea name="topic_description" rows="3" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm {{ $roleId === 4 ? 'focus:border-amber-500' : 'focus:border-indigo-500' }} focus:bg-white outline-none" placeholder="Tuliskan materi dan kegiatan pembelajaran..." required>{{ old('topic_description', $editJournal->topic_description ?? '') }}</textarea>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Materi / Kegiatan Pembelajaran</label>
+                            <textarea name="topic_description" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" placeholder="Tuliskan materi dan kegiatan pembelajaran..." required>{{ old('topic_description', $editJournal->topic_description ?? '') }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Bukti Foto (opsional, maks. 5 MB)</label>
-                            <input type="file" name="photo" accept="image/*" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm file:mr-3 file:rounded-lg file:border-0 {{ $roleId === 4 ? 'file:bg-amber-100 file:text-amber-700' : 'file:bg-indigo-100 file:text-indigo-700' }} file:font-semibold file:px-3 file:py-1 focus:outline-none">
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Bukti Foto (opsional, maks. 5 MB)</label>
+                            <input type="file" name="photo" accept="image/*" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm file:mr-3 file:h-7 file:rounded-md file:border-0 {{ $roleId === 4 ? 'file:bg-amber-100 file:text-amber-700' : 'file:bg-indigo-100 file:text-indigo-700' }} file:font-semibold file:px-2.5 file:text-xs focus:outline-none">
                             @if($editJournal?->photo_path)
                                 <div class="mt-2 flex items-center gap-2 text-xs text-slate-500">
                                     <a href="{{ asset('storage/' . $editJournal->photo_path) }}" target="_blank" rel="noopener" class="font-semibold {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }} underline">
@@ -152,11 +152,11 @@
                         <p id="journal-attendance-empty" class="mt-3 text-sm text-amber-700" hidden>Tidak ada data siswa untuk kelas jadwal ini.</p>
                     </section>
                     @endif
-                    <div class="mt-5 flex justify-end">
+                    <div class="mt-5 flex justify-end gap-3">
                         @if($editJournal)
-                            <a href="{{ route('guru.jurnal') }}#journal-form" class="mr-3 rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Batal</a>
+                            <a href="{{ route('guru.jurnal') }}#journal-form" class="h-10 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition active:scale-95">Batal</a>
                         @endif
-                        <button type="submit" class="rounded-xl {{ $roleId === 4 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-slate-800 hover:bg-slate-700' }} px-6 py-2.5 text-sm font-semibold text-white transition shadow-md active:scale-95">
+                        <button type="submit" class="h-10 inline-flex items-center justify-center rounded-lg {{ $roleId === 4 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-slate-800 hover:bg-slate-700' }} px-6 text-sm font-semibold text-white transition shadow-xs active:scale-95">
                             {{ $editJournal ? 'Simpan Perubahan' : 'Simpan Jurnal ke Database' }}
                         </button>
                     </div>

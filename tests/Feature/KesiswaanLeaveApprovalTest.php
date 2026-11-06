@@ -14,7 +14,7 @@ class KesiswaanLeaveApprovalTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_kesiswaan_can_view_leave_history_and_only_wali_kelas_can_approve(): void
+    public function test_kesiswaan_can_view_leave_history_and_approve_or_reject(): void
     {
         $this->seed(DatabaseSeeder::class);
         $user = User::where('username', 'kesiswaan')->firstOrFail();
@@ -25,9 +25,9 @@ class KesiswaanLeaveApprovalTest extends TestCase
         $this->actingAs($user);
         $this->get('/dashboard/kesiswaan')
             ->assertOk()
-            ->assertSee('Izin Menunggu Wali Kelas')
+            ->assertSee('Izin Menunggu Persetujuan')
             ->assertSee('Riwayat Selesai Diproses')
-            ->assertDontSee('Presensi');
+            ->assertDontSee('Presensi Siswa');
         $this->get(route('kesiswaan.izin'))
             ->assertOk()
             ->assertSee('Surat dokter')
@@ -35,12 +35,19 @@ class KesiswaanLeaveApprovalTest extends TestCase
             ->assertSee('Statistik Keputusan Izin')
             ->assertSee('id="leave-history-chart"', false)
             ->assertSee('Izin sebelumnya')
-            ->assertDontSee('Menunggu Persetujuan');
+            ->assertSee('Menunggu Persetujuan');
 
-        // Kesiswaan cannot approve (only Wali Kelas can approve)
+        // Kesiswaan can approve
         $this->patch(route('kesiswaan.izin.approval', $pendingId), [
             'status_approval' => 'Approved',
-        ])->assertForbidden();
+        ])->assertRedirect(route('kesiswaan.izin'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('leave_requests', [
+            'id' => $pendingId,
+            'status_approval' => 'Approved',
+            'verified_by' => $user->getKey(),
+        ]);
 
         // Waka also sees the leave requests in Laporan
         $waka = User::where('username', 'waka')->firstOrFail();
@@ -181,29 +188,10 @@ class KesiswaanLeaveApprovalTest extends TestCase
             ->assertJsonPath('data.0.student_name', 'Siswa')
             ->assertJsonPath('data.0.document_path', $photoPath);
 
-        // Kesiswaan cannot approve
+        // Kesiswaan can approve
         $this->patch(route('kesiswaan.izin.approval', $response->json('data.id')), [
             'status_approval' => 'Approved',
-        ])->assertForbidden();
-
-        // Assign Wali Kelas to class X-1 so Wali Kelas can approve
-        $wali = User::where('username', 'guru')->firstOrFail();
-        $classId = DB::table('school_classes')->insertGetId([
-            'name' => 'X-1',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        DB::table('user_school_classes')->insert([
-            'user_id' => $wali->getKey(),
-            'school_class_id' => $classId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $this->actingAs($wali)
-            ->patch(route('wali-kelas.izin.approval', $response->json('data.id')), [
-                'status_approval' => 'Approved',
-            ])->assertRedirect(route('wali-kelas.izin'));
+        ])->assertRedirect(route('kesiswaan.izin'));
 
         $this->actingAs($student)
             ->getJson(route('siswa.izin.updates'))
@@ -211,7 +199,7 @@ class KesiswaanLeaveApprovalTest extends TestCase
             ->assertJsonPath('data.0.student_name', 'Siswa')
             ->assertJsonPath('data.0.kelas', 'X-1')
             ->assertJsonPath('data.0.status_approval', 'Approved')
-            ->assertJsonPath('data.0.verifier_name', $wali->fullname);
+            ->assertJsonPath('data.0.verifier_name', $kesiswaan->fullname);
     }
 
     private function createStudent(): int
