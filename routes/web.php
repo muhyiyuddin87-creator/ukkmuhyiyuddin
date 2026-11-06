@@ -4027,8 +4027,12 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
             foreach ($jadwals as $schedule) {
                 $className = (string) ($schedule->class_name ?? $schedule->class_id ?? '');
-                $studentsBySchedule[$schedule->id] = ($studentsByClass->get($className, collect()))
-                    ->map(fn ($s) => ['id' => $s->id, 'name' => $s->name])
+                $targetStudents = collect($studentsByClass->get($className, []));
+                $studentsBySchedule[$schedule->id] = $targetStudents
+                    ->map(fn ($s) => [
+                        'id' => is_array($s) ? $s['id'] : $s->id,
+                        'name' => is_array($s) ? $s['name'] : $s->name,
+                    ])
                     ->values()
                     ->all();
             }
@@ -4061,6 +4065,17 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $isWali = $canManageWaliClasses($userId);
         $canTakeAttendance = ($roleId === 2 && $isWali) || ($isKesiswaan && $hasTeacherSchedules);
 
+        $daysMap = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+        ];
+        $todayDayName = $daysMap[(int) date('w')] ?? 'Hari Ini';
+
         return view('guru.isi_jurnal', [
             'user' => Auth::user(),
             'jadwals' => $jadwals,
@@ -4077,6 +4092,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'approvedLeaves' => $approvedLeaves,
             'unfilledSchedules' => $unfilledSchedules,
             'schedulesWithJournals' => $schedulesWithJournals,
+            'todayDayName' => $todayDayName,
+            'daysMap' => $daysMap,
         ]);
     })->name('guru.jurnal');
 
@@ -4103,6 +4120,27 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'topic_description' => ['required', 'string'],
             'photo' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $daysMap = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+        ];
+        $dateDayIndex = (int) date('w', strtotime($validated['date']));
+        $expectedDayName = $daysMap[$dateDayIndex] ?? '';
+        $schedule = DB::table('schedules')->where('id', $validated['schedule_id'])->first();
+        if ($schedule && ! empty($schedule->day_of_week) && $expectedDayName !== '') {
+            if (strcasecmp(trim($schedule->day_of_week), trim($expectedDayName)) !== 0) {
+                throw ValidationException::withMessages([
+                    'schedule_id' => "Mata pelajaran/jadwal yang dipilih ({$schedule->day_of_week} - {$schedule->subject}) tidak sesuai dengan hari dari tanggal jurnal ({$expectedDayName}). Harap pilih jadwal pada hari {$expectedDayName}.",
+                ]);
+            }
+        }
+
         $photoPath = null;
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
             $photoPath = $request->file('photo')->store('jurnal_photos', 'public');
@@ -4208,6 +4246,27 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'topic_description' => ['required', 'string'],
             'photo' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $daysMap = [
+            0 => 'Minggu',
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+        ];
+        $dateDayIndex = (int) date('w', strtotime($validated['date']));
+        $expectedDayName = $daysMap[$dateDayIndex] ?? '';
+        $schedule = DB::table('schedules')->where('id', $validated['schedule_id'])->first();
+        if ($schedule && ! empty($schedule->day_of_week) && $expectedDayName !== '') {
+            if (strcasecmp(trim($schedule->day_of_week), trim($expectedDayName)) !== 0) {
+                throw ValidationException::withMessages([
+                    'schedule_id' => "Mata pelajaran/jadwal yang dipilih ({$schedule->day_of_week} - {$schedule->subject}) tidak sesuai dengan hari dari tanggal jurnal ({$expectedDayName}). Harap pilih jadwal pada hari {$expectedDayName}.",
+                ]);
+            }
+        }
+
         $attendanceRows = null;
         $teacherHasSchedule = DB::table('schedules')->where('id', $validated['schedule_id'])->where('teacher_id', $userId)->exists();
         $canTakeAttendance = $isWali || ($isKesiswaan && $teacherHasSchedule);

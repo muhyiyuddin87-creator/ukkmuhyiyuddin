@@ -109,17 +109,23 @@
                     @endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Tanggal</label>
-                            <input type="date" id="journal-date-input" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Tanggal</label>
+                                <span id="journal-day-indicator" class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700 border border-slate-200">
+                                    Hari: <span id="journal-selected-day" class="font-bold {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }}">{{ $todayDayName ?? 'Hari Ini' }}</span>
+                                </span>
+                            </div>
+                            <input type="date" id="journal-date-input" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Pilih Jadwal</label>
+                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Pilih Jadwal / Mata Pelajaran</label>
                             <select id="journal-schedule-select" name="schedule_id" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
-                                <option value="">-- Pilih Jadwal --</option>
+                                <option value="">-- Pilih Jadwal Sesuai Hari --</option>
                                 @foreach($jadwals as $j)
-                                <option value="{{ $j->id }}" @selected(old('schedule_id', $editJournal->schedule_id ?? '') == $j->id)>{{ $j->day_of_week }} - {{ $j->subject }} ({{ $j->class_name ?? $j->class_id ?? '-' }})</option>
+                                <option value="{{ $j->id }}" data-day="{{ $j->day_of_week }}" @selected(old('schedule_id', $editJournal->schedule_id ?? '') == $j->id)>{{ $j->day_of_week }} &bull; {{ $j->subject }} ({{ $j->class_name ?? $j->class_id ?? '-' }}){{ $j->start_time ? ' [' . substr($j->start_time, 0, 5) . ' - ' . substr($j->end_time, 0, 5) . ']' : '' }}</option>
                                 @endforeach
                             </select>
+                            <p id="journal-no-schedules-hint" class="mt-1 text-xs text-amber-600 font-medium hidden">⚠️ Anda tidak memiliki jadwal mengajar pada hari <span id="no-schedules-day-name"></span>.</p>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Materi / Kegiatan Pembelajaran</label>
@@ -164,23 +170,106 @@
             </section>
 @endsection
 
-@if(!empty($canTakeAttendance) || ($roleId === 2 && ($isWali ?? false)))
 @push('scripts')
     <script>
-        const studentsBySchedule = @json($studentsBySchedule);
-        const savedAttendance = @json($existingAttendance);
+        const scheduleSelect = document.getElementById('journal-schedule-select');
+        const dateInput = document.getElementById('journal-date-input');
+        const currentDayBadge = document.getElementById('journal-selected-day');
+        const noSchedulesHint = document.getElementById('journal-no-schedules-hint');
+        const noSchedulesDayName = document.getElementById('no-schedules-day-name');
+        const editScheduleId = @json($editJournal->schedule_id ?? null);
+
+        const indonesianDays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+        function getIndonesianDayName(dateString) {
+            if (!dateString) return '';
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                const d = new Date(year, month, day);
+                return indonesianDays[d.getDay()] || '';
+            }
+            const d = new Date(dateString);
+            return indonesianDays[d.getDay()] || '';
+        }
+
+        function filterSchedulesByDay() {
+            if (!scheduleSelect || !dateInput) return;
+            const dayName = getIndonesianDayName(dateInput.value);
+            if (currentDayBadge) {
+                currentDayBadge.textContent = dayName || '-';
+            }
+
+            let matchingCount = 0;
+            const currentSelectedVal = scheduleSelect.value;
+            let currentSelectedStillValid = false;
+
+            Array.from(scheduleSelect.options).forEach(option => {
+                if (!option.value) {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+
+                const optionDay = (option.getAttribute('data-day') || '').trim().toLowerCase();
+                const targetDay = dayName.trim().toLowerCase();
+                const isEditOriginal = editScheduleId && String(option.value) === String(editScheduleId);
+                const isMatch = (optionDay === targetDay) || isEditOriginal;
+
+                if (isMatch) {
+                    option.hidden = false;
+                    option.disabled = false;
+                    matchingCount++;
+                    if (option.value === currentSelectedVal) {
+                        currentSelectedStillValid = true;
+                    }
+                } else {
+                    option.hidden = true;
+                    option.disabled = true;
+                }
+            });
+
+            if (currentSelectedVal && !currentSelectedStillValid && (!editScheduleId || String(currentSelectedVal) !== String(editScheduleId))) {
+                scheduleSelect.value = '';
+                if (typeof renderAttendance === 'function') {
+                    renderAttendance();
+                }
+            }
+
+            if (noSchedulesHint && noSchedulesDayName) {
+                if (matchingCount === 0 && dayName) {
+                    noSchedulesDayName.textContent = dayName;
+                    noSchedulesHint.classList.remove('hidden');
+                } else {
+                    noSchedulesHint.classList.add('hidden');
+                }
+            }
+        }
+
+        if (dateInput) {
+            dateInput.addEventListener('change', () => {
+                filterSchedulesByDay();
+                if (typeof renderAttendance === 'function') {
+                    renderAttendance();
+                }
+            });
+        }
+
+        // Attendance handling (for users with attendance permission)
+        const studentsBySchedule = @json($studentsBySchedule ?? []);
+        const savedAttendance = @json($existingAttendance ?? []);
         const oldStudentIds = @json(old('student_ids', []));
         const oldStatuses = @json(old('statuses', []));
         const approvedLeaves = @json($approvedLeaves ?? []);
-        const scheduleSelect = document.getElementById('journal-schedule-select');
-        const dateInput = document.getElementById('journal-date-input');
         const attendancePanel = document.getElementById('journal-attendance');
         const attendanceRows = document.getElementById('journal-attendance-rows');
         const attendanceEmpty = document.getElementById('journal-attendance-empty');
         const leaveAlert = document.getElementById('journal-attendance-leave-alert');
 
         const getActiveLeave = (studentId, dateVal) => {
-            if (!dateVal) return null;
+            if (!dateVal || !approvedLeaves) return null;
             return approvedLeaves.find(leave => {
                 if (String(leave.student_id) !== String(studentId)) return false;
                 const start = leave.start_date || '';
@@ -194,6 +283,7 @@
         };
 
         const renderAttendance = () => {
+            if (!attendancePanel || !attendanceRows) return;
             attendanceRows.replaceChildren();
             const scheduleId = scheduleSelect.value;
             if (!scheduleId) {
@@ -202,8 +292,8 @@
                 return;
             }
             attendancePanel.hidden = false;
-            const students = studentsBySchedule[scheduleId] || [];
-            attendanceEmpty.hidden = students.length > 0;
+            const students = (studentsBySchedule && studentsBySchedule[scheduleId]) ? studentsBySchedule[scheduleId] : [];
+            if (attendanceEmpty) attendanceEmpty.hidden = students.length > 0;
 
             const selectedDate = (dateInput && dateInput.value) ? dateInput.value : '';
             let leavesFoundCount = 0;
@@ -299,11 +389,12 @@
             }
         };
 
-        scheduleSelect.addEventListener('change', renderAttendance);
-        if (dateInput) {
-            dateInput.addEventListener('change', renderAttendance);
+        if (scheduleSelect) {
+            scheduleSelect.addEventListener('change', renderAttendance);
         }
+
+        // Initial execution
+        filterSchedulesByDay();
         renderAttendance();
     </script>
 @endpush
-@endif

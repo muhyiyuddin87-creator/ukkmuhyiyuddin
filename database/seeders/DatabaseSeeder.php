@@ -70,7 +70,15 @@ class DatabaseSeeder extends Seeder
 
         // 1. Pastikan siswa MUHYIYUDDIN ada di kelas XII RPL 2
         $classRpl2 = \Illuminate\Support\Facades\DB::table('school_classes')->where('name', 'XII RPL 2')->first();
-        $classId = $classRpl2 ? $classRpl2->id : 90;
+        if (! $classRpl2) {
+            $classId = \Illuminate\Support\Facades\DB::table('school_classes')->insertGetId([
+                'name' => 'XII RPL 2',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } else {
+            $classId = $classRpl2->id;
+        }
 
         $targetStudent = \Illuminate\Support\Facades\DB::table('siswas')
             ->where('name', 'like', '%MUHYIYUDDIN%')

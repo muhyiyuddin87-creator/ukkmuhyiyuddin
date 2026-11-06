@@ -26,7 +26,7 @@ class GuruJournalEditingTest extends TestCase
 
         $this->patch(route('guru.jurnal.update', $journalId), [
             'schedule_id' => DB::table('journals')->where('id', $journalId)->value('schedule_id'),
-            'date' => '2026-10-20',
+            'date' => '2026-10-23',
             'topic_description' => 'Materi Diperbarui',
         ])
             ->assertRedirect(route('guru.jurnal'))
@@ -34,7 +34,7 @@ class GuruJournalEditingTest extends TestCase
 
         $this->assertDatabaseHas('journals', [
             'id' => $journalId,
-            'date' => '2026-10-20',
+            'date' => '2026-10-23',
             'topic_description' => 'Materi Diperbarui',
             'photo_path' => 'jurnal_photos/bukti.jpg',
         ]);

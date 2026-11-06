@@ -30,3 +30,4 @@ class Alumni extends Model
         return $this->belongsTo(Siswa::class, 'student_id');
     }
 }
+

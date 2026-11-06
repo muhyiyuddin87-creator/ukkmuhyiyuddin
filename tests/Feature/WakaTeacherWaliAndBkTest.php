@@ -193,10 +193,13 @@ class WakaTeacherWaliAndBkTest extends TestCase
             'updated_at' => now(),
         ]);
 
+        $daysMap = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $scheduleDay = $daysMap[(int) now()->dayOfWeek] ?? 'Senin';
+
         $scheduleId = DB::table('schedules')->insertGetId([
             'teacher_id' => $this->teacher->id,
             'cycle_number' => 1,
-            'day_of_week' => 'Senin',
+            'day_of_week' => $scheduleDay,
             'subject' => 'Bimbingan Konseling',
             'class_name' => 'X AK 1',
             'start_time' => '07:00:00',
