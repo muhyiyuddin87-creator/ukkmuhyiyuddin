@@ -19,7 +19,15 @@ class Siswa extends Model
         'alamat',
         'phone',
         'email',
+        'status',
+        'tahun_lulus',
+        'tanggal_lulus',
     ];
+
+    public function alumni()
+    {
+        return $this->hasOne(Alumni::class, 'student_id');
+    }
 
     public function attendances()
     {

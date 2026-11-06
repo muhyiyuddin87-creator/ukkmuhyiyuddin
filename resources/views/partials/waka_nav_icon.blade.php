@@ -52,4 +52,15 @@
             <path d="M4 20V4M4 20h17M8 16v-4M13 16V8M18 16V5" />
         </svg>
         @break
+    @case('promotion')
+        <svg class="{{ $iconClass }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        @break
+    @case('alumni')
+        <svg class="{{ $iconClass }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+        </svg>
+        @break
 @endswitch

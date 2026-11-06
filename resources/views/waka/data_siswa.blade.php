@@ -4,9 +4,34 @@
 
 @section('content')
     <header class="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Waka Kurikulum</p>
-        <h2 class="mt-2 text-3xl font-bold text-slate-800">Data Siswa</h2>
-        <p class="mt-1 text-slate-500 text-sm">Tambah, cari, ubah, dan hapus data siswa.</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-500">Waka Kurikulum</p>
+                <h2 class="mt-1 text-3xl font-bold text-slate-800">Data Siswa</h2>
+                <p class="mt-1 text-slate-500 text-sm">Kelola siswa aktif, cari, ubah, impor, dan proses kenaikan kelas.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <a href="{{ route('waka.kenaikan_kelas') }}" class="btn-standard border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100 transition shadow-xs font-bold">
+                    ⚡ Kenaikan & Kelulusan Serentak
+                </a>
+                <a href="{{ route('waka.alumni') }}" class="btn-standard border border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100 transition shadow-xs font-semibold">
+                    🎓 Data Alumni
+                </a>
+            </div>
+        </div>
+        
+        <!-- Tab Filter Status Siswa -->
+        <div class="mt-6 flex border-b border-slate-200 text-sm font-semibold">
+            <a href="{{ route('waka.siswa', array_merge(request()->except('status'), ['status' => 'aktif'])) }}" class="px-4 py-2.5 border-b-2 transition flex items-center gap-2 {{ ($selectedStatus ?? 'aktif') === 'aktif' ? 'border-sky-600 text-sky-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
+                <span>🎒</span> Siswa Aktif
+            </a>
+            <a href="{{ route('waka.siswa', array_merge(request()->except('status'), ['status' => 'lulus'])) }}" class="px-4 py-2.5 border-b-2 transition flex items-center gap-2 {{ ($selectedStatus ?? 'aktif') === 'lulus' ? 'border-sky-600 text-sky-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
+                <span>🎓</span> Siswa Lulus / Alumni
+            </a>
+            <a href="{{ route('waka.siswa', array_merge(request()->except('status'), ['status' => 'all'])) }}" class="px-4 py-2.5 border-b-2 transition flex items-center gap-2 {{ ($selectedStatus ?? 'aktif') === 'all' ? 'border-sky-600 text-sky-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
+                <span>📋</span> Semua Siswa
+            </a>
+        </div>
     </header>
 
     @if(session('success'))

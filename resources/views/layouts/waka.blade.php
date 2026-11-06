@@ -175,9 +175,17 @@
                         @include('partials.waka_nav_icon', ['icon' => 'dashboard'])
                         Dashboard
                     </a>
-                    <a href="{{ route('waka.siswa') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('waka.siswa*') ? 'bg-sky-600 font-semibold text-white shadow' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }}">
+                    <a href="{{ route('waka.siswa') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('waka.siswa*') && !request()->routeIs('waka.kenaikan_kelas*') && !request()->routeIs('waka.alumni*') ? 'bg-sky-600 font-semibold text-white shadow' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }}">
                         @include('partials.waka_nav_icon', ['icon' => 'students'])
                         Data Siswa
+                    </a>
+                    <a href="{{ route('waka.kenaikan_kelas') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('waka.kenaikan_kelas*') ? 'bg-sky-600 font-semibold text-white shadow' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }}">
+                        @include('partials.waka_nav_icon', ['icon' => 'promotion'])
+                        Kenaikan & Kelulusan
+                    </a>
+                    <a href="{{ route('waka.alumni') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('waka.alumni*') ? 'bg-sky-600 font-semibold text-white shadow' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }}">
+                        @include('partials.waka_nav_icon', ['icon' => 'alumni'])
+                        Data Alumni
                     </a>
                     <a href="{{ route('waka.guru') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('waka.guru*') ? 'bg-sky-600 font-semibold text-white shadow' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }}">
                         @include('partials.waka_nav_icon', ['icon' => 'teachers'])

@@ -934,7 +934,14 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'rombel' => ['nullable', 'string', Rule::in(['1', '2', '3', '4'])],
             'kelas' => ['nullable', 'string', 'max:50'],
         ]);
+        $selectedStatus = $request->query('status', 'aktif');
         $query = DB::table('siswas')->orderBy('name');
+        if ($selectedStatus === 'aktif') {
+            $query->where('status', 'aktif');
+        } elseif ($selectedStatus === 'lulus') {
+            $query->where('status', 'lulus');
+        }
+
         if ($search !== '') {
             $query->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
@@ -976,13 +983,16 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
         $siswas = $query->paginate(50)->withQueryString();
 
-        $availableClasses = DB::table('siswas')
+        $classesQuery = DB::table('siswas')
             ->select('kelas', DB::raw('count(*) as total'))
             ->whereNotNull('kelas')
-            ->where('kelas', '!=', '')
-            ->groupBy('kelas')
-            ->orderBy('kelas')
-            ->get();
+            ->where('kelas', '!=', '');
+        if ($selectedStatus === 'aktif') {
+            $classesQuery->where('status', 'aktif');
+        } elseif ($selectedStatus === 'lulus') {
+            $classesQuery->where('status', 'lulus');
+        }
+        $availableClasses = $classesQuery->groupBy('kelas')->orderBy('kelas')->get();
 
         $schoolClasses = DB::table('school_classes')->orderBy('name')->pluck('name');
 
@@ -990,6 +1000,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'user' => Auth::user(),
             'siswas' => $siswas,
             'search' => $search,
+            'selectedStatus' => $selectedStatus,
             'selectedJurusan' => $filters['jurusan'] ?? '',
             'selectedTingkat' => $filters['tingkat'] ?? '',
             'selectedRombel' => $filters['rombel'] ?? '',
@@ -1007,12 +1018,288 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
         $students = DB::table('siswas')
             ->where('kelas', $kelas)
+            ->where('status', 'aktif')
             ->select('id', 'name', 'nis')
             ->orderBy('name')
             ->get();
 
         return response()->json($students);
     })->name('waka.siswa.class_students');
+
+    // =========================================================================
+    // KENAIKAN KELAS & KELULUSAN SISWA SERENTAK
+    // =========================================================================
+    Route::get('/waka/kenaikan-kelas', function () {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $countX = DB::table('siswas')->where('status', 'aktif')->where('kelas', 'like', 'X %')->count();
+        $countXI = DB::table('siswas')->where('status', 'aktif')->where('kelas', 'like', 'XI %')->count();
+        $countXII = DB::table('siswas')->where('status', 'aktif')->where('kelas', 'like', 'XII %')->count();
+
+        // Ambil siswa aktif per rombel untuk pengecualian jika ada yang tinggal kelas
+        $activeStudents = DB::table('siswas')
+            ->where('status', 'aktif')
+            ->select('id', 'name', 'nis', 'kelas')
+            ->orderBy('kelas')
+            ->orderBy('name')
+            ->get();
+
+        $classesWithStudents = [];
+        foreach ($activeStudents as $st) {
+            $classesWithStudents[$st->kelas][] = $st;
+        }
+
+        return view('waka.kenaikan_kelas', [
+            'user' => Auth::user(),
+            'countX' => $countX,
+            'countXI' => $countXI,
+            'countXII' => $countXII,
+            'classesWithStudents' => $classesWithStudents,
+        ]);
+    })->name('waka.kenaikan_kelas');
+
+    Route::post('/waka/kenaikan-kelas/proses', function (Request $request) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $request->validate([
+            'tahun_lulus' => ['required', 'string', 'max:20'],
+            'tanggal_lulus' => ['required', 'date'],
+            'keterangan' => ['nullable', 'string', 'max:500'],
+            'excluded_students' => ['nullable', 'array'],
+            'excluded_students.*' => ['integer'],
+        ]);
+
+        $tahunLulus = trim($request->input('tahun_lulus'));
+        $tanggalLulus = $request->input('tanggal_lulus');
+        $keterangan = trim((string) $request->input('keterangan'));
+        $excludedIds = array_map('intval', (array) $request->input('excluded_students', []));
+
+        $countGraduated = 0;
+        $countPromotedXI = 0;
+        $countPromotedX = 0;
+
+        DB::transaction(function () use ($tahunLulus, $tanggalLulus, $keterangan, $excludedIds, &$countGraduated, &$countPromotedXI, &$countPromotedX) {
+            $now = now();
+
+            // 1. KELULUSAN SISWA KELAS XII (Simpan ke Arsip Alumni & Nonaktifkan Akun Login)
+            $graduatingQuery = DB::table('siswas')
+                ->where('status', 'aktif')
+                ->where('kelas', 'like', 'XII %');
+
+            if (! empty($excludedIds)) {
+                $graduatingQuery->whereNotIn('id', $excludedIds);
+            }
+
+            $graduatingStudents = $graduatingQuery->get();
+
+            if ($graduatingStudents->isNotEmpty()) {
+                $alumniInserts = [];
+                $graduatingIds = [];
+
+                foreach ($graduatingStudents as $s) {
+                    $graduatingIds[] = $s->id;
+                    $alumniInserts[] = [
+                        'student_id' => $s->id,
+                        'nis' => $s->nis,
+                        'name' => $s->name,
+                        'jurusan' => $s->jurusan,
+                        'kelas_terakhir' => $s->kelas,
+                        'tahun_lulus' => $tahunLulus,
+                        'tanggal_lulus' => $tanggalLulus,
+                        'alamat' => $s->alamat,
+                        'phone' => $s->phone,
+                        'email' => $s->email,
+                        'keterangan' => $keterangan !== '' ? $keterangan : 'Lulus Tingkat XII',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                foreach (array_chunk($alumniInserts, 200) as $chunk) {
+                    DB::table('alumnis')->insert($chunk);
+                }
+
+                DB::table('siswas')
+                    ->whereIn('id', $graduatingIds)
+                    ->update([
+                        'status' => 'lulus',
+                        'tahun_lulus' => $tahunLulus,
+                        'tanggal_lulus' => $tanggalLulus,
+                        'updated_at' => $now,
+                    ]);
+
+                // NONAKTIFKAN AKUN LOGIN SISWA & ORANG TUA
+                DB::table('users')
+                    ->whereIn('student_id', $graduatingIds)
+                    ->update([
+                        'is_active' => 0,
+                    ]);
+
+                $countGraduated = count($graduatingIds);
+            }
+
+            // 2. NAIK KELAS: TINGKAT XI -> TINGKAT XII
+            $promotedXIQuery = DB::table('siswas')
+                ->where('status', 'aktif')
+                ->where('kelas', 'like', 'XI %');
+
+            if (! empty($excludedIds)) {
+                $promotedXIQuery->whereNotIn('id', $excludedIds);
+            }
+
+            $countPromotedXI = $promotedXIQuery->count();
+            $promotedXIQuery->update([
+                'kelas' => DB::raw("CONCAT('XII ', SUBSTRING(kelas, 4))"),
+                'updated_at' => $now,
+            ]);
+
+            // 3. NAIK KELAS: TINGKAT X -> TINGKAT XI
+            $promotedXQuery = DB::table('siswas')
+                ->where('status', 'aktif')
+                ->where('kelas', 'like', 'X %');
+
+            if (! empty($excludedIds)) {
+                $promotedXQuery->whereNotIn('id', $excludedIds);
+            }
+
+            $countPromotedX = $promotedXQuery->count();
+            $promotedXQuery->update([
+                'kelas' => DB::raw("CONCAT('XI ', SUBSTRING(kelas, 3))"),
+                'updated_at' => $now,
+            ]);
+        });
+
+        $message = "🎉 Sukses! Kenaikan kelas & kelulusan serentak selesai diproses. ";
+        $message .= "Sebanyak {$countGraduated} siswa Kelas XII telah lulus, akunnya dinonaktifkan, dan diarsipkan ke Data Alumni. ";
+        $message .= "Sebanyak {$countPromotedXI} siswa Kelas XI naik ke Tingkat XII, dan {$countPromotedX} siswa Kelas X naik ke Tingkat XI.";
+
+        return redirect()->route('waka.kenaikan_kelas')->with('success', $message);
+    })->name('waka.kenaikan_kelas.proses');
+
+    // =========================================================================
+    // DATA ALUMNI (ARSIP SISWA LULUS)
+    // =========================================================================
+    Route::get('/waka/alumni', function (Request $request) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $search = trim((string) $request->query('q', ''));
+        $selectedYear = trim((string) $request->query('tahun_lulus', ''));
+        $selectedJurusan = trim((string) $request->query('jurusan', ''));
+        $selectedStatusAkun = trim((string) $request->query('status_akun', ''));
+
+        $query = DB::table('alumnis')
+            ->leftJoin('users', function ($join) {
+                $join->on('alumnis.student_id', '=', 'users.student_id')
+                    ->where('users.role_id', 3);
+            })
+            ->select('alumnis.*', 'users.is_active as account_active')
+            ->orderBy('alumnis.tahun_lulus', 'desc')
+            ->orderBy('alumnis.name', 'asc');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('alumnis.name', 'like', "%{$search}%")
+                    ->orWhere('alumnis.nis', 'like', "%{$search}%")
+                    ->orWhere('alumnis.phone', 'like', "%{$search}%")
+                    ->orWhere('alumnis.email', 'like', "%{$search}%")
+                    ->orWhere('alumnis.kelas_terakhir', 'like', "%{$search}%");
+            });
+        }
+
+        if ($selectedYear !== '') {
+            $query->where('alumnis.tahun_lulus', $selectedYear);
+        }
+
+        if ($selectedJurusan !== '') {
+            $query->where('alumnis.jurusan', $selectedJurusan);
+        }
+
+        if ($selectedStatusAkun === 'aktif') {
+            $query->where('users.is_active', 1);
+        } elseif ($selectedStatusAkun === 'nonaktif') {
+            $query->where(function ($q) {
+                $q->where('users.is_active', 0)->orWhereNull('users.is_active');
+            });
+        }
+
+        $alumnis = $query->paginate(50)->withQueryString();
+        $availableYears = DB::table('alumnis')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
+
+        return view('waka.alumni', [
+            'user' => Auth::user(),
+            'alumnis' => $alumnis,
+            'search' => $search,
+            'selectedYear' => $selectedYear,
+            'selectedJurusan' => $selectedJurusan,
+            'selectedStatusAkun' => $selectedStatusAkun,
+            'availableYears' => $availableYears,
+        ]);
+    })->name('waka.alumni');
+
+    Route::post('/waka/alumni/{id}/toggle-status', function (int $id) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $alumni = DB::table('alumnis')->where('id', $id)->first();
+        abort_if(! $alumni, 404);
+
+        $user = DB::table('users')->where('student_id', $alumni->student_id)->first();
+        if ($user) {
+            $newStatus = $user->is_active ? 0 : 1;
+            DB::table('users')->where('student_id', $alumni->student_id)->update(['is_active' => $newStatus]);
+            $statusText = $newStatus ? 'diaktifkan kembali' : 'dinonaktifkan (dikunci)';
+            return back()->with('success', "Akun login untuk {$alumni->name} berhasil {$statusText}.");
+        }
+
+        return back()->withErrors(['Akun login untuk siswa ini tidak ditemukan.']);
+    })->name('waka.alumni.toggle_status');
+
+    Route::get('/waka/alumni/export', function (Request $request) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $selectedYear = trim((string) $request->query('tahun_lulus', ''));
+        $selectedJurusan = trim((string) $request->query('jurusan', ''));
+
+        $query = DB::table('alumnis')->orderBy('tahun_lulus', 'desc')->orderBy('name', 'asc');
+        if ($selectedYear !== '') {
+            $query->where('tahun_lulus', $selectedYear);
+        }
+        if ($selectedJurusan !== '') {
+            $query->where('jurusan', $selectedJurusan);
+        }
+
+        $alumnis = $query->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="data_alumni_' . date('Ymd_His') . '.csv"',
+        ];
+
+        $callback = function () use ($alumnis) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['No', 'NIS', 'Nama Siswa', 'Jurusan', 'Kelas Terakhir', 'Tahun Lulus', 'Tanggal Lulus', 'Alamat', 'Nomor Telepon', 'Email', 'Keterangan']);
+
+            $no = 1;
+            foreach ($alumnis as $a) {
+                fputcsv($file, [
+                    $no++,
+                    $a->nis,
+                    $a->name,
+                    $a->jurusan,
+                    $a->kelas_terakhir,
+                    $a->tahun_lulus,
+                    $a->tanggal_lulus,
+                    $a->alamat,
+                    $a->phone,
+                    $a->email,
+                    $a->keterangan,
+                ]);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    })->name('waka.alumni.export');
+
 
     Route::post('/waka/data-siswa/import', function (Request $request) use ($syncSchoolClasses) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
