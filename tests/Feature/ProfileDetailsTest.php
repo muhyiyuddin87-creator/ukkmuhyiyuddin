@@ -108,6 +108,43 @@ class ProfileDetailsTest extends TestCase
             ->assertSee('12345678');
     }
 
+    public function test_student_profile_does_not_render_editable_nis_or_role_and_preserves_nis_on_update(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $student = User::where('username', 'siswa')->firstOrFail();
+        $studentId = DB::table('siswas')->insertGetId([
+            'name' => $student->fullname,
+            'nis' => '99887766',
+            'kelas' => 'XII-RPL-2',
+            'jurusan' => 'RPL',
+            'alamat' => 'Alamat siswa',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $student->student_id = $studentId;
+        $student->save();
+
+        $response = $this->actingAs($student)->get(route('profile'));
+        $response->assertOk()
+            ->assertDontSee('name="nis"', false)
+            ->assertDontSee('Role / Peran')
+            ->assertSee('99887766');
+
+        $this->post(route('profile.update'), [
+            'fullname' => $student->fullname,
+            'username' => $student->username,
+            'phone' => '08999999999',
+            'email' => 'siswa_baru@sekolah.sch.id',
+        ])->assertRedirect(route('profile'));
+
+        $this->assertDatabaseHas('siswas', [
+            'id' => $studentId,
+            'nis' => '99887766',
+            'phone' => '08999999999',
+            'email' => 'siswa_baru@sekolah.sch.id',
+        ]);
+    }
+
     public function test_api_profile_exposes_and_updates_teacher_profile_details(): void
     {
         $this->seed(DatabaseSeeder::class);

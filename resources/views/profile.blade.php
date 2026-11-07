@@ -275,6 +275,11 @@
                             <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
                                 ID Pengguna: <strong class="text-slate-700 font-mono">#{{ $user->id }}</strong>
                             </div>
+                            @if(!empty($studentProfile?->nis))
+                                <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                                    NIS: <strong class="text-slate-700 font-mono">{{ $studentProfile->nis }}</strong>
+                                </div>
+                            @endif
                             @if($user->created_at)
                                 <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
                                     Bergabung: <strong class="text-slate-700">{{ \Carbon\Carbon::parse($user->created_at)->translatedFormat('d F Y') }}</strong>
@@ -395,37 +400,7 @@
                                     </div>
                                     <p class="mt-1 text-xs text-slate-400">Mata pelajaran mengikuti jadwal yang ditetapkan.</p>
                                 </div>
-                            @elseif($roleSlug === 'siswa')
-                                <div>
-                                    <label for="nis" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">NIS</label>
-                                    @if($studentProfile)
-                                        <input
-                                            type="text"
-                                            id="nis"
-                                            name="nis"
-                                            value="{{ old('nis', $studentProfile->nis) }}"
-                                            maxlength="30"
-                                            class="w-full rounded-2xl border border-slate-300 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition"
-                                            placeholder="Masukkan NIS"
-                                        >
-                                    @else
-                                        <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Akun belum ditautkan ke data siswa, sehingga NIS belum tersedia.</div>
-                                    @endif
-                                </div>
                             @endif
-
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                                    Role / Peran
-                                </label>
-                                <input 
-                                    type="text" 
-                                    value="{{ $roleName }}{{ $isWaliKelas ? ', Wali Kelas' : '' }} (Role ID: {{ $user->role_id }})" 
-                                    disabled 
-                                    class="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-500 cursor-not-allowed"
-                                >
-                                <p class="text-xs text-slate-400 mt-1">Role diatur oleh administrator dan tidak dapat diubah sendiri.</p>
-                            </div>
                         </div>
                     </div>
 

@@ -668,7 +668,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         if ((int) $user->role_id === 2) {
             $rules['nip'] = ['nullable', 'string', 'max:30', Rule::unique('users', 'nip')->ignore($user->id)];
         }
-        if ((int) $user->role_id === 3 && $user->student_id) {
+        if ((int) $user->role_id === 3 && $user->student_id && $request->has('nis')) {
             $rules['nis'] = ['nullable', 'string', 'max:30', Rule::unique('siswas', 'nis')->ignore($user->student_id)];
         }
 
@@ -710,12 +710,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             DB::table('users')->where('id', $user->id)->update($updateData);
 
             if ((int) $user->role_id === 3 && $user->student_id) {
-                DB::table('siswas')->where('id', $user->student_id)->update([
-                    'nis' => $validated['nis'] ?? null,
+                $siswaUpdateData = [
                     'phone' => $validated['phone'] ?? null,
                     'email' => isset($validated['email']) ? strtolower($validated['email']) : null,
                     'updated_at' => now(),
-                ]);
+                ];
+                if (array_key_exists('nis', $validated) && $validated['nis'] !== null) {
+                    $siswaUpdateData['nis'] = $validated['nis'];
+                }
+                DB::table('siswas')->where('id', $user->student_id)->update($siswaUpdateData);
             }
         });
 
