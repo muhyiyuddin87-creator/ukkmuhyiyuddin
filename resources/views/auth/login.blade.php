@@ -9,21 +9,10 @@
 <body class="min-h-screen bg-gradient-to-br from-sky-100 via-white to-indigo-100 flex items-center justify-center p-6">
     <div class="w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
         <div class="grid md:grid-cols-2">
-            <div class="hidden md:flex flex-col justify-between bg-gradient-to-br from-sky-700 via-blue-700 to-indigo-800 p-10 text-white">
+            <div class="hidden md:flex flex-col justify-center bg-gradient-to-br from-sky-700 via-blue-700 to-indigo-800 p-10 text-white">
                 <div>
                     <p class="text-sm uppercase tracking-[0.3em] text-sky-100">School System</p>
                     <h1 class="mt-4 text-4xl font-bold">Sistem Informasi Sekolah</h1>
-                </div>
-
-                <div class="mt-8 space-y-4">
-                    <div class="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                        <p class="text-xs uppercase tracking-[0.2em] text-sky-100">Akses</p>
-                        <p class="mt-2 text-lg font-semibold">Waka • Guru • Siswa • Kesiswaan</p>
-                    </div>
-                    <div class="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                        <p class="text-xs uppercase tracking-[0.2em] text-sky-100">Fitur</p>
-                        <p class="mt-2 text-lg font-semibold">Presensi, Jadwal, dan Monitoring</p>
-                    </div>
                 </div>
             </div>
 

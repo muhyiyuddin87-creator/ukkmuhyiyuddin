@@ -11,7 +11,26 @@ class JournalApiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Journal::with(['schedule', 'attendances']);
+        $query = Journal::with(['schedule', 'attendances.student']);
+
+        $user = $request->user();
+
+        // Filter jurnal per guru / kesiswaan (jurnal milik masing-masing)
+        if ($request->has('teacher_id') && $request->teacher_id) {
+            $teacherId = (int) $request->teacher_id;
+            $query->where(function ($q) use ($teacherId) {
+                $q->whereHas('schedule', function ($sq) use ($teacherId) {
+                    $sq->where('teacher_id', $teacherId);
+                })->orWhere('created_by', $teacherId);
+            });
+        } elseif ($user && in_array((int) $user->role_id, [2, 4], true) && ! $request->has('all')) {
+            $userId = (int) $user->id;
+            $query->where(function ($q) use ($userId) {
+                $q->whereHas('schedule', function ($sq) use ($userId) {
+                    $sq->where('teacher_id', $userId);
+                })->orWhere('created_by', $userId);
+            });
+        }
 
         if ($request->has('date')) {
             $query->where('date', $request->date);
@@ -64,6 +83,14 @@ class JournalApiController extends Controller
             ], 422);
         }
 
+        // Foto kamera realtime KBM wajib dilampirkan
+        if (! $request->hasFile('photo') && empty($request->photo_path)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Foto dokumentasi kamera realtime KBM wajib dilampirkan untuk membuat jurnal mengajar.',
+            ], 422);
+        }
+
         $targetDate = $request->date ?? now()->toDateString();
 
         // Pastikan tidak ada jurnal ganda untuk jadwal yang sama di hari yang sama
@@ -74,7 +101,7 @@ class JournalApiController extends Controller
         if ($alreadyExists) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Jurnal untuk mata pelajaran pada jadwal ini sudah pernah diisi untuk hari ini.',
+                'message' => 'Jurnal untuk mata pelajaran pada jadwal ini sudah diisi untuk hari ini. Anda hanya dapat mengisi jurnal untuk jadwal lain yang belum diisi.',
             ], 422);
         }
 
