@@ -184,19 +184,19 @@
 
                 <nav class="space-y-1.5 text-sm font-medium">
                     <a href="{{ route('dashboard.role', ['role' => 'kesiswaan']) }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('dashboard*') ? 'bg-amber-600 font-semibold text-white shadow' : 'text-amber-100 hover:bg-amber-900 hover:text-white' }}">
-                        <span class="h-2 w-2 rounded-full {{ request()->routeIs('dashboard*') ? 'bg-white' : 'bg-amber-400' }}"></span>
+                        @include('partials.waka_nav_icon', ['icon' => 'dashboard'])
                         Dashboard
                     </a>
                     <a href="{{ route('kesiswaan.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('kesiswaan.izin*') ? 'bg-amber-600 font-semibold text-white shadow' : 'text-amber-100 hover:bg-amber-900 hover:text-white' }}">
-                        <span class="h-2 w-2 rounded-full {{ request()->routeIs('kesiswaan.izin*') ? 'bg-white' : 'bg-amber-400' }}"></span>
+                        @include('partials.waka_nav_icon', ['icon' => 'leave'])
                         Riwayat Izin Siswa
                     </a>
                     <a href="{{ route('guru.jadwal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.jadwal*') ? 'bg-amber-600 font-semibold text-white shadow' : 'text-amber-100 hover:bg-amber-900 hover:text-white' }}">
-                        <span class="h-2 w-2 rounded-full {{ request()->routeIs('guru.jadwal*') ? 'bg-white' : 'bg-amber-400' }}"></span>
+                        @include('partials.waka_nav_icon', ['icon' => 'schedule'])
                         Jadwal Mengajar
                     </a>
                     <a href="{{ route('guru.jurnal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.jurnal*') ? 'bg-amber-600 font-semibold text-white shadow' : 'text-amber-100 hover:bg-amber-900 hover:text-white' }}">
-                        <span class="h-2 w-2 rounded-full {{ request()->routeIs('guru.jurnal*') ? 'bg-white' : 'bg-amber-400' }}"></span>
+                        @include('partials.waka_nav_icon', ['icon' => 'journal'])
                         Isi Jurnal
                     </a>
 

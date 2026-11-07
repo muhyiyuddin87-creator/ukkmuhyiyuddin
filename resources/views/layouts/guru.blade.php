@@ -199,12 +199,12 @@
 
                 <nav class="space-y-1.5 text-sm font-medium">
                     <a href="{{ route('dashboard.role', ['role' => 'guru']) }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('dashboard*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
-                        <span class="h-2 w-2 rounded-full {{ request()->routeIs('dashboard*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
+                        @include('partials.waka_nav_icon', ['icon' => 'dashboard'])
                         Dashboard
                     </a>
                     <a href="{{ route('guru.jurnal') }}" class="flex items-center justify-between gap-2 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.jurnal*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
                         <div class="flex items-center gap-3">
-                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('guru.jurnal*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'journal'])
                             Isi Jurnal
                         </div>
                         @if(($unfilledCount ?? 0) > 0)
@@ -219,11 +219,11 @@
                             <span class="px-4 text-[10px] font-bold uppercase tracking-wider text-indigo-300">Wali Kelas</span>
                         </div>
                         <a href="{{ route('guru.presensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.presensi*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
-                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('guru.presensi*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'attendance'])
                             Presensi Siswa
                         </a>
                         <a href="{{ route('wali-kelas.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('wali-kelas.izin*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
-                            <span class="h-2 w-2 rounded-full {{ request()->routeIs('wali-kelas.izin*') ? 'bg-white' : 'bg-indigo-400' }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'verify'])
                             Verifikasi Izin
                         </a>
                     @endif

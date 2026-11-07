@@ -110,57 +110,57 @@
                 <!-- Navigation Sesuai Role -->
                 <nav class="space-y-1.5 text-sm font-medium">
                     <a href="{{ route('dashboard.role', ['role' => $dashboardSlug]) }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                        <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                        @include('partials.waka_nav_icon', ['icon' => 'dashboard'])
                         Dashboard
                     </a>
 
                     @if($roleSlug === 'waka')
                         <a href="{{ route('waka.siswa') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'students'])
                             Data Siswa
                         </a>
                         <a href="{{ route('waka.guru') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'teachers'])
                             Data Guru
                         </a>
                         <a href="{{ route('waka.accounts') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'accounts'])
                             Kelola Akun & Role
                         </a>
                         <a href="{{ route('waka.jadwal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'schedule'])
                             Jadwal
                         </a>
                         <a href="{{ route('waka.laporan') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'reports'])
                             Laporan
                         </a>
                     @elseif($roleSlug === 'guru' && $isWaliKelas)
                         <a href="{{ route('wali-kelas.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'verify'])
                             Verifikasi Izin
                         </a>
                         <a href="{{ route('guru.jurnal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'journal'])
                             Isi Jurnal
                         </a>
                     @elseif($roleSlug === 'guru')
                         <a href="{{ route('guru.jurnal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'journal'])
                             Isi Jurnal
                         </a>
                     @elseif($roleSlug === 'siswa')
                         <a href="{{ route('siswa.jadwal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'schedule'])
                             Jadwal
                         </a>
                         <a href="{{ route('siswa.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'leave'])
                             Izin
                         </a>
                     @elseif($roleSlug === 'kesiswaan')
                         <a href="{{ route('kesiswaan.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
-                            <span class="h-2 w-2 rounded-full {{ $theme['dot_color'] }}"></span>
+                            @include('partials.waka_nav_icon', ['icon' => 'leave'])
                             Riwayat Izin Siswa
                         </a>
                     @endif
