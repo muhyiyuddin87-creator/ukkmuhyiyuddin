@@ -930,8 +930,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $validated = $request->validate([
             'leave_type' => ['nullable', 'string', Rule::in(['Sakit', 'Izin', 'Izin Keluar Saat KBM'])],
             'reason' => ['required', 'string', 'max:2000'],
-            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ], [
+            'photo.required' => 'Foto bukti (foto selfie atau surat keterangan) wajib dikirim.',
+            'photo.image' => 'File bukti harus berupa gambar foto (JPG, PNG, WEBP).',
+            'photo.max' => 'Ukuran file foto maksimal 5 MB.',
             'leave_type.in' => 'Pilihan jenis izin tidak valid.',
             'reason.required' => 'Alasan izin wajib diisi.',
         ]);

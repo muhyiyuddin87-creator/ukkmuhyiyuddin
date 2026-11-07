@@ -16,7 +16,7 @@
         <label class="block text-sm font-semibold text-slate-700">
             {{ $label }}
             @if($isRequired)
-                <span class="text-rose-500">*</span>
+                <span class="text-rose-500 font-bold">* (Wajib Lampirkan Foto)</span>
             @else
                 <span class="font-normal text-slate-500">(opsional, kamera live)</span>
             @endif
@@ -28,7 +28,7 @@
     </div>
 
     <!-- Hidden input file yang menampung file hasil jepretan kamera atau fallback file -->
-    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" class="hidden" {{ $isRequired ? 'required' : '' }}>
+    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" class="hidden">
 
     <!-- Box 1: Tampilan Awal (Idle State) -->
     <div id="{{ $cid }}-box-idle" class="rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-6 text-center transition hover:bg-emerald-50">

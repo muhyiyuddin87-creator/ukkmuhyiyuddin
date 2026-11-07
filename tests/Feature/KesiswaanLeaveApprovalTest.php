@@ -202,7 +202,7 @@ class KesiswaanLeaveApprovalTest extends TestCase
             ->assertJsonPath('data.0.verifier_name', $kesiswaan->fullname);
     }
 
-    public function test_student_can_select_leave_type_sakit_or_izin(): void
+    public function test_student_can_select_leave_type_sakit_or_izin_and_photo_is_required(): void
     {
         $this->seed(DatabaseSeeder::class);
         $studentUser = User::where('username', 'siswa')->firstOrFail();
@@ -210,10 +210,17 @@ class KesiswaanLeaveApprovalTest extends TestCase
         $studentUser->student_id = $studentId;
         $studentUser->save();
 
-        // 1. Submit leave request with leave_type = Sakit
+        // 0. Submit without photo fails validation
+        $this->actingAs($studentUser)->post(route('siswa.izin.store'), [
+            'leave_type' => 'Sakit',
+            'reason' => 'Sakit tanpa foto',
+        ])->assertSessionHasErrors('photo');
+
+        // 1. Submit leave request with leave_type = Sakit and photo
         $this->actingAs($studentUser)->post(route('siswa.izin.store'), [
             'leave_type' => 'Sakit',
             'reason' => 'Demam tinggi dan flu',
+            'photo' => UploadedFile::fake()->image('surat_dokter.jpg'),
         ])->assertRedirect(route('siswa.izin'))
             ->assertSessionHas('success');
 
@@ -223,10 +230,11 @@ class KesiswaanLeaveApprovalTest extends TestCase
             'reason' => 'Demam tinggi dan flu',
         ]);
 
-        // 2. Submit leave request with leave_type = Izin
+        // 2. Submit leave request with leave_type = Izin and photo
         $this->actingAs($studentUser)->post(route('siswa.izin.store'), [
             'leave_type' => 'Izin',
             'reason' => 'Menghadiri acara keluarga di luar kota',
+            'photo' => UploadedFile::fake()->image('surat_izin.jpg'),
         ])->assertRedirect(route('siswa.izin'))
             ->assertSessionHas('success');
 
