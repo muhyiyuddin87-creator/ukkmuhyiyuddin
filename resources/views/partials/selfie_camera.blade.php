@@ -27,8 +27,8 @@
         </span>
     </div>
 
-    <!-- Hidden input file yang menampung file hasil jepretan kamera atau fallback file -->
-    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" class="hidden">
+    <!-- Hidden input file yang menampung file hasil jepretan kamera real-time -->
+    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" capture="user" class="hidden">
 
     <!-- Box 1: Tampilan Awal (Idle State) -->
     <div id="{{ $cid }}-box-idle" class="rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-6 text-center transition hover:bg-emerald-50">
@@ -47,10 +47,7 @@
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                Buka Kamera Selfie
-            </button>
-            <button type="button" id="{{ $cid }}-btn-file-fallback" class="text-xs font-semibold text-emerald-700 underline hover:text-emerald-800 py-2">
-                Pilih dari Galeri / File
+                Buka Kamera Selfie Real-Time
             </button>
         </div>
         <!-- Pesan error kamera jika ditolak / tidak didukung -->
@@ -140,7 +137,6 @@
     const btnCancel = document.getElementById(`${cid}-btn-cancel`);
     const btnCapture = document.getElementById(`${cid}-btn-capture`);
     const btnRetake = document.getElementById(`${cid}-btn-retake`);
-    const btnFileFallback = document.getElementById(`${cid}-btn-file-fallback`);
 
     const studentName = root.getAttribute('data-student-name') || 'Siswa';
     const studentClass = root.getAttribute('data-student-class') || '';
@@ -171,7 +167,7 @@
         errorMsg.textContent = '';
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            errorMsg.textContent = 'Browser Anda tidak mendukung akses kamera langsung, atau Anda sedang mengakses tanpa HTTPS/localhost. Silakan gunakan tombol "Pilih dari Galeri / File".';
+            errorMsg.textContent = 'Browser Anda tidak mendukung akses kamera langsung atau Anda mengakses tanpa koneksi aman (HTTPS). Pastikan menggunakan browser modern dan izinkan akses kamera.';
             errorMsg.classList.remove('hidden');
             return;
         }
@@ -323,32 +319,6 @@
             }
             imgPreview.removeAttribute('src');
             openCamera();
-        });
-    }
-
-    if (btnFileFallback && fileInput) {
-        btnFileFallback.addEventListener('click', () => {
-            fileInput.click();
-        });
-    }
-
-    // Jika user memilih file manual lewat galeri / fallback
-    if (fileInput) {
-        fileInput.addEventListener('change', () => {
-            if (!fileInput.files || fileInput.files.length === 0) return;
-            const file = fileInput.files[0];
-
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
-            previewUrl = URL.createObjectURL(file);
-            imgPreview.src = previewUrl;
-            txtTimestamp.textContent = `File dipilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-
-            stopStream();
-            boxIdle.classList.add('hidden');
-            boxViewfinder.classList.add('hidden');
-            boxPreview.classList.remove('hidden');
         });
     }
 
