@@ -54,13 +54,13 @@
 
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                     <div class="flex items-center justify-between">
-                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
-                        <span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Akun</span>
+                        <span class="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Presensi</span>
                     </div>
-                    <p class="mt-4 text-sm text-slate-500">Akun</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-800">{{ $stats['total_akun'] }}</p>
+                    <p class="mt-4 text-sm text-slate-500">Kehadiran Jurnal</p>
+                    <p class="mt-2 text-3xl font-bold text-slate-800">{{ $stats['total_kehadiran'] ?? 0 }} <span class="text-xs font-semibold text-slate-400">Pertemuan</span></p>
                 </div>
             </section>
 
@@ -68,6 +68,7 @@
                 <div class="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-white shadow-lg">
                     <h3 class="text-xl font-bold mb-4">{{ (int) (Auth::user()->role_id ?? 0) === 6 ? 'Catatan Siswa (Putra/Putri Anda)' : 'Catatan Siswa' }}</h3>
                     <ul class="space-y-3 text-sm text-emerald-50">
+                        <li class="flex items-center justify-between"><span>Kehadiran Jurnal</span><span class="font-semibold">{{ $stats['total_hadir'] ?? 0 }} Hadir / {{ $stats['total_kehadiran'] ?? 0 }} Pertemuan</span></li>
                         <li class="flex items-center justify-between"><span>Izin</span><span class="font-semibold">{{ $stats['total_izin'] ?? 0 }} Pengajuan</span></li>
                         <li class="flex items-center justify-between"><span>Jadwal</span><span class="font-semibold">Aktif</span></li>
                         <li class="flex items-center justify-between"><span>Status Akun</span><span class="font-semibold">Aktif</span></li>
@@ -113,6 +114,65 @@
                                         @else
                                             Belum ada jadwal pelajaran untuk kelas {{ $studentClass }} pada putaran ini.
                                         @endif
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Riwayat Kehadiran Terkini -->
+            <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Riwayat Kehadiran Terkini</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Catatan presensi dari jurnal mengajar guru</p>
+                    </div>
+                    <a href="{{ route('siswa.absensi') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+                        Lihat Semua Riwayat Kehadiran
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                <div class="overflow-x-auto table-scroll-container">
+                    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 font-semibold text-slate-700">Tanggal</th>
+                                <th class="px-4 py-3 font-semibold text-slate-700">Mata Pelajaran</th>
+                                <th class="px-4 py-3 font-semibold text-slate-700">Guru Pengajar</th>
+                                <th class="px-4 py-3 font-semibold text-slate-700">Materi / Topik Jurnal</th>
+                                <th class="px-4 py-3 font-semibold text-slate-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            @forelse (($recentAttendances ?? []) as $att)
+                                @php
+                                    $attStatus = $att->status ?? 'Hadir';
+                                    $badgeClass = match($attStatus) {
+                                        'Hadir' => 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                                        'Sakit' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                        'Izin' => 'bg-sky-100 text-sky-800 border-sky-200',
+                                        'Alpha' => 'bg-rose-100 text-rose-800 border-rose-200',
+                                        default => 'bg-slate-100 text-slate-800 border-slate-200'
+                                    };
+                                @endphp
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-4 py-3 text-slate-600 whitespace-nowrap">{{ $att->date ?? '-' }}</td>
+                                    <td class="px-4 py-3 font-semibold text-slate-800">{{ $att->subject ?? 'Presensi KBM' }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $att->teacher_name ?? '-' }}</td>
+                                    <td class="px-4 py-3 text-slate-600 text-xs max-w-xs truncate" title="{{ $att->topic_description ?? '' }}">{{ $att->topic_description ?? '-' }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $badgeClass }}">
+                                            {{ $attStatus }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-slate-500">
+                                        Belum ada riwayat kehadiran dari jurnal mengajar guru.
                                     </td>
                                 </tr>
                             @endforelse

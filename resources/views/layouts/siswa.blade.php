@@ -178,6 +178,10 @@
                         @include('partials.waka_nav_icon', ['icon' => 'schedule'])
                         Jadwal Belajar
                     </a>
+                    <a href="{{ route('siswa.absensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('siswa.absensi*') ? 'bg-emerald-600 font-semibold text-white shadow' : 'text-emerald-100 hover:bg-emerald-900 hover:text-white' }}">
+                        @include('partials.waka_nav_icon', ['icon' => 'attendance'])
+                        Riwayat Kehadiran
+                    </a>
                     <a href="{{ route('siswa.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('siswa.izin*') ? 'bg-emerald-600 font-semibold text-white shadow' : 'text-emerald-100 hover:bg-emerald-900 hover:text-white' }}">
                         @include('partials.waka_nav_icon', ['icon' => 'leave'])
                         Pengajuan Izin

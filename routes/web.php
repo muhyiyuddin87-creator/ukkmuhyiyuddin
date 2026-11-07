@@ -566,11 +566,39 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                     ->get();
             }
 
+            $studentAttendances = ($student && Schema::hasTable('attendances'))
+                ? DB::table('attendances')
+                    ->where('attendances.student_id', $student->id)
+                    ->leftJoin('journals', 'attendances.journal_id', '=', 'journals.id')
+                    ->leftJoin('schedules', 'journals.schedule_id', '=', 'schedules.id')
+                    ->leftJoin('users as teacher', 'schedules.teacher_id', '=', 'teacher.id')
+                    ->select([
+                        'attendances.id',
+                        'attendances.date',
+                        'attendances.status',
+                        'attendances.notes',
+                        'journals.topic_description',
+                        'schedules.subject',
+                        'teacher.fullname as teacher_name',
+                    ])
+                    ->orderByDesc('attendances.date')
+                    ->orderByDesc('attendances.id')
+                    ->get()
+                : collect();
+
             $stats['total_jadwal'] = $jadwalList->count();
+            $stats['total_kehadiran'] = $studentAttendances->count();
+            $stats['total_hadir'] = $studentAttendances->where('status', 'Hadir')->count();
+            $stats['total_sakit'] = $studentAttendances->where('status', 'Sakit')->count();
+            $stats['total_izin_absen'] = $studentAttendances->where('status', 'Izin')->count();
+            $stats['total_alpha'] = $studentAttendances->where('status', 'Alpha')->count();
+
             $extraData = [
                 'student' => $student,
                 'studentClass' => $student->kelas ?? null,
                 'jadwalList' => $jadwalList,
+                'recentAttendances' => $studentAttendances->take(5),
+                'totalKehadiranSiswa' => $studentAttendances->count(),
             ];
         }
         if ($roleId === 5 || ($roleId === 2 && $hasWaliAssignment)) {
@@ -802,8 +830,66 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         ]);
     })->name('siswa.jadwal.pdf');
 
-    Route::get('/siswa/absensi', function () {
-        return redirect()->route('dashboard');
+    Route::get('/siswa/absensi', function (Request $request) use ($currentAcademicYear) {
+        $user = Auth::user();
+        abort_unless(in_array((int) ($user->role_id ?? 0), [3, 6], true), 403);
+
+        $student = $user->student_id
+            ? DB::table('siswas')->where('id', $user->student_id)->first()
+            : null;
+
+        $studentId = $student?->id;
+
+        $attendances = collect();
+        if (Schema::hasTable('attendances') && $studentId) {
+            $attendances = DB::table('attendances')
+                ->where('attendances.student_id', $studentId)
+                ->leftJoin('journals', 'attendances.journal_id', '=', 'journals.id')
+                ->leftJoin('schedules', 'journals.schedule_id', '=', 'schedules.id')
+                ->leftJoin('users as teacher', 'schedules.teacher_id', '=', 'teacher.id')
+                ->leftJoin('ruangan', 'schedules.room_id', '=', 'ruangan.id_ruangan')
+                ->select([
+                    'attendances.id',
+                    'attendances.journal_id',
+                    'attendances.student_id',
+                    'attendances.status',
+                    'attendances.date',
+                    'attendances.notes',
+                    'attendances.created_at',
+                    'journals.topic_description',
+                    'journals.photo_path as journal_photo',
+                    'schedules.subject',
+                    'schedules.day_of_week',
+                    'schedules.start_time',
+                    'schedules.end_time',
+                    'schedules.cycle_number',
+                    'teacher.fullname as teacher_name',
+                    'ruangan.nama_ruangan as room_name',
+                ])
+                ->orderByDesc('attendances.date')
+                ->orderByDesc('attendances.id')
+                ->get();
+        }
+
+        $totalAttendances = $attendances->count();
+        $totalHadir = $attendances->where('status', 'Hadir')->count();
+        $totalSakit = $attendances->where('status', 'Sakit')->count();
+        $totalIzin = $attendances->where('status', 'Izin')->count();
+        $totalAlpha = $attendances->where('status', 'Alpha')->count();
+        $percentageHadir = $totalAttendances > 0 ? round(($totalHadir / $totalAttendances) * 100, 1) : 0;
+
+        return view('siswa.absensi', [
+            'user' => $user,
+            'student' => $student,
+            'attendances' => $attendances,
+            'totalAttendances' => $totalAttendances,
+            'totalHadir' => $totalHadir,
+            'totalSakit' => $totalSakit,
+            'totalIzin' => $totalIzin,
+            'totalAlpha' => $totalAlpha,
+            'percentageHadir' => $percentageHadir,
+            'academicYear' => $currentAcademicYear,
+        ]);
     })->name('siswa.absensi');
 
     Route::get('/siswa/izin', function () {
