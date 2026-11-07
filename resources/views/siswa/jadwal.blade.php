@@ -8,30 +8,40 @@
                     'Senin' => [
                         'border' => 'border-t-4 border-t-emerald-500',
                         'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        'time_pill' => 'bg-emerald-600 text-white',
+                        'time_icon' => 'text-emerald-200',
                         'accent' => 'text-emerald-600',
                         'avatar' => 'bg-emerald-600 text-white',
                     ],
                     'Selasa' => [
                         'border' => 'border-t-4 border-t-indigo-500',
                         'badge' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                        'time_pill' => 'bg-indigo-600 text-white',
+                        'time_icon' => 'text-indigo-200',
                         'accent' => 'text-indigo-600',
                         'avatar' => 'bg-indigo-600 text-white',
                     ],
                     'Rabu' => [
                         'border' => 'border-t-4 border-t-purple-500',
                         'badge' => 'bg-purple-50 text-purple-700 border-purple-200',
+                        'time_pill' => 'bg-purple-600 text-white',
+                        'time_icon' => 'text-purple-200',
                         'accent' => 'text-purple-600',
                         'avatar' => 'bg-purple-600 text-white',
                     ],
                     'Kamis' => [
                         'border' => 'border-t-4 border-t-amber-500',
                         'badge' => 'bg-amber-50 text-amber-700 border-amber-200',
+                        'time_pill' => 'bg-amber-600 text-white',
+                        'time_icon' => 'text-amber-200',
                         'accent' => 'text-amber-600',
                         'avatar' => 'bg-amber-600 text-white',
                     ],
                     'Jumat' => [
                         'border' => 'border-t-4 border-t-sky-500',
                         'badge' => 'bg-sky-50 text-sky-700 border-sky-200',
+                        'time_pill' => 'bg-sky-600 text-white',
+                        'time_icon' => 'text-sky-200',
                         'accent' => 'text-sky-600',
                         'avatar' => 'bg-sky-600 text-white',
                     ],
@@ -80,7 +90,7 @@
 
                     <!-- Filter Hari dengan Badge Jumlah -->
                     <div class="flex flex-wrap items-center gap-1.5" id="day-filter-container">
-                        <button type="button" onclick="filterScheduleDay('all')" class="day-filter-btn active inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold bg-slate-900 text-white shadow-xs transition" data-day="all">
+                        <button type="button" onclick="filterScheduleDay('all')" class="day-filter-btn active inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold bg-emerald-600 text-white shadow-xs transition" data-day="all">
                             <span>Semua Hari</span>
                             <span class="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">{{ $jadwals->count() }}</span>
                         </button>
@@ -103,6 +113,8 @@
                             $theme = $dayThemes[$jadwal->day_of_week] ?? [
                                 'border' => 'border-t-4 border-t-slate-400',
                                 'badge' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                'time_pill' => 'bg-slate-700 text-white',
+                                'time_icon' => 'text-slate-300',
                                 'accent' => 'text-slate-600',
                                 'avatar' => 'bg-slate-700 text-white',
                             ];
@@ -125,14 +137,14 @@
 
                         <div class="schedule-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 {{ $theme['border'] }}" data-day="{{ $jadwal->day_of_week }}">
                             <div>
-                                <!-- Header Atas: Badge Hari & Badge Jam Digital -->
+                                <!-- Header Atas: Badge Hari & Badge Jam Digital Senada Warna Hari -->
                                 <div class="flex items-center justify-between gap-2 mb-4">
                                     <span class="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider {{ $theme['badge'] }}">
                                         {{ $jadwal->day_of_week }}
                                     </span>
                                     
-                                    <div class="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-bold text-white shadow-2xs">
-                                        <svg class="h-3 w-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold shadow-2xs {{ $theme['time_pill'] }}">
+                                        <svg class="h-3 w-3 {{ $theme['time_icon'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                         <span>{{ $startTime }} - {{ $endTime }}</span>
@@ -208,7 +220,7 @@
 
         buttons.forEach(btn => {
             if (btn.getAttribute('data-day') === day) {
-                btn.className = 'day-filter-btn active inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold bg-slate-900 text-white shadow-xs transition';
+                btn.className = 'day-filter-btn active inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold bg-emerald-600 text-white shadow-xs transition';
             } else {
                 btn.className = 'day-filter-btn inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
             }
