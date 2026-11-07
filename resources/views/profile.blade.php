@@ -152,11 +152,15 @@
                     @elseif($roleSlug === 'siswa')
                         <a href="{{ route('siswa.jadwal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
                             @include('partials.waka_nav_icon', ['icon' => 'schedule'])
-                            Jadwal
+                            Jadwal Belajar
+                        </a>
+                        <a href="{{ route('siswa.absensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
+                            @include('partials.waka_nav_icon', ['icon' => 'attendance'])
+                            Riwayat Kehadiran
                         </a>
                         <a href="{{ route('siswa.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
                             @include('partials.waka_nav_icon', ['icon' => 'leave'])
-                            Izin
+                            Pengajuan Izin
                         </a>
                     @elseif($roleSlug === 'kesiswaan')
                         <a href="{{ route('kesiswaan.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
@@ -201,7 +205,16 @@
                     <p class="text-sm text-slate-500 mt-1">Kelola data profil, nama lengkap, dan kredensial login akun Anda.</p>
                 </div>
 
-                <div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    @if($roleSlug === 'siswa')
+                        <a href="{{ route('siswa.absensi') }}" class="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 transition shadow-sm">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m8 12 2.5 2.5L16.5 9" />
+                            </svg>
+                            Riwayat Presensi
+                        </a>
+                    @endif
                     <a href="{{ route('dashboard.role', ['role' => $dashboardSlug]) }}" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -279,6 +292,13 @@
                                 <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
                                     NIS: <strong class="text-slate-700 font-mono">{{ $studentProfile->nis }}</strong>
                                 </div>
+                            @endif
+                            @if($roleSlug === 'siswa')
+                                <a href="{{ route('siswa.absensi') }}" class="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 text-emerald-800 font-semibold transition group" title="Buka Riwayat Kehadiran Siswa">
+                                    <svg class="h-3.5 w-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path stroke-linecap="round" stroke-linejoin="round" d="m8 12 2.5 2.5L16.5 9" /></svg>
+                                    Riwayat Presensi
+                                    <svg class="h-3 w-3 text-emerald-600 group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                </a>
                             @endif
                             @if($user->created_at)
                                 <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">

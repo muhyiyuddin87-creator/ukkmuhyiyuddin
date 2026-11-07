@@ -158,4 +158,17 @@ class StudentAttendanceHistoryTest extends TestCase
             ->assertDontSee('Materi Khusus Rahasia Siswa Dua')
             ->assertDontSee('Catatan khusus siswa dua');
     }
+
+    public function test_student_profile_page_includes_link_to_attendance_history(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $student = User::where('username', 'siswa')->firstOrFail();
+
+        $response = $this->actingAs($student)->get(route('profile'));
+        $response->assertOk()
+            ->assertSee(route('siswa.absensi'))
+            ->assertSee('Riwayat Kehadiran')
+            ->assertSee('Riwayat Presensi');
+    }
 }
+
