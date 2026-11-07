@@ -668,8 +668,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         if ((int) $user->role_id === 2) {
             $rules['nip'] = ['nullable', 'string', 'max:30', Rule::unique('users', 'nip')->ignore($user->id)];
         }
-        if ((int) $user->role_id === 3 && $user->student_id && $request->has('nis')) {
-            $rules['nis'] = ['nullable', 'string', 'max:30', Rule::unique('siswas', 'nis')->ignore($user->student_id)];
+        if (in_array((int) $user->role_id, [3, 6], true) && $user->student_id) {
+            if ($request->has('nis')) {
+                $rules['nis'] = ['nullable', 'string', 'max:30', Rule::unique('siswas', 'nis')->ignore($user->student_id)];
+            }
+            $rules['alamat'] = ['nullable', 'string', 'max:255'];
         }
 
         if ($request->filled('new_password')) {
@@ -709,12 +712,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         DB::transaction(function () use ($user, $updateData, $validated) {
             DB::table('users')->where('id', $user->id)->update($updateData);
 
-            if ((int) $user->role_id === 3 && $user->student_id) {
+            if (in_array((int) $user->role_id, [3, 6], true) && $user->student_id) {
                 $siswaUpdateData = [
                     'phone' => $validated['phone'] ?? null,
                     'email' => isset($validated['email']) ? strtolower($validated['email']) : null,
                     'updated_at' => now(),
                 ];
+                if (array_key_exists('alamat', $validated)) {
+                    $siswaUpdateData['alamat'] = $validated['alamat'] ?? '';
+                }
                 if (array_key_exists('nis', $validated) && $validated['nis'] !== null) {
                     $siswaUpdateData['nis'] = $validated['nis'];
                 }

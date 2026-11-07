@@ -156,7 +156,9 @@ class AuthController extends Controller
                     'kelas' => $student->kelas,
                     'nis' => $student->nis,
                     'jurusan' => $student->jurusan,
+                    'alamat' => $student->alamat,
                 ] : null,
+                'alamat' => $student->alamat ?? null,
                 'subjects' => $subjects,
                 'created_at' => $user->created_at,
             ],
@@ -325,6 +327,7 @@ class AuthController extends Controller
         }
         if ((int) $user->role_id === 3 && $user->student_id) {
             $rules['nis'] = ['nullable', 'string', 'max:30', Rule::unique('siswas', 'nis')->ignore($user->student_id)];
+            $rules['alamat'] = 'nullable|string|max:255';
         }
 
         if ($request->filled('new_password')) {
@@ -367,17 +370,20 @@ class AuthController extends Controller
             }
             $user->save();
 
-            if ((int) $user->role_id === 3 && $user->student_id && array_key_exists('nis', $validated)) {
-                DB::table('siswas')->where('id', $user->student_id)->update([
-                    'nis' => $validated['nis'],
-                    'phone' => $validated['phone'] ?? $user->phone,
+            if ((int) $user->role_id === 3 && $user->student_id) {
+                $siswaUpdate = [
                     'updated_at' => now(),
-                ]);
-            } elseif ((int) $user->role_id === 3 && $user->student_id && array_key_exists('phone', $validated)) {
-                DB::table('siswas')->where('id', $user->student_id)->update([
-                    'phone' => $validated['phone'],
-                    'updated_at' => now(),
-                ]);
+                ];
+                if (array_key_exists('nis', $validated)) {
+                    $siswaUpdate['nis'] = $validated['nis'];
+                }
+                if (array_key_exists('phone', $validated)) {
+                    $siswaUpdate['phone'] = $validated['phone'];
+                }
+                if (array_key_exists('alamat', $validated)) {
+                    $siswaUpdate['alamat'] = $validated['alamat'] ?? '';
+                }
+                DB::table('siswas')->where('id', $user->student_id)->update($siswaUpdate);
             }
         });
 

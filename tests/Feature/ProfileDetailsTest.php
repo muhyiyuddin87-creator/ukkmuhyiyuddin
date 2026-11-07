@@ -128,6 +128,8 @@ class ProfileDetailsTest extends TestCase
         $response->assertOk()
             ->assertDontSee('name="nis"', false)
             ->assertDontSee('Role / Peran')
+            ->assertSee('name="alamat"', false)
+            ->assertSee('Alamat Rumah')
             ->assertSee('99887766');
 
         $this->post(route('profile.update'), [
@@ -135,6 +137,7 @@ class ProfileDetailsTest extends TestCase
             'username' => $student->username,
             'phone' => '08999999999',
             'email' => 'siswa_baru@sekolah.sch.id',
+            'alamat' => 'Jl. Mawar Indah No. 42',
         ])->assertRedirect(route('profile'));
 
         $this->assertDatabaseHas('siswas', [
@@ -142,6 +145,7 @@ class ProfileDetailsTest extends TestCase
             'nis' => '99887766',
             'phone' => '08999999999',
             'email' => 'siswa_baru@sekolah.sch.id',
+            'alamat' => 'Jl. Mawar Indah No. 42',
         ]);
     }
 

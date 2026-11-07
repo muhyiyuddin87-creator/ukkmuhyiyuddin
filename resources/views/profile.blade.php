@@ -400,6 +400,27 @@
                                     </div>
                                     <p class="mt-1 text-xs text-slate-400">Mata pelajaran mengikuti jadwal yang ditetapkan.</p>
                                 </div>
+                            @elseif($roleSlug === 'siswa')
+                                <div>
+                                    <label for="alamat" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                                        Alamat Rumah
+                                    </label>
+                                    @if($studentProfile)
+                                        <textarea
+                                            id="alamat"
+                                            name="alamat"
+                                            rows="2"
+                                            maxlength="255"
+                                            class="w-full rounded-2xl border border-slate-300 bg-slate-50/50 px-4 py-3 text-sm font-medium text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition resize-none"
+                                            placeholder="Masukkan alamat rumah tempat tinggal siswa..."
+                                        >{{ old('alamat', $studentProfile->alamat ?? '') }}</textarea>
+                                        <p class="mt-1 text-xs text-slate-400">Alamat domisili atau tempat tinggal siswa saat ini.</p>
+                                    @else
+                                        <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                            Akun belum ditautkan ke data siswa, sehingga alamat belum dapat disimpan.
+                                        </div>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                     </div>
