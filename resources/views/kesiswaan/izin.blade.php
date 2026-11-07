@@ -128,6 +128,7 @@
                             <tr>
                                 <th class="rounded-l-lg px-4 py-3">Nama Siswa</th>
                                 <th class="px-4 py-3">Kelas</th>
+                                <th class="px-4 py-3">Jenis Izin</th>
                                 <th class="px-4 py-3">Tanggal Pengajuan</th>
                                 <th class="px-4 py-3">Alasan</th>
                                 <th class="px-4 py-3">Foto Bukti</th>
@@ -141,6 +142,22 @@
                                 <tr class="hover:bg-slate-50 transition">
                                     <td class="px-4 py-4 font-semibold text-slate-800">{{ $request->student_name ?? ('Siswa #' . $request->student_id) }}</td>
                                     <td class="px-4 py-4 font-semibold text-indigo-700">{{ $request->kelas ?? '-' }}</td>
+                                    <td class="px-4 py-4">
+                                        @php
+                                            $reqType = $request->leave_type ?? (stripos($request->reason, 'sakit') !== false ? 'Sakit' : 'Izin');
+                                        @endphp
+                                        @if($reqType === 'Sakit')
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-800 border border-yellow-200">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                                                Sakit
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800 border border-sky-200">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+                                                Izin
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="whitespace-nowrap px-4 py-4 text-slate-600">{{ $request->start_date ?? '-' }}</td>
                                     <td class="px-4 py-4 text-slate-700">{{ $request->reason ?? '-' }}</td>
                                     <td class="px-4 py-4">
@@ -181,7 +198,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-4 py-8 text-center italic text-slate-400">Belum ada data permohonan izin siswa.</td>
+                                    <td colspan="9" class="px-4 py-8 text-center italic text-slate-400">Belum ada data permohonan izin siswa.</td>
                                 </tr>
                             @endforelse
                         </tbody>

@@ -44,9 +44,47 @@
                 @else
                     <form id="leave-request-form" method="POST" action="{{ route('siswa.izin.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         @csrf
+                        <!-- Pilihan Jenis Pengajuan: Sakit atau Izin -->
+                        <div class="md:col-span-2">
+                            <label class="mb-2 block text-sm font-semibold text-slate-700">
+                                Jenis Pengajuan <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="grid grid-cols-2 gap-3 sm:max-w-md">
+                                <label class="relative flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-emerald-300 hover:bg-emerald-50/30 has-[:checked]:border-yellow-500 has-[:checked]:bg-yellow-50/60 has-[:checked]:ring-2 has-[:checked]:ring-yellow-500/20">
+                                    <div class="flex items-center gap-2.5">
+                                        <input type="radio" name="leave_type" value="Sakit" {{ old('leave_type') === 'Sakit' ? 'checked' : '' }} class="h-4 w-4 border-slate-300 text-yellow-600 focus:ring-yellow-500">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-yellow-100 text-yellow-800">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                            </span>
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-800">Sakit</p>
+                                                <p class="text-[11px] text-slate-500">Kondisi kesehatan kurang fit</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="relative flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-emerald-300 hover:bg-emerald-50/30 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-50/60 has-[:checked]:ring-2 has-[:checked]:ring-sky-500/20">
+                                    <div class="flex items-center gap-2.5">
+                                        <input type="radio" name="leave_type" value="Izin" {{ old('leave_type', 'Izin') === 'Izin' ? 'checked' : '' }} class="h-4 w-4 border-slate-300 text-sky-600 focus:ring-sky-500">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-800">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            </span>
+                                            <div>
+                                                <p class="text-sm font-bold text-slate-800">Izin</p>
+                                                <p class="text-[11px] text-slate-500">Keperluan penting / keluarga</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <label class="block md:col-span-2">
-                            <span class="mb-1 block text-sm font-semibold text-slate-700">Alasan Izin</span>
-                            <textarea name="reason" rows="3" required maxlength="2000" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="Jelaskan alasan izin">{{ old('reason') }}</textarea>
+                            <span class="mb-1 block text-sm font-semibold text-slate-700">Alasan Izin / Sakit <span class="text-rose-500">*</span></span>
+                            <textarea name="reason" rows="3" required maxlength="2000" class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="Jelaskan keterangan atau alasan mengapa izin / sakit...">{{ old('reason') }}</textarea>
                         </label>
                         <div class="md:col-span-2">
                             @include('partials.selfie_camera', [
@@ -83,6 +121,7 @@
                             <tr>
                                 <th class="rounded-l-lg px-4 py-3">Nama Siswa</th>
                                 <th class="px-4 py-3">Kelas</th>
+                                <th class="px-4 py-3">Jenis Izin</th>
                                 <th class="px-4 py-3">Tanggal Pengajuan</th>
                                 <th class="px-4 py-3">Alasan</th>
                                 <th class="px-4 py-3">Foto Bukti</th>
@@ -94,7 +133,23 @@
                             @forelse ($leaveRequests as $leave)
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-4 py-4 font-semibold text-slate-800">{{ $leave->student_name ?? ('Siswa #' . $leave->student_id) }}</td>
-                                    <td class="px-4 py-4 text-indigo-700">{{ $leave->kelas ?? '-' }}</td>
+                                    <td class="px-4 py-4 text-indigo-700 font-medium">{{ $leave->kelas ?? '-' }}</td>
+                                    <td class="px-4 py-4">
+                                        @php
+                                            $leaveType = $leave->leave_type ?? (stripos($leave->reason, 'sakit') !== false ? 'Sakit' : 'Izin');
+                                        @endphp
+                                        @if($leaveType === 'Sakit')
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-800 border border-yellow-200">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
+                                                Sakit
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800 border border-sky-200">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+                                                Izin
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="whitespace-nowrap px-4 py-4 text-slate-600">{{ $leave->start_date ?? '-' }}</td>
                                     <td class="px-4 py-4 text-slate-700">{{ $leave->reason ?? '-' }}</td>
                                     <td class="px-4 py-4">
@@ -121,7 +176,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-4 py-6 text-center text-slate-500">Belum ada pengajuan izin.</td>
+                                    <td colspan="8" class="px-4 py-6 text-center text-slate-500">Belum ada pengajuan izin.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -145,7 +200,7 @@
             if (requests.length === 0) {
                 const row = document.createElement('tr');
                 const cell = document.createElement('td');
-                cell.colSpan = 7;
+                cell.colSpan = 8;
                 cell.className = 'px-4 py-6 text-center text-slate-500';
                 cell.textContent = 'Belum ada pengajuan izin.';
                 row.append(cell);
@@ -156,24 +211,47 @@
             requests.forEach((request) => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-slate-50';
-                [
-                    request.student_name || `Siswa #${request.student_id}`,
-                    request.kelas || '-',
-                    request.start_date || '-',
-                    request.reason || '-',
-                ].forEach((value, index) => {
-                    const cell = document.createElement('td');
-                    cell.className = index === 0
-                        ? 'px-4 py-4 font-semibold text-slate-800'
-                        : index === 1
-                            ? 'px-4 py-4 text-indigo-700'
-                            : index === 2
-                                ? 'whitespace-nowrap px-4 py-4 text-slate-600'
-                                : 'px-4 py-4 text-slate-700';
-                    cell.textContent = value;
-                    row.append(cell);
-                });
 
+                // 1. Nama Siswa
+                const nameCell = document.createElement('td');
+                nameCell.className = 'px-4 py-4 font-semibold text-slate-800';
+                nameCell.textContent = request.student_name || `Siswa #${request.student_id}`;
+                row.append(nameCell);
+
+                // 2. Kelas
+                const classCell = document.createElement('td');
+                classCell.className = 'px-4 py-4 text-indigo-700 font-medium';
+                classCell.textContent = request.kelas || '-';
+                row.append(classCell);
+
+                // 3. Jenis Izin
+                const typeCell = document.createElement('td');
+                typeCell.className = 'px-4 py-4';
+                const isSakit = (request.leave_type === 'Sakit') || (!request.leave_type && (request.reason || '').toLowerCase().includes('sakit'));
+                const typeBadge = document.createElement('span');
+                if (isSakit) {
+                    typeBadge.className = 'inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-800 border border-yellow-200';
+                    typeBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span> Sakit';
+                } else {
+                    typeBadge.className = 'inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800 border border-sky-200';
+                    typeBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span> Izin';
+                }
+                typeCell.append(typeBadge);
+                row.append(typeCell);
+
+                // 4. Tanggal Pengajuan
+                const dateCell = document.createElement('td');
+                dateCell.className = 'whitespace-nowrap px-4 py-4 text-slate-600';
+                dateCell.textContent = request.start_date || '-';
+                row.append(dateCell);
+
+                // 5. Alasan
+                const reasonCell = document.createElement('td');
+                reasonCell.className = 'px-4 py-4 text-slate-700';
+                reasonCell.textContent = request.reason || '-';
+                row.append(reasonCell);
+
+                // 6. Foto Bukti
                 const photoCell = document.createElement('td');
                 photoCell.className = 'px-4 py-4';
                 if (request.document_path) {
@@ -190,6 +268,7 @@
                 }
                 row.append(photoCell);
 
+                // 7. Status
                 const statusCell = document.createElement('td');
                 statusCell.className = 'px-4 py-4';
                 const badge = document.createElement('span');
@@ -205,10 +284,12 @@
                 statusCell.append(badge);
                 row.append(statusCell);
 
+                // 8. Verifier
                 const verifierCell = document.createElement('td');
                 verifierCell.className = 'px-4 py-4 text-slate-600';
                 verifierCell.textContent = request.verifier_name || '-';
                 row.append(verifierCell);
+
                 rows.append(row);
             });
         }

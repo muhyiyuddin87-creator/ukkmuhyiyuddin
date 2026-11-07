@@ -322,8 +322,9 @@
                 if (activeLeave) {
                     const badge = document.createElement('span');
                     badge.className = 'inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800 border border-amber-300 shadow-2xs';
-                    badge.title = activeLeave.reason ? `Alasan: ${activeLeave.reason}` : 'Surat izin telah disetujui';
-                    badge.textContent = `Izin Disetujui${activeLeave.reason ? ' (' + activeLeave.reason + ')' : ''}`;
+                    const leaveTypeLabel = activeLeave.leave_type || 'Izin';
+                    badge.title = activeLeave.reason ? `Alasan: ${activeLeave.reason}` : `${leaveTypeLabel} telah disetujui`;
+                    badge.textContent = `${leaveTypeLabel} Disetujui${activeLeave.reason ? ' (' + activeLeave.reason + ')' : ''}`;
                     nameWrap.append(badge);
 
                     if (activeLeave.document_path) {
@@ -353,8 +354,8 @@
 
                 const oldStudentIndex = oldStudentIds.map(String).indexOf(String(student.id));
 
-                // Jika ada surat izin yang disetujui untuk tanggal ini, default ke 'Izin'
-                const fallbackStatus = activeLeave ? 'Izin' : 'Hadir';
+                // Jika ada surat izin yang disetujui untuk tanggal ini, sesuaikan default ke 'Sakit' atau 'Izin'
+                const fallbackStatus = activeLeave ? (activeLeave.leave_type === 'Sakit' ? 'Sakit' : 'Izin') : 'Hadir';
 
                 const preferredStatus = oldStudentIds.length
                     ? oldStatuses[oldStudentIndex]

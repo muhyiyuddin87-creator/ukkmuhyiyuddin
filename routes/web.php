@@ -928,9 +928,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
 
         $validated = $request->validate([
+            'leave_type' => ['nullable', 'string', Rule::in(['Sakit', 'Izin', 'Izin Keluar Saat KBM'])],
             'reason' => ['required', 'string', 'max:2000'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'leave_type.in' => 'Pilihan jenis izin tidak valid.',
+            'reason.required' => 'Alasan izin wajib diisi.',
         ]);
+
+        $leaveType = $validated['leave_type'] ?? (stripos($validated['reason'], 'sakit') !== false ? 'Sakit' : 'Izin');
 
         $today = now()->toDateString();
         $documentPath = $request->file('photo')?->store('leave_requests', 'public');
@@ -943,6 +949,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'applicant_id' => Auth::user()->getKey(),
             'start_date' => $today,
             'end_date' => $today,
+            'leave_type' => $leaveType,
             'reason' => $validated['reason'],
             'document_path' => $documentPath,
             'status_approval' => 'Pending',
@@ -4148,7 +4155,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $approvedLeaves = Schema::hasTable('leave_requests')
             ? DB::table('leave_requests')
                 ->where('status_approval', 'Approved')
-                ->select('id', 'student_id', 'start_date', 'end_date', 'reason', 'document_path')
+                ->select('id', 'student_id', 'start_date', 'end_date', 'reason', 'document_path', 'leave_type')
                 ->get()
             : collect();
 
@@ -4557,7 +4564,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $pendingRequests = Schema::hasTable('leave_requests')
             ? DB::table('leave_requests')
                 ->leftJoin('siswas', 'leave_requests.student_id', '=', 'siswas.id')
-                ->select('leave_requests.id', 'leave_requests.student_id', 'leave_requests.start_date', 'leave_requests.end_date', 'leave_requests.reason', 'leave_requests.document_path', 'siswas.name as student_name', 'siswas.kelas')
+                ->select('leave_requests.id', 'leave_requests.student_id', 'leave_requests.leave_type', 'leave_requests.start_date', 'leave_requests.end_date', 'leave_requests.reason', 'leave_requests.document_path', 'siswas.name as student_name', 'siswas.kelas')
                 ->where('leave_requests.status_approval', 'Pending')
                 ->orderByDesc('leave_requests.start_date')
                 ->orderByDesc('leave_requests.id')

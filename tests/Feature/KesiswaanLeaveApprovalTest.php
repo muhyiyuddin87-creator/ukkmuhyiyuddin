@@ -202,6 +202,50 @@ class KesiswaanLeaveApprovalTest extends TestCase
             ->assertJsonPath('data.0.verifier_name', $kesiswaan->fullname);
     }
 
+    public function test_student_can_select_leave_type_sakit_or_izin(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $studentUser = User::where('username', 'siswa')->firstOrFail();
+        $studentId = $this->createStudent();
+        $studentUser->student_id = $studentId;
+        $studentUser->save();
+
+        // 1. Submit leave request with leave_type = Sakit
+        $this->actingAs($studentUser)->post(route('siswa.izin.store'), [
+            'leave_type' => 'Sakit',
+            'reason' => 'Demam tinggi dan flu',
+        ])->assertRedirect(route('siswa.izin'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('leave_requests', [
+            'student_id' => $studentId,
+            'leave_type' => 'Sakit',
+            'reason' => 'Demam tinggi dan flu',
+        ]);
+
+        // 2. Submit leave request with leave_type = Izin
+        $this->actingAs($studentUser)->post(route('siswa.izin.store'), [
+            'leave_type' => 'Izin',
+            'reason' => 'Menghadiri acara keluarga di luar kota',
+        ])->assertRedirect(route('siswa.izin'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('leave_requests', [
+            'student_id' => $studentId,
+            'leave_type' => 'Izin',
+            'reason' => 'Menghadiri acara keluarga di luar kota',
+        ]);
+
+        // 3. View /siswa/izin and see both badges
+        $this->get(route('siswa.izin'))
+            ->assertOk()
+            ->assertSee('Jenis Pengajuan')
+            ->assertSee('value="Sakit"', false)
+            ->assertSee('value="Izin"', false)
+            ->assertSee('Sakit')
+            ->assertSee('Izin');
+    }
+
     private function createStudent(): int
     {
         return DB::table('siswas')->insertGetId([
