@@ -44,33 +44,54 @@ jobs:
             echo "🚀 Menjalankan deployment di VPS..."
 
             # -------------------------------------------------------------
+            # Helper sudo aman non-interaktif
+            # -------------------------------------------------------------
+            PASS="${{ secrets.VPS_PASSWORD }}"
+            run_sudo() {
+                if [ "$(id -u)" -eq 0 ]; then
+                    "$@"
+                elif [ -n "$PASS" ]; then
+                    echo "$PASS" | sudo -S -p '' "$@"
+                else
+                    sudo -n "$@" 2>/dev/null || sudo "$@"
+                fi
+            }
+
+            # -------------------------------------------------------------
             # Konfigurasi batas upload Nginx & PHP 64M (Cegah Error 413)
             # -------------------------------------------------------------
-            echo "client_max_body_size 64M;" > /tmp/upload_limits.conf
-            sudo cp /tmp/upload_limits.conf /etc/nginx/conf.d/upload_limits.conf 2>/dev/null || cp /tmp/upload_limits.conf /etc/nginx/conf.d/upload_limits.conf 2>/dev/null || true
+            echo "client_max_body_size 64M;" | run_sudo tee /etc/nginx/conf.d/upload_limits.conf > /dev/null 2>&1 || true
 
             if [ -f /etc/nginx/nginx.conf ]; then
-                sudo sed -i 's/client_max_body_size [^;]*;/client_max_body_size 64M;/g' /etc/nginx/nginx.conf 2>/dev/null || sed -i 's/client_max_body_size [^;]*;/client_max_body_size 64M;/g' /etc/nginx/nginx.conf 2>/dev/null || true
+                run_sudo sed -i 's/client_max_body_size [^;]*;/client_max_body_size 64M;/g' /etc/nginx/nginx.conf 2>/dev/null || true
                 if ! grep -q "client_max_body_size" /etc/nginx/nginx.conf; then
-                    sudo sed -i '/http {/a \    client_max_body_size 64M;' /etc/nginx/nginx.conf 2>/dev/null || sed -i '/http {/a \    client_max_body_size 64M;' /etc/nginx/nginx.conf 2>/dev/null || true
+                    run_sudo sed -i '/http {/a \    client_max_body_size 64M;' /etc/nginx/nginx.conf 2>/dev/null || true
                 fi
             fi
 
             for f in /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*; do
                 if [ -f "$f" ]; then
-                    sudo sed -i 's/client_max_body_size [^;]*;/client_max_body_size 64M;/g' "$f" 2>/dev/null || sed -i 's/client_max_body_size [^;]*;/client_max_body_size 64M;/g' "$f" 2>/dev/null || true
+                    run_sudo sed -i 's/client_max_body_size [^;]*;/client_max_body_size 64M;/g' "$f" 2>/dev/null || true
+                    if ! grep -q "client_max_body_size" "$f"; then
+                        run_sudo sed -i '/server {/a \    client_max_body_size 64M;' "$f" 2>/dev/null || true
+                    fi
                 fi
             done
 
-            sudo nginx -t 2>/dev/null && (sudo systemctl restart nginx 2>/dev/null || sudo systemctl reload nginx 2>/dev/null) || (nginx -t 2>/dev/null && (systemctl restart nginx 2>/dev/null || systemctl reload nginx 2>/dev/null)) || true
+            run_sudo nginx -t 2>/dev/null && (run_sudo systemctl restart nginx 2>/dev/null || run_sudo systemctl reload nginx 2>/dev/null || run_sudo nginx -s reload 2>/dev/null) || true
 
             for d in /etc/php/*/fpm/conf.d; do
                 if [ -d "$d" ]; then
-                    printf "upload_max_filesize = 64M\npost_max_size = 64M\nmemory_limit = 256M\nmax_execution_time = 180\n" > /tmp/99-limits.ini
-                    sudo cp /tmp/99-limits.ini "$d/99-upload-limits.ini" 2>/dev/null || cp /tmp/99-limits.ini "$d/99-upload-limits.ini" 2>/dev/null || true
+                    printf "upload_max_filesize = 64M\npost_max_size = 64M\nmemory_limit = 256M\nmax_execution_time = 180\n" | run_sudo tee "$d/99-upload-limits.ini" > /dev/null 2>&1 || true
                 fi
             done
-            sudo systemctl reload php8.4-fpm 2>/dev/null || systemctl reload php8.4-fpm 2>/dev/null || true
+            for d in /etc/php/*/fpm/php.ini; do
+                if [ -f "$d" ]; then
+                    run_sudo sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 64M/' "$d" 2>/dev/null || true
+                    run_sudo sed -i 's/^post_max_size = .*/post_max_size = 64M/' "$d" 2>/dev/null || true
+                fi
+            done
+            run_sudo systemctl reload php8.4-fpm 2>/dev/null || run_sudo systemctl reload php*-fpm 2>/dev/null || true
 
             cd /var/www/ukkmuhyiyuddin
 
@@ -85,9 +106,9 @@ jobs:
 
             # Install dependensi Python untuk Ekstraksi Jadwal PDF (pdfplumber)
             echo "🐍 Memeriksa dan menginstall dependensi Python pdfplumber di VPS..."
-            sudo apt-get update -y 2>/dev/null || true
-            sudo apt-get install -y python3-pip python3-pdfplumber python-is-python3 2>/dev/null || true
-            sudo pip3 install pdfplumber --break-system-packages 2>/dev/null || pip install pdfplumber --break-system-packages 2>/dev/null || pip3 install pdfplumber 2>/dev/null || true
+            run_sudo apt-get update -y 2>/dev/null || true
+            run_sudo apt-get install -y python3-pip python3-pdfplumber python-is-python3 2>/dev/null || true
+            run_sudo pip3 install pdfplumber --break-system-packages 2>/dev/null || run_sudo pip install pdfplumber --break-system-packages 2>/dev/null || pip3 install pdfplumber 2>/dev/null || true
             python3 -c "import pdfplumber; print('✅ pdfplumber siap digunakan')" || echo "⚠️ pdfplumber belum terinstall"
 
             # Pastikan konfigurasi SMTP Gmail aktif di .env VPS
