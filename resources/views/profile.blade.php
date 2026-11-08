@@ -141,6 +141,10 @@
                             Laporan
                         </a>
                     @elseif($roleSlug === 'guru' && $isWaliKelas)
+                        <a href="{{ route('guru.presensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
+                            @include('partials.waka_nav_icon', ['icon' => 'attendance'])
+                            Riwayat Absensi Siswa
+                        </a>
                         <a href="{{ route('wali-kelas.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
                             @include('partials.waka_nav_icon', ['icon' => 'verify'])
                             Verifikasi Izin

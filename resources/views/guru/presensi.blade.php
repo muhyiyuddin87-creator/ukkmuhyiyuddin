@@ -1,12 +1,12 @@
 @extends('layouts.guru')
 
-@section('title', 'Presensi Guru - School System')
+@section('title', 'Riwayat Absensi Siswa - School System')
 
 @section('content')
             <header class="mb-6">
                 <p class="text-sm uppercase tracking-widest text-emerald-600 font-semibold">Ruang kerja guru</p>
-                <h2 class="mt-2 text-3xl font-bold">Presensi Siswa</h2>
-                <p class="mt-2 text-slate-500">Catat kehadiran siswa berdasarkan jurnal mengajar Anda.</p>
+                <h2 class="mt-2 text-3xl font-bold">Riwayat Absensi Siswa</h2>
+                <p class="mt-2 text-slate-500">Catat dan tinjau riwayat kehadiran siswa berdasarkan jurnal mengajar kelas Anda.</p>
             </header>
 
             @if(session('success'))

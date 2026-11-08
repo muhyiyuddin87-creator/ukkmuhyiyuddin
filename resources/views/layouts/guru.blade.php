@@ -225,7 +225,7 @@
                         </div>
                         <a href="{{ route('guru.presensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.presensi*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
                             @include('partials.waka_nav_icon', ['icon' => 'attendance'])
-                            Presensi Siswa
+                            Riwayat Absensi Siswa
                         </a>
                         <a href="{{ route('wali-kelas.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('wali-kelas.izin*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
                             @include('partials.waka_nav_icon', ['icon' => 'verify'])
