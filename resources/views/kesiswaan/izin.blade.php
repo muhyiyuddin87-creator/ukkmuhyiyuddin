@@ -45,40 +45,40 @@
                 </div>
 
                 <div class="overflow-x-auto table-scroll-container">
-                    <table class="w-full min-w-[950px] text-left text-sm">
+                    <table class="w-full min-w-[1000px] text-left text-sm">
                         <thead class="border-b border-amber-200 bg-amber-50/70 text-xs uppercase tracking-wide text-amber-900">
                             <tr>
-                                <th class="rounded-l-lg px-4 py-3">Nama Siswa</th>
-                                <th class="px-4 py-3">Kelas</th>
-                                <th class="px-4 py-3">Tanggal Izin</th>
-                                <th class="px-4 py-3">Alasan</th>
-                                <th class="px-4 py-3">Foto Bukti</th>
-                                <th class="rounded-r-lg px-4 py-3 text-center">Keputusan</th>
+                                <th class="whitespace-nowrap rounded-l-lg px-4 py-3">Nama Siswa</th>
+                                <th class="whitespace-nowrap px-4 py-3">Kelas</th>
+                                <th class="whitespace-nowrap px-4 py-3">Tanggal Izin</th>
+                                <th class="min-w-[200px] max-w-[320px] px-4 py-3">Alasan</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Foto Bukti</th>
+                                <th class="whitespace-nowrap rounded-r-lg px-4 py-3 text-center">Keputusan</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-amber-100">
                             @forelse($pendingRequests as $pending)
                                 <tr class="hover:bg-amber-50/40 transition">
-                                    <td class="px-4 py-4 font-semibold text-slate-800">{{ $pending->student_name ?? ('Siswa #' . $pending->student_id) }}</td>
-                                    <td class="px-4 py-4 font-semibold text-amber-900">
-                                        <span class="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">{{ $pending->kelas ?? '-' }}</span>
+                                    <td class="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-800">{{ $pending->student_name ?? ('Siswa #' . $pending->student_id) }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5">
+                                        <span class="inline-block whitespace-nowrap rounded-md bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 border border-amber-200">{{ $pending->kelas ?? '-' }}</span>
                                     </td>
-                                    <td class="whitespace-nowrap px-4 py-4 text-slate-600">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium">
                                         {{ $pending->start_date }}@if($pending->end_date && $pending->end_date !== $pending->start_date) – {{ $pending->end_date }}@endif
                                     </td>
-                                    <td class="px-4 py-4 text-slate-700 whitespace-pre-line">{{ $pending->reason ?? '-' }}</td>
-                                    <td class="px-4 py-4">
+                                    <td class="min-w-[200px] max-w-[320px] px-4 py-3.5 text-slate-700 break-words leading-relaxed">{{ $pending->reason ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
                                         @if($pending->document_path)
-                                            <a href="{{ asset('storage/' . $pending->document_path) }}" target="_blank" rel="noopener" class="font-semibold text-amber-700 hover:underline inline-flex items-center gap-1">
+                                            <a href="{{ asset('storage/' . $pending->document_path) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-amber-700 hover:underline">
                                                 <span>Lihat foto</span>
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                             </a>
                                         @else
                                             <span class="text-slate-400">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-4 text-center">
-                                        <div class="flex items-center justify-center gap-2">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
+                                        <div class="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                                             <form method="POST" action="{{ route('kesiswaan.izin.approval', $pending->id) }}">
                                                 @csrf @method('PATCH')
                                                 <input type="hidden" name="status_approval" value="Approved">
@@ -123,63 +123,68 @@
                 </div>
 
                 <div class="overflow-x-auto table-scroll-container">
-                    <table class="w-full min-w-[950px] text-left text-sm">
+                    <table class="w-full min-w-[1200px] text-left text-sm">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
-                                <th class="rounded-l-lg px-4 py-3">Nama Siswa</th>
-                                <th class="px-4 py-3">Kelas</th>
-                                <th class="px-4 py-3">Jenis Izin</th>
-                                <th class="px-4 py-3">Tanggal Pengajuan</th>
-                                <th class="px-4 py-3">Alasan</th>
-                                <th class="px-4 py-3">Foto Bukti</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">Diproses Oleh</th>
-                                <th class="rounded-r-lg px-4 py-3 text-center">Aksi</th>
+                                <th class="whitespace-nowrap rounded-l-lg px-4 py-3">Nama Siswa</th>
+                                <th class="whitespace-nowrap px-4 py-3">Kelas</th>
+                                <th class="whitespace-nowrap px-4 py-3">Jenis Izin</th>
+                                <th class="whitespace-nowrap px-4 py-3">Tanggal Pengajuan</th>
+                                <th class="min-w-[180px] max-w-[280px] px-4 py-3">Alasan</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Foto Bukti</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Status</th>
+                                <th class="whitespace-nowrap px-4 py-3">Diproses Oleh</th>
+                                <th class="whitespace-nowrap rounded-r-lg px-4 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($leaveRequests as $request)
                                 <tr class="hover:bg-slate-50 transition">
-                                    <td class="px-4 py-4 font-semibold text-slate-800">{{ $request->student_name ?? ('Siswa #' . $request->student_id) }}</td>
-                                    <td class="px-4 py-4 font-semibold text-indigo-700">{{ $request->kelas ?? '-' }}</td>
-                                    <td class="px-4 py-4">
+                                    <td class="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-800">{{ $request->student_name ?? ('Siswa #' . $request->student_id) }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5">
+                                        <span class="inline-block whitespace-nowrap rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-100">{{ $request->kelas ?? '-' }}</span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3.5">
                                         @php
                                             $reqType = $request->leave_type ?? (stripos($request->reason, 'sakit') !== false ? 'Sakit' : 'Izin');
                                         @endphp
                                         @if($reqType === 'Sakit')
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-800 border border-yellow-200">
+                                            <span class="inline-flex whitespace-nowrap items-center gap-1.5 rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-800 border border-yellow-200">
                                                 <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
                                                 Sakit
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800 border border-sky-200">
+                                            <span class="inline-flex whitespace-nowrap items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800 border border-sky-200">
                                                 <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
                                                 Izin
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="whitespace-nowrap px-4 py-4 text-slate-600">{{ $request->start_date ?? '-' }}</td>
-                                    <td class="px-4 py-4 text-slate-700">{{ $request->reason ?? '-' }}</td>
-                                    <td class="px-4 py-4">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium">{{ $request->start_date ?? '-' }}</td>
+                                    <td class="min-w-[180px] max-w-[280px] px-4 py-3.5 text-slate-700 break-words leading-relaxed">{{ $request->reason ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
                                         @if($request->document_path)
-                                            <a href="{{ asset('storage/' . $request->document_path) }}" target="_blank" rel="noopener" class="font-semibold text-amber-700 hover:underline">Lihat foto</a>
+                                            <a href="{{ asset('storage/' . $request->document_path) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-amber-700 hover:underline">
+                                                <span>Lihat foto</span>
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            </a>
                                         @else
                                             <span class="text-slate-400">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-4">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
                                         @if($request->status_approval === 'Approved')
-                                            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Disetujui</span>
+                                            <span class="inline-flex whitespace-nowrap items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">Disetujui</span>
                                         @elseif($request->status_approval === 'Rejected')
-                                            <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">Ditolak</span>
+                                            <span class="inline-flex whitespace-nowrap items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700 border border-rose-200">Ditolak</span>
                                         @else
-                                            <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Menunggu Verifikasi</span>
+                                            <span class="inline-flex whitespace-nowrap items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-200">Menunggu Verifikasi</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-4 text-slate-600">{{ $request->verifier_name ?? ($request->status_approval === 'Pending' ? 'Menunggu Verifikasi' : '-') }}</td>
-                                    <td class="px-4 py-4 text-center">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium">{{ $request->verifier_name ?? ($request->status_approval === 'Pending' ? 'Menunggu Verifikasi' : '-') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
                                         @if($request->status_approval === 'Pending')
-                                            <div class="flex items-center justify-center gap-1.5">
+                                            <div class="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
                                                 <form method="POST" action="{{ route('kesiswaan.izin.approval', $request->id) }}">
                                                     @csrf @method('PATCH')
                                                     <input type="hidden" name="status_approval" value="Approved">
@@ -192,7 +197,7 @@
                                                 </form>
                                             </div>
                                         @else
-                                            <span class="text-xs text-slate-400 font-medium">Selesai</span>
+                                            <span class="inline-block whitespace-nowrap text-xs text-slate-400 font-medium">Selesai</span>
                                         @endif
                                     </td>
                                 </tr>

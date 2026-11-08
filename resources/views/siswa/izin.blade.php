@@ -116,63 +116,68 @@
                 </div>
 
                 <div class="overflow-x-auto table-scroll-container">
-                    <table class="w-full min-w-[1100px] text-left text-sm">
+                    <table class="w-full min-w-[1150px] text-left text-sm">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
-                                <th class="rounded-l-lg px-4 py-3">Nama Siswa</th>
-                                <th class="px-4 py-3">Kelas</th>
-                                <th class="px-4 py-3">Jenis Izin</th>
-                                <th class="px-4 py-3">Tanggal Pengajuan</th>
-                                <th class="px-4 py-3">Alasan</th>
-                                <th class="px-4 py-3">Foto Bukti</th>
-                                <th class="px-4 py-3">Status</th>
-                                <th class="rounded-r-lg px-4 py-3">Diproses Oleh</th>
+                                <th class="whitespace-nowrap rounded-l-lg px-4 py-3">Nama Siswa</th>
+                                <th class="whitespace-nowrap px-4 py-3">Kelas</th>
+                                <th class="whitespace-nowrap px-4 py-3">Jenis Izin</th>
+                                <th class="whitespace-nowrap px-4 py-3">Tanggal Pengajuan</th>
+                                <th class="min-w-[180px] max-w-[280px] px-4 py-3">Alasan</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Foto Bukti</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Status</th>
+                                <th class="whitespace-nowrap rounded-r-lg px-4 py-3">Diproses Oleh</th>
                             </tr>
                         </thead>
                         <tbody id="leave-request-rows" class="divide-y divide-slate-100">
                             @forelse ($leaveRequests as $leave)
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-4 py-4 font-semibold text-slate-800">{{ $leave->student_name ?? ('Siswa #' . $leave->student_id) }}</td>
-                                    <td class="px-4 py-4 text-indigo-700 font-medium">{{ $leave->kelas ?? '-' }}</td>
-                                    <td class="px-4 py-4">
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-800">{{ $leave->student_name ?? ('Siswa #' . $leave->student_id) }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5">
+                                        <span class="inline-block whitespace-nowrap rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-100">{{ $leave->kelas ?? '-' }}</span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3.5">
                                         @php
                                             $leaveType = $leave->leave_type ?? (stripos($leave->reason, 'sakit') !== false ? 'Sakit' : 'Izin');
                                         @endphp
                                         @if($leaveType === 'Sakit')
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-800 border border-yellow-200">
+                                            <span class="inline-flex whitespace-nowrap items-center gap-1.5 rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-800 border border-yellow-200">
                                                 <span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span>
                                                 Sakit
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800 border border-sky-200">
+                                            <span class="inline-flex whitespace-nowrap items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800 border border-sky-200">
                                                 <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
                                                 Izin
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="whitespace-nowrap px-4 py-4 text-slate-600">{{ $leave->start_date ?? '-' }}</td>
-                                    <td class="px-4 py-4 text-slate-700">{{ $leave->reason ?? '-' }}</td>
-                                    <td class="px-4 py-4">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium">{{ $leave->start_date ?? '-' }}</td>
+                                    <td class="min-w-[180px] max-w-[280px] px-4 py-3.5 text-slate-700 break-words leading-relaxed">{{ $leave->reason ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
                                         @if($leave->document_path)
-                                            <a href="{{ asset('storage/' . $leave->document_path) }}" target="_blank" rel="noopener" class="font-semibold text-emerald-700 hover:underline">Lihat foto</a>
+                                            <a href="{{ asset('storage/' . $leave->document_path) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-emerald-700 hover:underline">
+                                                <span>Lihat foto</span>
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            </a>
                                         @else
                                             <span class="text-slate-400">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-4">
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
                                         @php
                                             $status = $leave->status_approval ?? 'Pending';
                                         @endphp
 
                                         @if ($status === 'Approved')
-                                            <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">Disetujui</span>
+                                            <span class="inline-flex whitespace-nowrap items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">Disetujui</span>
                                         @elseif ($status === 'Rejected')
-                                            <span class="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-700">Ditolak</span>
+                                            <span class="inline-flex whitespace-nowrap items-center rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700 border border-rose-200">Ditolak</span>
                                         @else
-                                            <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">Menunggu</span>
+                                            <span class="inline-flex whitespace-nowrap items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-200">Menunggu</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-4 text-slate-600">{{ $leave->verifier_name ?? '-' }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium">{{ $leave->verifier_name ?? '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -214,26 +219,29 @@
 
                 // 1. Nama Siswa
                 const nameCell = document.createElement('td');
-                nameCell.className = 'px-4 py-4 font-semibold text-slate-800';
+                nameCell.className = 'whitespace-nowrap px-4 py-3.5 font-semibold text-slate-800';
                 nameCell.textContent = request.student_name || `Siswa #${request.student_id}`;
                 row.append(nameCell);
 
                 // 2. Kelas
                 const classCell = document.createElement('td');
-                classCell.className = 'px-4 py-4 text-indigo-700 font-medium';
-                classCell.textContent = request.kelas || '-';
+                classCell.className = 'whitespace-nowrap px-4 py-3.5';
+                const classSpan = document.createElement('span');
+                classSpan.className = 'inline-block whitespace-nowrap rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-100';
+                classSpan.textContent = request.kelas || '-';
+                classCell.append(classSpan);
                 row.append(classCell);
 
                 // 3. Jenis Izin
                 const typeCell = document.createElement('td');
-                typeCell.className = 'px-4 py-4';
+                typeCell.className = 'whitespace-nowrap px-4 py-3.5';
                 const isSakit = (request.leave_type === 'Sakit') || (!request.leave_type && (request.reason || '').toLowerCase().includes('sakit'));
                 const typeBadge = document.createElement('span');
                 if (isSakit) {
-                    typeBadge.className = 'inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold text-yellow-800 border border-yellow-200';
+                    typeBadge.className = 'inline-flex whitespace-nowrap items-center gap-1.5 rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-800 border border-yellow-200';
                     typeBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-yellow-500"></span> Sakit';
                 } else {
-                    typeBadge.className = 'inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800 border border-sky-200';
+                    typeBadge.className = 'inline-flex whitespace-nowrap items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800 border border-sky-200';
                     typeBadge.innerHTML = '<span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span> Izin';
                 }
                 typeCell.append(typeBadge);
@@ -241,26 +249,26 @@
 
                 // 4. Tanggal Pengajuan
                 const dateCell = document.createElement('td');
-                dateCell.className = 'whitespace-nowrap px-4 py-4 text-slate-600';
+                dateCell.className = 'whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium';
                 dateCell.textContent = request.start_date || '-';
                 row.append(dateCell);
 
                 // 5. Alasan
                 const reasonCell = document.createElement('td');
-                reasonCell.className = 'px-4 py-4 text-slate-700';
+                reasonCell.className = 'min-w-[180px] max-w-[280px] px-4 py-3.5 text-slate-700 break-words leading-relaxed';
                 reasonCell.textContent = request.reason || '-';
                 row.append(reasonCell);
 
                 // 6. Foto Bukti
                 const photoCell = document.createElement('td');
-                photoCell.className = 'px-4 py-4';
+                photoCell.className = 'whitespace-nowrap px-4 py-3.5 text-center';
                 if (request.document_path) {
                     const link = document.createElement('a');
                     link.href = `${@json(asset('storage'))}/${request.document_path.split('/').map(encodeURIComponent).join('/')}`;
                     link.target = '_blank';
                     link.rel = 'noopener';
-                    link.className = 'font-semibold text-emerald-700 hover:underline';
-                    link.textContent = 'Lihat foto';
+                    link.className = 'inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-emerald-700 hover:underline';
+                    link.innerHTML = '<span>Lihat foto</span><svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>';
                     photoCell.append(link);
                 } else {
                     photoCell.textContent = '-';
@@ -270,23 +278,23 @@
 
                 // 7. Status
                 const statusCell = document.createElement('td');
-                statusCell.className = 'px-4 py-4';
+                statusCell.className = 'whitespace-nowrap px-4 py-3.5 text-center';
                 const badge = document.createElement('span');
                 const statusStyles = {
-                    Approved: ['bg-emerald-100', 'text-emerald-700'],
-                    Rejected: ['bg-rose-100', 'text-rose-700'],
-                    Pending: ['bg-amber-100', 'text-amber-700'],
+                    Approved: ['bg-emerald-100', 'text-emerald-700', 'border-emerald-200'],
+                    Rejected: ['bg-rose-100', 'text-rose-700', 'border-rose-200'],
+                    Pending: ['bg-amber-100', 'text-amber-800', 'border-amber-200'],
                 };
                 const statusLabels = { Approved: 'Disetujui', Rejected: 'Ditolak', Pending: 'Menunggu' };
                 const status = request.status_approval;
-                badge.className = `rounded-full px-3 py-1 text-xs font-bold ${statusStyles[status] ? statusStyles[status].join(' ') : statusStyles.Pending.join(' ')}`;
+                badge.className = `inline-flex whitespace-nowrap items-center rounded-full px-3 py-1 text-xs font-bold border ${statusStyles[status] ? statusStyles[status].join(' ') : statusStyles.Pending.join(' ')}`;
                 badge.textContent = statusLabels[status] || 'Menunggu';
                 statusCell.append(badge);
                 row.append(statusCell);
 
                 // 8. Verifier
                 const verifierCell = document.createElement('td');
-                verifierCell.className = 'px-4 py-4 text-slate-600';
+                verifierCell.className = 'whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium';
                 verifierCell.textContent = request.verifier_name || '-';
                 row.append(verifierCell);
 
