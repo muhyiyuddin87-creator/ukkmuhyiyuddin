@@ -4442,13 +4442,174 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             : 'Jurnal berhasil diperbarui.');
     })->name('guru.jurnal.update');
 
-    Route::get('/guru/presensi', function () use ($canManageWaliClasses) {
-        $userId = Auth::user()->getKey();
+    Route::get('/guru/presensi', function (Request $request) use ($waliClassNames, $canManageWaliClasses) {
+        $userId = (int) Auth::user()->getKey();
         $roleId = (int) (Auth::user()->role_id ?? 0);
-        abort_unless(in_array($roleId, [2, 4], true), 403);
+        abort_unless(in_array($roleId, [2, 4, 5], true), 403);
         $hasTeacherSchedules = Schema::hasTable('schedules') && DB::table('schedules')->where('teacher_id', $userId)->exists();
-        abort_unless($canManageWaliClasses($userId) || ($roleId === 4 && $hasTeacherSchedules), 403);
-        return redirect()->route('guru.jurnal');
+        $isWali = $canManageWaliClasses($userId);
+        abort_unless($isWali || ($roleId === 4 && $hasTeacherSchedules), 403);
+
+        if (! $isWali) {
+            return redirect()->route('guru.jurnal');
+        }
+
+        $classNames = $waliClassNames($userId);
+        if ($classNames->isEmpty()) {
+            return view('guru.presensi', [
+                'user' => Auth::user(),
+                'classNames' => collect(),
+                'selectedClass' => null,
+                'students' => collect(),
+                'studentStats' => collect(),
+                'totalSiswa' => 0,
+                'totalHadir' => 0,
+                'totalSakit' => 0,
+                'totalIzin' => 0,
+                'totalAlpha' => 0,
+                'totalPresensi' => 0,
+                'avgAttendanceRate' => 100,
+                'journals' => collect(),
+                'siswas' => collect(),
+                'presensiList' => collect(),
+                'search' => '',
+                'statusFilter' => 'all',
+                'startDate' => null,
+                'endDate' => null,
+            ]);
+        }
+
+        $selectedClass = $request->input('kelas');
+        if (! $selectedClass || (! $classNames->contains($selectedClass) && $selectedClass !== 'all')) {
+            $selectedClass = $classNames->first();
+        }
+
+        $search = trim((string) $request->input('q', ''));
+        $statusFilter = (string) $request->input('status', 'all');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $targetClasses = ($selectedClass === 'all') ? $classNames->all() : [$selectedClass];
+
+        $studentsQuery = DB::table('siswas')
+            ->whereIn('kelas', $targetClasses);
+
+        if ($search !== '') {
+            $studentsQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nisn', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $studentsQuery->orderBy('name')->get();
+        $studentIds = $students->pluck('id')->all();
+
+        // Query attendances for students
+        $attendanceQuery = DB::table('attendances')
+            ->leftJoin('journals', 'attendances.journal_id', '=', 'journals.id')
+            ->leftJoin('schedules', 'journals.schedule_id', '=', 'schedules.id')
+            ->whereIn('attendances.student_id', $studentIds);
+
+        if ($startDate) {
+            $attendanceQuery->whereDate('attendances.date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $attendanceQuery->whereDate('attendances.date', '<=', $endDate);
+        }
+
+        $attendances = $attendanceQuery->select(
+            'attendances.id',
+            'attendances.student_id',
+            'attendances.status',
+            'attendances.date',
+            'attendances.notes',
+            'attendances.photo_path',
+            'journals.id as journal_id',
+            'schedules.subject',
+            'journals.topic_description'
+        )->orderByDesc('attendances.date')->get();
+
+        $groupedByStudent = $attendances->groupBy('student_id');
+
+        $studentStats = $students->map(function ($s) use ($groupedByStudent) {
+            $records = $groupedByStudent->get($s->id, collect());
+            $hadir = $records->where('status', 'Hadir')->count();
+            $sakit = $records->where('status', 'Sakit')->count();
+            $izin = $records->where('status', 'Izin')->count();
+            $alpha = $records->where('status', 'Alpha')->count();
+            $total = $hadir + $sakit + $izin + $alpha;
+            $rate = $total > 0 ? round(($hadir / $total) * 100) : 100;
+
+            return (object) [
+                'id' => $s->id,
+                'name' => $s->name,
+                'kelas' => $s->kelas,
+                'nisn' => $s->nisn ?? null,
+                'hadir' => $hadir,
+                'sakit' => $sakit,
+                'izin' => $izin,
+                'alpha' => $alpha,
+                'total' => $total,
+                'rate' => $rate,
+                'records' => $records,
+            ];
+        });
+
+        // Totals across the filtered students
+        $totalSiswa = $students->count();
+        $totalHadir = $studentStats->sum('hadir');
+        $totalSakit = $studentStats->sum('sakit');
+        $totalIzin = $studentStats->sum('izin');
+        $totalAlpha = $studentStats->sum('alpha');
+        $totalPresensi = $totalHadir + $totalSakit + $totalIzin + $totalAlpha;
+        $avgAttendanceRate = $totalPresensi > 0 ? round(($totalHadir / $totalPresensi) * 100) : 100;
+
+        // Apply status filter for table display
+        if ($statusFilter === 'alpha') {
+            $studentStats = $studentStats->filter(fn ($s) => $s->alpha > 0);
+        } elseif ($statusFilter === 'izin') {
+            $studentStats = $studentStats->filter(fn ($s) => $s->izin > 0);
+        } elseif ($statusFilter === 'sakit') {
+            $studentStats = $studentStats->filter(fn ($s) => $s->sakit > 0);
+        } elseif ($statusFilter === 'hadir_kurang') {
+            $studentStats = $studentStats->filter(fn ($s) => $s->rate < 85 && $s->total > 0);
+        }
+
+        $journals = DB::table('journals')
+            ->join('schedules', 'journals.schedule_id', '=', 'schedules.id')
+            ->where('schedules.teacher_id', $userId)
+            ->whereIn('schedules.class_name', $classNames)
+            ->select('journals.id', 'journals.date', 'journals.topic_description', 'schedules.subject', 'schedules.class_name')
+            ->orderByDesc('journals.date')
+            ->get();
+
+        $presensiList = $attendances->map(function ($a) use ($students) {
+            $s = $students->firstWhere('id', $a->student_id);
+            $a->student_name = $s->name ?? null;
+            return $a;
+        });
+
+        return view('guru.presensi', [
+            'user' => Auth::user(),
+            'classNames' => $classNames,
+            'selectedClass' => $selectedClass,
+            'students' => $students,
+            'studentStats' => $studentStats,
+            'totalSiswa' => $totalSiswa,
+            'totalHadir' => $totalHadir,
+            'totalSakit' => $totalSakit,
+            'totalIzin' => $totalIzin,
+            'totalAlpha' => $totalAlpha,
+            'totalPresensi' => $totalPresensi,
+            'avgAttendanceRate' => $avgAttendanceRate,
+            'journals' => $journals,
+            'siswas' => $students,
+            'presensiList' => $presensiList,
+            'search' => $search,
+            'statusFilter' => $statusFilter,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]);
     })->name('guru.presensi');
 
     Route::post('/guru/presensi', function (Request $request) use ($waliClassNames, $canManageWaliClasses) {
@@ -4524,7 +4685,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             }
         });
 
-        return redirect()->route('guru.jurnal')->with('success', 'Presensi siswa tersimpan.');
+        return redirect()->route('guru.presensi')->with('success', 'Presensi siswa tersimpan.');
     })->name('guru.presensi.store');
 
     // Kesiswaan can approve leave requests and review their history.
@@ -4607,8 +4768,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return redirect()->route('kesiswaan.izin')->with('success', "Pengajuan izin berhasil {$label}.");
     })->name('kesiswaan.izin.approval');
 
-    Route::get('/wali-kelas/presensi', fn () => redirect()->route('guru.jurnal'))->name('wali-kelas.presensi');
-    Route::post('/wali-kelas/presensi', fn () => redirect()->route('guru.jurnal'))->name('wali-kelas.presensi.store');
+    Route::get('/wali-kelas/presensi', fn () => redirect()->route('guru.presensi'))->name('wali-kelas.presensi');
+    Route::post('/wali-kelas/presensi', fn () => redirect()->route('guru.presensi'))->name('wali-kelas.presensi.store');
 
     Route::get('/wali-kelas/izin', function () use ($waliClassNames, $canManageWaliClasses) {
         abort_unless($canManageWaliClasses((int) Auth::user()->getKey()), 403);
