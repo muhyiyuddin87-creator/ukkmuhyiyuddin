@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER') && env('MAIL_MAILER') !== 'log' ? env('MAIL_MAILER') : 'smtp',
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ return [
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME', 'ukkscp@gmail.com'),
             'password' => env('MAIL_PASSWORD', 'cpwhxpedhaxbkpvx'),
-            'timeout' => null,
+            'timeout' => 4,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

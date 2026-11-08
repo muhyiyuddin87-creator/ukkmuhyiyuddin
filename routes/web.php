@@ -114,14 +114,23 @@ Route::middleware('guest')->group(function () {
         ]);
 
         $request->session()->put('password_reset_otp_id', $challengeId);
+
+        // Jika driver mail adalah log (seperti default di server VPS tanpa akses SMTP outbound)
+        if (config('mail.default') === 'log') {
+            Notification::send($user, new PasswordResetOtpNotification($code));
+
+            return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Server VPS menggunakan driver mail log, kode OTP ditampilkan langsung agar Anda dapat menyelesaikan reset sandi).');
+        }
+
+        @ini_set('default_socket_timeout', 4);
         try {
             Notification::send($user, new PasswordResetOtpNotification($code));
         } catch (\Throwable $exception) {
             report($exception);
 
-            // Jika pengiriman SMTP gagal atau terkendala koneksi, jangan blokir proses.
+            // Jika pengiriman SMTP gagal atau terkendala koneksi/firewall VPS, jangan blokir proses.
             // Tampilkan kode OTP langsung agar pengguna tetap dapat melanjutkan reset sandi.
-            return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan: Pengiriman email mengalami kendala koneksi server, kode OTP ditampilkan langsung agar Anda tetap dapat melanjutkan reset sandi).');
+            return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan: Pengiriman email terhambat firewall hosting VPS, kode OTP ditampilkan langsung agar Anda tetap dapat melanjutkan reset sandi).');
         }
 
         $emailParts = explode('@', $user->email);
