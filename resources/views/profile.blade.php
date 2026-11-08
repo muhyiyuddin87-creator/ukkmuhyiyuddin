@@ -192,6 +192,14 @@
                             @include('partials.waka_nav_icon', ['icon' => 'leave'])
                             Riwayat Izin Siswa
                         </a>
+                        <a href="{{ route('guru.jadwal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
+                            @include('partials.waka_nav_icon', ['icon' => 'schedule'])
+                            Jadwal Mengajar
+                        </a>
+                        <a href="{{ route('guru.jurnal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-300 {{ $theme['sidebar_hover'] }} transition">
+                            @include('partials.waka_nav_icon', ['icon' => 'journal'])
+                            Isi Jurnal
+                        </a>
                     @endif
                 </nav>
             </div>
