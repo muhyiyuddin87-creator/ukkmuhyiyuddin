@@ -556,13 +556,16 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
             if ($student && ! empty($student->kelas) && Schema::hasTable('schedules') && Schema::hasColumn('schedules', 'class_name')) {
                 $jadwalList = DB::table('schedules')
-                    ->where('cycle_number', $activeCycle)
-                    ->where('class_name', $student->kelas)
+                    ->leftJoin('users', 'schedules.teacher_id', '=', 'users.id')
+                    ->leftJoin('ruangan', 'schedules.room_id', '=', 'ruangan.id_ruangan')
+                    ->select('schedules.*', 'users.fullname as guru_name', 'ruangan.nama_ruangan', 'ruangan.jenis as room_type')
+                    ->where('schedules.cycle_number', $activeCycle)
+                    ->where('schedules.class_name', $student->kelas)
                     ->where(function ($query) use ($currentAcademicYear) {
-                        $query->where('academic_year', $currentAcademicYear)->orWhereNull('academic_year');
+                        $query->where('schedules.academic_year', $currentAcademicYear)->orWhereNull('schedules.academic_year');
                     })
-                    ->orderBy('day_of_week')
-                    ->orderBy('start_time')
+                    ->orderBy('schedules.day_of_week')
+                    ->orderBy('schedules.start_time')
                     ->get();
             }
 
