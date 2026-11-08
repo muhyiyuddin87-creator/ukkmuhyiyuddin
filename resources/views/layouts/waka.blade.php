@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Waka Kurikulum - School System')</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -138,8 +139,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
+            <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-9 w-9 rounded-full border border-sky-400/40 object-cover shadow-xs">
             <div>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-sky-400">School System</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-sky-400">SCP UKK</span>
                 <h1 class="text-sm font-bold leading-tight text-white">Waka Kurikulum</h1>
             </div>
         </div>
@@ -159,9 +161,12 @@
             <div>
                 <!-- Brand & Close button on Mobile -->
                 <div class="mb-8 flex items-center justify-between">
-                    <div>
-                        <div class="text-xs uppercase tracking-[0.3em] text-sky-300">School System</div>
-                        <h2 class="mt-2 text-2xl font-bold tracking-tight text-white">Waka</h2>
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-11 w-11 shrink-0 rounded-full border-2 border-sky-400/50 object-cover shadow-md">
+                        <div>
+                            <div class="text-[10px] font-bold uppercase tracking-[0.25em] text-sky-300">SCP UKK</div>
+                            <h2 class="mt-0.5 text-xl font-bold tracking-tight text-white">Waka</h2>
+                        </div>
                     </div>
                     <button type="button" onclick="toggleSidebar()" aria-label="Tutup Menu" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

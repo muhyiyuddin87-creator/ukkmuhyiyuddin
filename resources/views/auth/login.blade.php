@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Sistem Sekolah</title>
+    <title>Login - School Class Progress UKK</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-sky-100 via-white to-indigo-100 flex items-center justify-center p-6">
@@ -11,18 +12,23 @@
         <div class="grid md:grid-cols-2">
             <div class="hidden md:flex flex-col justify-start bg-gradient-to-br from-sky-700 via-blue-700 to-indigo-800 p-10 text-white">
                 <div>
-                    <p class="text-sm uppercase tracking-[0.3em] text-sky-100">School System</p>
-                    <h1 class="mt-4 text-4xl font-bold">Sistem Informasi Sekolah</h1>
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-12 w-12 rounded-full border-2 border-white/40 object-cover shadow-lg">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.25em] text-sky-200 font-bold">School Class Progress</p>
+                            <span class="text-[11px] text-sky-100/90 font-semibold">SCP UKK System</span>
+                        </div>
+                    </div>
+                    <h1 class="mt-6 text-4xl font-bold leading-tight">Sistem Informasi Sekolah</h1>
+                    <p class="mt-3 text-sm text-sky-100/90 leading-relaxed">Platform manajemen pembelajaran cerdas terpadu untuk monitoring jadwal, presensi selfie real-time, jurnal mengajar, dan progres kelas siswa.</p>
                 </div>
             </div>
 
             <div class="p-8 md:p-10">
                 <div class="text-center mb-8">
-                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 shadow-sm">
-                        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                    <h2 class="mt-5 text-3xl font-bold text-slate-800">Masuk ke akun</h2>
-                    <p class="mt-2 text-sm text-slate-500">Silakan login untuk mengakses dashboard</p>
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="mx-auto h-20 w-20 rounded-full border-2 border-slate-200/90 object-cover shadow-md hover:scale-105 transition-transform">
+                    <h2 class="mt-4 text-3xl font-bold text-slate-800">Masuk ke akun</h2>
+                    <p class="mt-1.5 text-sm text-slate-500">School Class Progress (SCP) System</p>
                 </div>
 
                 @if ($errors->any())

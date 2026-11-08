@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $pageTitle ?? 'Jadwal Pelajaran' }} - PDF</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -109,11 +110,9 @@
         <header class="kop-border pb-4 mb-6">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white font-black text-2xl shadow-sm">
-                        SCH
-                    </div>
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-16 w-16 shrink-0 rounded-full border-2 border-slate-900 object-cover shadow-sm">
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider text-slate-900">SCHOOL SYSTEM ACADEMY</h1>
+                        <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider text-slate-900">SCHOOL CLASS PROGRESS (SCP)</h1>
                         <p class="text-xs text-slate-600 font-medium">Sistem Informasi Kurikulum, Pembelajaran, dan Presensi Siswa</p>
                         <p class="text-[11px] text-slate-500">Jl. Pendidikan No. 45 • Telp: (021) 7890-1234 • Email: info@school.system.sch.id</p>
                     </div>
