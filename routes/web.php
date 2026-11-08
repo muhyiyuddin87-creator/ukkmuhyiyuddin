@@ -115,18 +115,8 @@ Route::middleware('guest')->group(function () {
 
         $request->session()->put('password_reset_otp_id', $challengeId);
 
-        // Kirim email OTP via SMTP Gmail
-        $emailSent = false;
-        $smtpError = null;
-        try {
-            @ini_set('default_socket_timeout', 8);
-            Notification::send($user, new PasswordResetOtpNotification($code));
-            $emailSent = true;
-        } catch (\Throwable $exception) {
-            $smtpError = $exception->getMessage();
-            \Log::warning('SMTP send failed: ' . $smtpError);
-            $emailSent = false;
-        }
+        // Kirim email OTP (otomatis mencoba Brevo/Resend HTTPS API Port 443, lalu SMTP)
+        $emailSent = \App\Services\OtpMailService::sendOtp($user, $code);
 
         if ($emailSent) {
             $emailParts = explode('@', $user->email);
@@ -135,7 +125,7 @@ Route::middleware('guest')->group(function () {
             return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . '). Silakan periksa kotak masuk atau folder spam email Anda.');
         }
 
-        // Fallback darurat jika koneksi SMTP ke Google diblokir provider hosting VPS
+        // Fallback darurat jika seluruh jalur email offline/terhambat firewall VPS
         return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Silakan masukkan kode 6-digit di atas untuk mengatur ulang sandi akun Anda).');
     })->middleware('throttle:5,1')->name('password.email');
 
