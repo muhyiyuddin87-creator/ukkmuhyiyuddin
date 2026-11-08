@@ -83,29 +83,39 @@ jobs:
             chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
             # Pastikan batas upload Nginx & PHP-FPM aman (mencegah error 413 Request Entity Too Large)
-            echo "client_max_body_size 64M;" > /etc/nginx/conf.d/upload_limits.conf 2>/dev/null || true
+            sudo mkdir -p /etc/nginx/conf.d
+            echo "client_max_body_size 64M;" | sudo tee /etc/nginx/conf.d/upload_limits.conf > /dev/null || true
+            for site in /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*; do
+                if [ -f "$site" ]; then
+                    if grep -q "client_max_body_size" "$site"; then
+                        sudo sed -i 's/client_max_body_size .*/client_max_body_size 64M;/' "$site"
+                    else
+                        sudo sed -i '/server_name/a \    client_max_body_size 64M;' "$site"
+                    fi
+                fi
+            done
             if [ -f /etc/nginx/nginx.conf ]; then
                 if grep -q "client_max_body_size" /etc/nginx/nginx.conf; then
-                    sed -i 's/client_max_body_size .*/client_max_body_size 64M;/' /etc/nginx/nginx.conf
+                    sudo sed -i 's/client_max_body_size .*/client_max_body_size 64M;/' /etc/nginx/nginx.conf
                 else
-                    sed -i '/http {/a \    client_max_body_size 64M;' /etc/nginx/nginx.conf
+                    sudo sed -i '/http {/a \    client_max_body_size 64M;' /etc/nginx/nginx.conf
                 fi
-                nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
             fi
+            sudo nginx -t && sudo systemctl reload nginx || true
 
             for php_ini in /etc/php/*/fpm/php.ini /etc/php/*/cli/php.ini; do
                 if [ -f "$php_ini" ]; then
-                    sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 64M/' "$php_ini"
-                    sed -i 's/^post_max_size = .*/post_max_size = 64M/' "$php_ini"
-                    sed -i 's/^memory_limit = .*/memory_limit = 256M/' "$php_ini"
+                    sudo sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 64M/' "$php_ini"
+                    sudo sed -i 's/^post_max_size = .*/post_max_size = 64M/' "$php_ini"
+                    sudo sed -i 's/^memory_limit = .*/memory_limit = 256M/' "$php_ini"
                 fi
             done
-            mkdir -p /etc/php/8.4/fpm/conf.d 2>/dev/null || true
-            printf "upload_max_filesize = 64M\npost_max_size = 64M\nmemory_limit = 256M\nmax_execution_time = 120\n" > /etc/php/8.4/fpm/conf.d/99-upload-limits.ini 2>/dev/null || true
+            sudo mkdir -p /etc/php/8.4/fpm/conf.d 2>/dev/null || true
+            printf "upload_max_filesize = 64M\npost_max_size = 64M\nmemory_limit = 256M\nmax_execution_time = 120\n" | sudo tee /etc/php/8.4/fpm/conf.d/99-upload-limits.ini > /dev/null || true
 
             # Restart worker & reload PHP-FPM
-            systemctl reload php8.4-fpm 2>/dev/null || systemctl restart php8.4-fpm 2>/dev/null || true
-            systemctl restart ukk-worker.service 2>/dev/null || true
+            sudo systemctl reload php8.4-fpm 2>/dev/null || sudo systemctl restart php8.4-fpm 2>/dev/null || true
+            sudo systemctl restart ukk-worker.service 2>/dev/null || true
 
             echo "✅ Deployment Selesai & Aplikasi Live di https://tugasukk.web.id!"
 
