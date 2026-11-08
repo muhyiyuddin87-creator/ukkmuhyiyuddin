@@ -3264,6 +3264,20 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         ], 'contoh_import_jadwal_5_data.xlsx');
     })->name('waka.jadwal.example');
 
+    Route::get('/waka/jadwal/download/putaran-1', function () {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+        $path = public_path('downloads/JADWAL_PUTARAN_1.xlsx');
+        abort_unless(file_exists($path), 404, 'File jadwal putaran 1 belum tersedia.');
+        return response()->download($path, 'JADWAL_PUTARAN_1.xlsx');
+    })->name('waka.jadwal.download.putaran1');
+
+    Route::get('/waka/jadwal/download/putaran-2', function () {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+        $path = public_path('downloads/JADWAL_PUTARAN_2.xlsx');
+        abort_unless(file_exists($path), 404, 'File jadwal putaran 2 belum tersedia.');
+        return response()->download($path, 'JADWAL_PUTARAN_2.xlsx');
+    })->name('waka.jadwal.download.putaran2');
+
     Route::post('/waka/jadwal/import', function (Request $request) use ($ensureScheduleConfig, $findScheduleConflict, $currentAcademicYear) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
 
@@ -3314,10 +3328,13 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             $pythonScript = app_path('Support/extract_pdf_schedules.py');
             $pythonExecutables = [
                 'C:\\laragon\\bin\\python\\python-3.13\\python.exe',
-                'python',
                 'python3',
+                'python',
+                '/usr/bin/python3',
+                '/usr/local/bin/python3',
             ];
 
+            $lastErrors = [];
             foreach ($pythonExecutables as $py) {
                 if ($py === 'python' || $py === 'python3' || file_exists($py)) {
                     $cmd = escapeshellcmd($py) . ' ' . escapeshellarg($pythonScript) . ' ' . escapeshellarg($filePath);
@@ -3331,13 +3348,16 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                             $extractedItems = $decoded;
                             break;
                         }
+                    } elseif (! empty($output)) {
+                        $lastErrors[] = implode(' ', array_slice($output, -2));
                     }
                 }
             }
 
             if (empty($extractedItems)) {
+                $errDetail = ! empty($lastErrors) ? ' (' . implode(' | ', array_unique($lastErrors)) . ')' : '';
                 throw ValidationException::withMessages([
-                    'file' => 'Tidak ada data jadwal yang dapat diekstrak dari file PDF. Pastikan file PDF berformat FET timetable teks.',
+                    'file' => 'Tidak ada data jadwal yang dapat diekstrak dari file PDF. Pastikan file PDF berformat FET timetable teks' . $errDetail . '.',
                 ]);
             }
         } else {
@@ -3492,7 +3512,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 $teacherId = $teacherMap[$tNorm] ?? null;
                 if (! $teacherId) {
                     foreach ($teacherMap as $k => $id) {
-                        if (str_starts_with($tNorm, $k) || str_starts_with($k, $tNorm)) {
+                        if (str_starts_with($tNorm, $k) || str_starts_with($k, $tNorm) || (abs(strlen($tNorm) - strlen($k)) <= 2 && levenshtein($tNorm, $k) <= 2)) {
                             $teacherId = $id;
                             break;
                         }

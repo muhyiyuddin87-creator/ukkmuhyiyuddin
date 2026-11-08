@@ -83,6 +83,13 @@ jobs:
             npm install
             npm run build
 
+            # Install dependensi Python untuk Ekstraksi Jadwal PDF (pdfplumber)
+            echo "🐍 Memeriksa dan menginstall dependensi Python pdfplumber di VPS..."
+            sudo apt-get update -y 2>/dev/null || true
+            sudo apt-get install -y python3-pip python3-pdfplumber python-is-python3 2>/dev/null || true
+            sudo pip3 install pdfplumber --break-system-packages 2>/dev/null || pip install pdfplumber --break-system-packages 2>/dev/null || pip3 install pdfplumber 2>/dev/null || true
+            python3 -c "import pdfplumber; print('✅ pdfplumber siap digunakan')" || echo "⚠️ pdfplumber belum terinstall"
+
             # Pastikan konfigurasi SMTP Gmail aktif di .env VPS
             touch .env
             grep -q "^MAIL_MAILER=" .env && sed -i 's/^MAIL_MAILER=.*/MAIL_MAILER=smtp/' .env || echo "MAIL_MAILER=smtp" >> .env
