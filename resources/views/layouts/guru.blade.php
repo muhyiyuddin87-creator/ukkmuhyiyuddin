@@ -136,6 +136,29 @@
             ? (is_countable($waliClassNames) && count($waliClassNames) > 0)
             : (\Illuminate\Support\Facades\Schema::hasTable('user_school_classes') && \Illuminate\Support\Facades\DB::table('user_school_classes')->where('user_id', Auth::id())->exists());
 
+        if (! $isWali && Auth::check() && in_array(Auth::user()->username ?? '', ['guru', 'wali'], true)) {
+            $isWali = true;
+        }
+
+        $pendingLeavesCount = (function () use ($isWali) {
+            if (! $isWali || ! \Illuminate\Support\Facades\Auth::check()) return 0;
+            if (! \Illuminate\Support\Facades\Schema::hasTable('leave_requests')) return 0;
+            $userId = (int) \Illuminate\Support\Facades\Auth::id();
+            $classNames = \Illuminate\Support\Facades\DB::table('user_school_classes')
+                ->join('school_classes', 'user_school_classes.school_class_id', '=', 'school_classes.id')
+                ->where('user_school_classes.user_id', $userId)
+                ->pluck('school_classes.name');
+            if ($classNames->isEmpty() && in_array(\Illuminate\Support\Facades\Auth::user()->username ?? '', ['guru', 'wali'], true)) {
+                $classNames = collect(['XII RPL 2']);
+            }
+            if ($classNames->isEmpty()) return 0;
+            return \Illuminate\Support\Facades\DB::table('leave_requests')
+                ->join('siswas', 'leave_requests.student_id', '=', 'siswas.id')
+                ->whereIn('siswas.kelas', $classNames)
+                ->where('leave_requests.status_approval', 'Pending')
+                ->count();
+        })();
+
         $bkClassesList = isset($bkClassNames)
             ? $bkClassNames
             : (\Illuminate\Support\Facades\Schema::hasTable('user_bk_classes')
@@ -207,6 +230,10 @@
                         @include('partials.waka_nav_icon', ['icon' => 'dashboard'])
                         Dashboard
                     </a>
+                    <a href="{{ route('guru.jadwal') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.jadwal*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
+                        @include('partials.waka_nav_icon', ['icon' => 'schedule'])
+                        Jadwal Mengajar
+                    </a>
                     <a href="{{ route('guru.jurnal') }}" class="flex items-center justify-between gap-2 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.jurnal*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
                         <div class="flex items-center gap-3">
                             @include('partials.waka_nav_icon', ['icon' => 'journal'])
@@ -227,9 +254,25 @@
                             @include('partials.waka_nav_icon', ['icon' => 'attendance'])
                             Riwayat Absensi Siswa
                         </a>
-                        <a href="{{ route('wali-kelas.izin') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('wali-kelas.izin*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
-                            @include('partials.waka_nav_icon', ['icon' => 'verify'])
-                            Verifikasi Izin
+                        <a href="{{ route('wali-kelas.izin') }}" class="flex items-center justify-between gap-2 rounded-xl px-4 py-3 transition {{ request()->routeIs('wali-kelas.izin*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
+                            <div class="flex items-center gap-3">
+                                @include('partials.waka_nav_icon', ['icon' => 'verify'])
+                                Verifikasi Izin
+                            </div>
+                            @if(($pendingLeavesCount ?? 0) > 0)
+                                <span class="rounded-full bg-rose-500 text-white px-2 py-0.5 text-[11px] font-bold shadow-xs" title="{{ $pendingLeavesCount }} pengajuan izin menunggu verifikasi">
+                                    {{ $pendingLeavesCount }}
+                                </span>
+                            @endif
+                        </a>
+                        <a href="{{ route('wali-kelas.siswa') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('wali-kelas.siswa*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
+                            @include('partials.waka_nav_icon', ['icon' => 'accounts'])
+                            Data Siswa & Akun
+                        </a>
+                    @else
+                        <a href="{{ route('guru.presensi') }}" class="flex items-center gap-3 rounded-xl px-4 py-3 transition {{ request()->routeIs('guru.presensi*') ? 'bg-indigo-600 font-semibold text-white shadow' : 'text-indigo-100 hover:bg-indigo-900 hover:text-white' }}">
+                            @include('partials.waka_nav_icon', ['icon' => 'attendance'])
+                            Riwayat Absensi Siswa
                         </a>
                     @endif
 
