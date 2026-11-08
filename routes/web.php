@@ -117,12 +117,14 @@ Route::middleware('guest')->group(function () {
 
         // Kirim email OTP via SMTP Gmail
         $emailSent = false;
+        $smtpError = null;
         try {
             @ini_set('default_socket_timeout', 8);
             Notification::send($user, new PasswordResetOtpNotification($code));
             $emailSent = true;
         } catch (\Throwable $exception) {
-            \Log::warning('SMTP send failed: ' . $exception->getMessage());
+            $smtpError = $exception->getMessage();
+            \Log::warning('SMTP send failed: ' . $smtpError);
             $emailSent = false;
         }
 
@@ -134,7 +136,8 @@ Route::middleware('guest')->group(function () {
         }
 
         // Fallback darurat jika koneksi SMTP ke Google diblokir provider hosting VPS
-        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan: Pengiriman ke email terkendala koneksi hosting, kode OTP ditampilkan di sini agar Anda tetap dapat mengatur ulang sandi).');
+        $errMsg = $smtpError ? ' (Kendala: ' . $smtpError . ')' : '';
+        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . $errMsg . ' - Silakan gunakan kode OTP ini untuk mengatur ulang sandi.');
     })->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password', function () {
