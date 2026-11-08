@@ -4014,6 +4014,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $activeCycle = (int) ($config->active_cycle ?? 1);
         $lockedColumn = $activeCycle === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
         $scheduleLocked = (bool) ($config->{$lockedColumn} ?? false);
+        $dayOrder = ['Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5];
         $jadwals = Schema::hasTable('schedules')
             ? DB::table('schedules')
                 ->leftJoin('ruangan', 'schedules.room_id', '=', 'ruangan.id_ruangan')
@@ -4023,9 +4024,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 ->where(function ($query) use ($currentAcademicYear) {
                     $query->where('schedules.academic_year', $currentAcademicYear)->orWhereNull('schedules.academic_year');
                 })
-                ->orderBy('schedules.day_of_week')
-                ->orderBy('schedules.start_time')
                 ->get()
+                ->sortBy(function ($item) use ($dayOrder) {
+                    return ($dayOrder[$item->day_of_week] ?? 99) . '_' . $item->start_time;
+                })
+                ->values()
             : collect();
 
         $rooms = DB::table('ruangan')->orderBy('nama_ruangan')->get(['id_ruangan', 'nama_ruangan']);
