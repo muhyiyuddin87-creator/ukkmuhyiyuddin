@@ -491,17 +491,24 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $extraData = [];
         if (in_array($dashboardRoleId, [2, 4], true)) {
             $teacherId = $user->id;
+            $dayOrder = ['Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5];
             $allTeacherSchedules = Schema::hasTable('schedules')
                 ? DB::table('schedules')
-                    ->where('teacher_id', $teacherId)
+                    ->leftJoin('ruangan', 'schedules.room_id', '=', 'ruangan.id_ruangan')
+                    ->select('schedules.*', 'ruangan.nama_ruangan', 'ruangan.jenis as room_type')
+                    ->where('schedules.teacher_id', $teacherId)
                     ->where(function ($query) use ($currentAcademicYear) {
-                        $query->where('academic_year', $currentAcademicYear)->orWhereNull('academic_year');
+                        $query->where('schedules.academic_year', $currentAcademicYear)->orWhereNull('schedules.academic_year');
                     })
                     ->get()
                 : collect();
-            $jadwals = Schema::hasTable('schedules') && Schema::hasColumn('schedules', 'cycle_number')
+            $jadwals = (Schema::hasTable('schedules') && Schema::hasColumn('schedules', 'cycle_number')
                 ? $allTeacherSchedules->where('cycle_number', $activeCycle)->values()
-                : $allTeacherSchedules;
+                : $allTeacherSchedules)
+                ->sortBy(function ($item) use ($dayOrder) {
+                    return ($dayOrder[$item->day_of_week] ?? 99) . '_' . ($item->start_time ?? '');
+                })
+                ->values();
             $journals = Schema::hasTable('journals')
                 ? DB::table('journals')
                     ->leftJoin('schedules', 'journals.schedule_id', '=', 'schedules.id')
