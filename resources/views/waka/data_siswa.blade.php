@@ -12,10 +12,10 @@
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
                 <a href="{{ route('waka.kenaikan_kelas') }}" class="btn-standard border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100 transition shadow-xs font-bold">
-                    ⚡ Kenaikan & Kelulusan Serentak
+                    Kenaikan & Kelulusan Serentak
                 </a>
                 <a href="{{ route('waka.alumni') }}" class="btn-standard border border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100 transition shadow-xs font-semibold">
-                    🎓 Data Alumni
+                    Data Alumni
                 </a>
             </div>
         </div>
@@ -23,13 +23,13 @@
         <!-- Tab Filter Status Siswa -->
         <div class="mt-6 flex border-b border-slate-200 text-sm font-semibold">
             <a href="{{ route('waka.siswa', array_merge(request()->except('status'), ['status' => 'aktif'])) }}" class="px-4 py-2.5 border-b-2 transition flex items-center gap-2 {{ ($selectedStatus ?? 'aktif') === 'aktif' ? 'border-sky-600 text-sky-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                <span>🎒</span> Siswa Aktif
+                Siswa Aktif
             </a>
             <a href="{{ route('waka.siswa', array_merge(request()->except('status'), ['status' => 'lulus'])) }}" class="px-4 py-2.5 border-b-2 transition flex items-center gap-2 {{ ($selectedStatus ?? 'aktif') === 'lulus' ? 'border-sky-600 text-sky-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                <span>🎓</span> Siswa Lulus / Alumni
+                Siswa Lulus / Alumni
             </a>
             <a href="{{ route('waka.siswa', array_merge(request()->except('status'), ['status' => 'all'])) }}" class="px-4 py-2.5 border-b-2 transition flex items-center gap-2 {{ ($selectedStatus ?? 'aktif') === 'all' ? 'border-sky-600 text-sky-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800' }}">
-                <span>📋</span> Semua Siswa
+                Semua Siswa
             </a>
         </div>
     </header>
