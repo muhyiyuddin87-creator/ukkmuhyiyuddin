@@ -17,7 +17,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Kesiswaan - School System')</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-badge.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -152,7 +152,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
-            <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-9 w-9 rounded-full border border-amber-400/40 object-cover shadow-xs">
+            <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="h-9 w-9 rounded-full object-cover shadow-xs">
             <div>
                 <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300">SCP UKK</span>
                 <h1 class="text-sm font-bold leading-tight text-white">Kesiswaan</h1>
@@ -174,7 +174,7 @@
             <div>
                 <div class="mb-8 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-11 w-11 shrink-0 rounded-full border-2 border-amber-400/50 object-cover shadow-md">
+                        <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="h-11 w-11 shrink-0 rounded-full object-cover shadow-md">
                         <div>
                             <div class="text-[10px] font-bold uppercase tracking-[0.25em] text-amber-200">SCP UKK</div>
                             <h2 class="mt-0.5 text-xl font-bold tracking-tight text-white">Kesiswaan</h2>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $pageTitle ?? 'Jadwal Pelajaran' }} - PDF</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-badge.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @media print {
@@ -110,7 +110,7 @@
         <header class="kop-border pb-4 mb-6">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-16 w-16 shrink-0 rounded-full border-2 border-slate-900 object-cover shadow-sm">
+                    <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="h-16 w-16 shrink-0 rounded-full object-cover shadow-sm">
                     <div>
                         <h1 class="text-xl sm:text-2xl font-black uppercase tracking-wider text-slate-900">SCHOOL CLASS PROGRESS (SCP)</h1>
                         <p class="text-xs text-slate-600 font-medium">Sistem Informasi Kurikulum, Pembelajaran, dan Presensi Siswa</p>

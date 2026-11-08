@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - School Class Progress UKK</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-badge.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-emerald-50/80 via-slate-50 to-teal-50/80 flex items-center justify-center p-4 sm:p-6">
@@ -18,7 +18,7 @@
 
                 <div class="relative z-10">
                     <div class="flex items-center gap-3.5">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="h-12 w-12 shrink-0 drop-shadow-md">
+                        <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="h-12 w-12 shrink-0 rounded-full object-cover">
                         <div>
                             <p class="text-xs uppercase tracking-[0.25em] text-emerald-300 font-bold">School Class Progress</p>
                             <span class="text-[11px] text-emerald-100/80 font-semibold">SCP UKK System</span>
@@ -59,7 +59,7 @@
             <!-- Right: Form Login -->
             <div class="p-8 sm:p-10 flex flex-col justify-center">
                 <div class="text-center mb-8">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo SCP" class="mx-auto h-20 w-20 drop-shadow-md hover:scale-105 transition-transform duration-200">
+                    <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="mx-auto h-20 w-20 rounded-full object-cover hover:scale-105 transition-transform duration-200">
                     <h2 class="mt-4 text-3xl font-extrabold text-slate-800 tracking-tight">Masuk ke akun</h2>
                     <p class="mt-1.5 text-sm text-slate-500">School Class Progress (SCP) System</p>
                 </div>
