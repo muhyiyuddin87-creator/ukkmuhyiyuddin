@@ -11,49 +11,16 @@
     <div class="w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200/80">
         <div class="grid md:grid-cols-2">
             <!-- Left Banner: Harmonis dengan Brand SCP -->
-            <div class="hidden md:flex flex-col justify-between bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-900 p-10 text-white relative overflow-hidden">
-                <!-- Aksen Dekoratif Halus di Background -->
-                <div class="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
-                <div class="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl pointer-events-none"></div>
-
-                <div class="relative z-10">
-                    <div class="flex items-center gap-3.5">
-                        <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="h-12 w-12 shrink-0 rounded-full object-cover">
-                        <div>
-                            <p class="text-xs uppercase tracking-[0.25em] text-emerald-300 font-bold">School Class Progress</p>
-                            <span class="text-[11px] text-emerald-100/80 font-semibold">SCP UKK System</span>
-                        </div>
-                    </div>
-                    <h1 class="mt-8 text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight text-white">Sistem Informasi Sekolah</h1>
-                    <p class="mt-3 text-sm text-emerald-100/90 leading-relaxed">Platform manajemen pembelajaran cerdas terpadu untuk monitoring jadwal, presensi selfie real-time, jurnal mengajar, dan progres kelas siswa.</p>
-
-                    <!-- Fitur Utama Pill Cards -->
-                    <div class="mt-8 space-y-3">
-                        <div class="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 backdrop-blur-xs">
-                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </span>
-                            <span class="text-xs font-medium text-emerald-100">Presensi Real-Time & Bukti Selfie</span>
-                        </div>
-                        <div class="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 backdrop-blur-xs">
-                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-500/20 text-teal-300">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            </span>
-                            <span class="text-xs font-medium text-emerald-100">Jadwal Pembelajaran Putaran Siklus</span>
-                        </div>
-                        <div class="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 backdrop-blur-xs">
-                            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500/20 text-sky-300">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </span>
-                            <span class="text-xs font-medium text-emerald-100">Jurnal Mengajar & Rekap Presensi Guru</span>
-                        </div>
+            <div class="hidden md:flex flex-col justify-start bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-900 p-10 text-white relative overflow-hidden">
+                <div class="flex items-center gap-3.5">
+                    <img src="{{ asset('images/logo-badge.png') }}" alt="Logo SCP" class="h-12 w-12 shrink-0 rounded-full object-cover">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.25em] text-emerald-300 font-bold">School Class Progress</p>
+                        <span class="text-[11px] text-emerald-100/80 font-semibold">SCP UKK System</span>
                     </div>
                 </div>
-
-                <div class="relative z-10 pt-6 border-t border-white/10 text-xs text-emerald-300/80 flex items-center justify-between">
-                    <span>© {{ date('Y') }} School Class Progress</span>
-                    <span class="font-semibold text-emerald-400">v2.0 UKK</span>
-                </div>
+                <h1 class="mt-8 text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight text-white">Sistem Informasi Sekolah</h1>
+                <p class="mt-3 text-sm text-emerald-100/90 leading-relaxed">Platform manajemen pembelajaran cerdas terpadu untuk monitoring jadwal, presensi selfie real-time, jurnal mengajar, dan progres kelas siswa.</p>
             </div>
 
             <!-- Right: Form Login -->
