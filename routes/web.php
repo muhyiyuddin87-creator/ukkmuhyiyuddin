@@ -136,8 +136,7 @@ Route::middleware('guest')->group(function () {
         }
 
         // Fallback darurat jika koneksi SMTP ke Google diblokir provider hosting VPS
-        $errMsg = $smtpError ? ' (Kendala: ' . $smtpError . ')' : '';
-        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . $errMsg . ' - Silakan gunakan kode OTP ini untuk mengatur ulang sandi.');
+        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Silakan masukkan kode 6-digit di atas untuk mengatur ulang sandi akun Anda).');
     })->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password', function () {
