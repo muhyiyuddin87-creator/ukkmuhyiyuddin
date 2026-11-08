@@ -1,5 +1,23 @@
 <?php
 
+$envMailer = env('MAIL_MAILER');
+$defaultMailer = (! empty($envMailer) && ! in_array($envMailer, ['log', 'null', 'array'], true)) ? $envMailer : 'smtp';
+
+$envHost = env('MAIL_HOST');
+$smtpHost = (! empty($envHost) && ! in_array($envHost, ['127.0.0.1', 'localhost', 'null'], true)) ? $envHost : 'smtp.gmail.com';
+
+$envPort = env('MAIL_PORT');
+$smtpPort = (! empty($envPort) && ! in_array((int) $envPort, [2525, 1025, 0], true)) ? (int) $envPort : 587;
+
+$envUser = env('MAIL_USERNAME');
+$smtpUser = (! empty($envUser) && $envUser !== 'null') ? $envUser : 'ukkscp@gmail.com';
+
+$envPass = env('MAIL_PASSWORD');
+$smtpPass = (! empty($envPass) && $envPass !== 'null') ? $envPass : 'cpwhxpedhaxbkpvx';
+
+$envEnc = env('MAIL_ENCRYPTION');
+$smtpEnc = (! empty($envEnc) && $envEnc !== 'null') ? $envEnc : 'tls';
+
 return [
 
     /*
@@ -14,7 +32,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'smtp'),
+    'default' => $defaultMailer,
 
     /*
     |--------------------------------------------------------------------------
@@ -41,12 +59,12 @@ return [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME', 'smtp'),
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => (int) env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME', 'ukkscp@gmail.com'),
-            'password' => env('MAIL_PASSWORD', 'cpwhxpedhaxbkpvx'),
-            'timeout' => 4,
+            'host' => $smtpHost,
+            'port' => $smtpPort,
+            'encryption' => $smtpEnc,
+            'username' => $smtpUser,
+            'password' => $smtpPass,
+            'timeout' => 8,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

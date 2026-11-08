@@ -54,10 +54,22 @@ jobs:
             npm install
             npm run build
 
+            # Pastikan konfigurasi SMTP Gmail aktif di .env VPS
+            touch .env
+            grep -q "^MAIL_MAILER=" .env && sed -i 's/^MAIL_MAILER=.*/MAIL_MAILER=smtp/' .env || echo "MAIL_MAILER=smtp" >> .env
+            grep -q "^MAIL_HOST=" .env && sed -i 's/^MAIL_HOST=.*/MAIL_HOST=smtp.gmail.com/' .env || echo "MAIL_HOST=smtp.gmail.com" >> .env
+            grep -q "^MAIL_PORT=" .env && sed -i 's/^MAIL_PORT=.*/MAIL_PORT=587/' .env || echo "MAIL_PORT=587" >> .env
+            grep -q "^MAIL_USERNAME=" .env && sed -i 's/^MAIL_USERNAME=.*/MAIL_USERNAME=ukkscp@gmail.com/' .env || echo "MAIL_USERNAME=ukkscp@gmail.com" >> .env
+            grep -q "^MAIL_PASSWORD=" .env && sed -i 's/^MAIL_PASSWORD=.*/MAIL_PASSWORD=cpwhxpedhaxbkpvx/' .env || echo "MAIL_PASSWORD=cpwhxpedhaxbkpvx" >> .env
+            grep -q "^MAIL_ENCRYPTION=" .env && sed -i 's/^MAIL_ENCRYPTION=.*/MAIL_ENCRYPTION=tls/' .env || echo "MAIL_ENCRYPTION=tls" >> .env
+            grep -q "^MAIL_FROM_ADDRESS=" .env && sed -i 's/^MAIL_FROM_ADDRESS=.*/MAIL_FROM_ADDRESS=ukkscp@gmail.com/' .env || echo "MAIL_FROM_ADDRESS=ukkscp@gmail.com" >> .env
+            grep -q "^MAIL_FROM_NAME=" .env && sed -i 's/^MAIL_FROM_NAME=.*/MAIL_FROM_NAME="Sistem Informasi Sekolah"/' .env || echo 'MAIL_FROM_NAME="Sistem Informasi Sekolah"' >> .env
+
             # Migrasi database TiDB Cloud jika ada perubahan tabel
             php artisan migrate --force
 
             # Optimalkan cache Laravel
+            php artisan config:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache

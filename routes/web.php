@@ -115,27 +115,26 @@ Route::middleware('guest')->group(function () {
 
         $request->session()->put('password_reset_otp_id', $challengeId);
 
-        // Coba kirim email OTP via SMTP jika diizinkan oleh jaringan server
+        // Kirim email OTP via SMTP Gmail
         $emailSent = false;
-        if (config('mail.default') !== 'log') {
-            try {
-                @ini_set('default_socket_timeout', 4);
-                Notification::send($user, new PasswordResetOtpNotification($code));
-                $emailSent = true;
-            } catch (\Throwable $exception) {
-                $emailSent = false;
-            }
+        try {
+            @ini_set('default_socket_timeout', 8);
+            Notification::send($user, new PasswordResetOtpNotification($code));
+            $emailSent = true;
+        } catch (\Throwable $exception) {
+            \Log::warning('SMTP send failed: ' . $exception->getMessage());
+            $emailSent = false;
         }
 
         if ($emailSent) {
             $emailParts = explode('@', $user->email);
             $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
 
-            return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . ') dan berlaku selama 10 menit.');
+            return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . '). Silakan periksa kotak masuk atau folder spam email Anda.');
         }
 
-        // Fallback jika SMTP offline/terhambat firewall VPS: tampilkan kode OTP langsung agar alur reset sandi tidak pernah error atau macet
-        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Silakan masukkan kode 6-digit di atas untuk mengatur ulang sandi akun Anda).');
+        // Fallback darurat jika koneksi SMTP ke Google diblokir provider hosting VPS
+        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan: Pengiriman ke email terkendala koneksi hosting, kode OTP ditampilkan di sini agar Anda tetap dapat mengatur ulang sandi).');
     })->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password', function () {
