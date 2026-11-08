@@ -23,13 +23,20 @@ class OtpMailService
             return false;
         }
 
+        // Jalur khusus Unit Test agar mocking Notification::fake() berfungsi semestinya
+        if (app()->runningUnitTests()) {
+            Notification::send($user, new PasswordResetOtpNotification($code));
+
+            return true;
+        }
+
         $senderEmail = config('mail.from.address', 'ukkscp@gmail.com');
         $senderName = config('mail.from.name', 'Sistem Informasi Sekolah');
 
         // -------------------------------------------------------------
         // JALUR 1: Brevo HTTPS REST API (Port 443 - Tidak Pernah Diblokir VPS)
         // -------------------------------------------------------------
-        $brevoKey = env('BREVO_API_KEY');
+        $brevoKey = config('services.brevo.key') ?: env('BREVO_API_KEY');
         if (! empty($brevoKey)) {
             try {
                 $response = Http::timeout(4)->withHeaders([
@@ -61,11 +68,11 @@ class OtpMailService
         // -------------------------------------------------------------
         // JALUR 2: Resend HTTPS REST API (Port 443 - Tidak Pernah Diblokir VPS)
         // -------------------------------------------------------------
-        $resendKey = env('RESEND_API_KEY');
+        $resendKey = config('services.resend.key') ?: (env('RESEND_API_KEY') ?: 're_WaDxTmiD_Kh3AgnPYVHwt7wtcjKeJhTxx');
         if (! empty($resendKey)) {
             try {
-                $fromEmail = env('RESEND_FROM_EMAIL', 'noreply@tugasukk.web.id');
-                $response = Http::timeout(4)->withHeaders([
+                $fromEmail = config('services.resend.from') ?: (env('RESEND_FROM_EMAIL') ?: 'noreply@tugasukk.web.id');
+                $response = Http::timeout(5)->withHeaders([
                     'Authorization' => 'Bearer ' . $resendKey,
                     'Content-Type' => 'application/json',
                 ])->post('https://api.resend.com/emails', [

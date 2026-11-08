@@ -20,6 +20,11 @@ return [
 
     'resend' => [
         'key' => env('RESEND_API_KEY'),
+        'from' => env('RESEND_FROM_EMAIL', 'noreply@tugasukk.web.id'),
+    ],
+
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
     ],
 
     'ses' => [
