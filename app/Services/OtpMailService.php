@@ -32,7 +32,7 @@ class OtpMailService
         $brevoKey = env('BREVO_API_KEY');
         if (! empty($brevoKey)) {
             try {
-                $response = Http::timeout(8)->withHeaders([
+                $response = Http::timeout(4)->withHeaders([
                     'api-key' => $brevoKey,
                     'accept' => 'application/json',
                     'content-type' => 'application/json',
@@ -64,8 +64,8 @@ class OtpMailService
         $resendKey = env('RESEND_API_KEY');
         if (! empty($resendKey)) {
             try {
-                $fromEmail = env('RESEND_FROM_EMAIL', 'onboarding@resend.dev');
-                $response = Http::timeout(8)->withHeaders([
+                $fromEmail = env('RESEND_FROM_EMAIL', 'noreply@tugasukk.web.id');
+                $response = Http::timeout(4)->withHeaders([
                     'Authorization' => 'Bearer ' . $resendKey,
                     'Content-Type' => 'application/json',
                 ])->post('https://api.resend.com/emails', [
@@ -89,7 +89,7 @@ class OtpMailService
         // JALUR 3: SMTP Standar Laravel (Jika port SMTP diizinkan oleh jaringan)
         // -------------------------------------------------------------
         try {
-            @ini_set('default_socket_timeout', 6);
+            @ini_set('default_socket_timeout', 3);
             Notification::send($user, new PasswordResetOtpNotification($code));
 
             return true;
@@ -100,3 +100,4 @@ class OtpMailService
         }
     }
 }
+
