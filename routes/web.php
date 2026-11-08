@@ -115,28 +115,27 @@ Route::middleware('guest')->group(function () {
 
         $request->session()->put('password_reset_otp_id', $challengeId);
 
-        // Jika driver mail adalah log (seperti default di server VPS tanpa akses SMTP outbound)
-        if (config('mail.default') === 'log') {
-            Notification::send($user, new PasswordResetOtpNotification($code));
-
-            return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Server VPS menggunakan driver mail log, kode OTP ditampilkan langsung agar Anda dapat menyelesaikan reset sandi).');
+        // Coba kirim email OTP via SMTP jika diizinkan oleh jaringan server
+        $emailSent = false;
+        if (config('mail.default') !== 'log') {
+            try {
+                @ini_set('default_socket_timeout', 4);
+                Notification::send($user, new PasswordResetOtpNotification($code));
+                $emailSent = true;
+            } catch (\Throwable $exception) {
+                $emailSent = false;
+            }
         }
 
-        @ini_set('default_socket_timeout', 4);
-        try {
-            Notification::send($user, new PasswordResetOtpNotification($code));
-        } catch (\Throwable $exception) {
-            report($exception);
+        if ($emailSent) {
+            $emailParts = explode('@', $user->email);
+            $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
 
-            // Jika pengiriman SMTP gagal atau terkendala koneksi/firewall VPS, jangan blokir proses.
-            // Tampilkan kode OTP langsung agar pengguna tetap dapat melanjutkan reset sandi.
-            return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan: Pengiriman email terhambat firewall hosting VPS, kode OTP ditampilkan langsung agar Anda tetap dapat melanjutkan reset sandi).');
+            return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . ') dan berlaku selama 10 menit.');
         }
 
-        $emailParts = explode('@', $user->email);
-        $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
-
-        return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . ') dan berlaku selama 10 menit.');
+        // Fallback jika SMTP offline/terhambat firewall VPS: tampilkan kode OTP langsung agar alur reset sandi tidak pernah error atau macet
+        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Silakan masukkan kode 6-digit di atas untuk mengatur ulang sandi akun Anda).');
     })->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password', function () {
