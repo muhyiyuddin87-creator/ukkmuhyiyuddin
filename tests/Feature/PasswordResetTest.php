@@ -64,17 +64,43 @@ class PasswordResetTest extends TestCase
         ])->assertSessionHasErrors('otp');
     }
 
-    public function test_password_reset_request_does_not_disclose_unregistered_usernames(): void
+    public function test_password_reset_request_fails_if_email_or_user_not_registered(): void
     {
         Notification::fake();
         $this->seed(DatabaseSeeder::class);
 
-        $registeredResponse = $this->from(route('password.request'))
-            ->post(route('password.email'), ['username' => 'tidak-terdaftar']);
+        // 1. Tes email yang tidak terdaftar
+        $responseEmail = $this->from(route('password.request'))
+            ->post(route('password.email'), ['username' => 'tidak-terdaftar@example.com']);
 
-        $registeredResponse->assertRedirect(route('password.reset'))->assertSessionHas('status');
+        $responseEmail->assertRedirect(route('password.request'))
+            ->assertSessionHasErrors(['username']);
+        $this->assertEquals('Email tidak terdaftar.', session('errors')->first('username'));
+
+        // 2. Tes username yang tidak terdaftar di role manapun
+        $responseUser = $this->from(route('password.request'))
+            ->post(route('password.email'), ['username' => 'user_palsu']);
+
+        $responseUser->assertRedirect(route('password.request'))
+            ->assertSessionHasErrors(['username']);
+        $this->assertEquals('Email tidak terdaftar.', session('errors')->first('username'));
+
+        // 3. User ada di database tapi role_id tidak valid (tidak terdaftar di role manapun)
+        User::create([
+            'username' => 'user_tanpa_role',
+            'email' => 'tanparole@example.com',
+            'password' => Hash::make('password123'),
+            'fullname' => 'Tanpa Role',
+            'role_id' => 99,
+        ]);
+        $responseInvalidRole = $this->from(route('password.request'))
+            ->post(route('password.email'), ['username' => 'tanparole@example.com']);
+
+        $responseInvalidRole->assertRedirect(route('password.request'))
+            ->assertSessionHasErrors(['username']);
+        $this->assertEquals('Email tidak terdaftar.', session('errors')->first('username'));
+
         Notification::assertNothingSent();
-
         $this->get(route('password.request'))->assertOk();
     }
 
@@ -85,11 +111,10 @@ class PasswordResetTest extends TestCase
 
         $this->from(route('password.request'))
             ->post(route('password.email'), ['username' => 'guru'])
-            ->assertRedirect(route('password.reset'))
-            ->assertSessionHas('status');
+            ->assertRedirect(route('password.request'))
+            ->assertSessionHasErrors(['username']);
 
         Notification::assertNothingSent();
-        $this->get(route('password.reset'))->assertOk();
     }
 
     public function test_invalid_otp_is_rejected_and_attempts_are_counted(): void

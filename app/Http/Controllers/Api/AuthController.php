@@ -209,9 +209,21 @@ class AuthController extends Controller
             ->first();
 
         if (! $user) {
+            $siswa = \App\Models\Siswa::where('email', strtolower($search))->orWhere('nis', $search)->first();
+            if ($siswa) {
+                $user = User::where('student_id', $siswa->id)->where('role_id', 3)->first();
+                if ($user && empty($user->email) && ! empty($siswa->email)) {
+                    $user->email = strtolower($siswa->email);
+                    $user->save();
+                }
+            }
+        }
+
+        $validRoles = [1, 2, 3, 4, 5, 6];
+        if (! $user || ! in_array((int) ($user->role_id ?? 0), $validRoles, true)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akun tidak ditemukan.',
+                'message' => 'Email tidak terdaftar.',
             ], 404);
         }
 

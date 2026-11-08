@@ -70,60 +70,79 @@ Route::middleware('guest')->group(function () {
             ->first();
         $request->session()->forget('password_reset_otp_id');
 
-        if ($user) {
-            // Jika akun adalah siswa dan tidak memiliki email pemulihan
-            if ((int) $user->role_id === 3 && empty($user->email)) {
-                return back()->with('info_siswa', 'Akun Siswa (' . ($user->fullname ?: $user->username) . ') belum memiliki email pemulihan. Silakan temui Wali Kelas atau Waka Kurikulum untuk mereset sandi Anda secara langsung.')->withInput();
-            }
-
-            if (! empty($user->email)) {
-                if (in_array(config('mail.default'), ['log', 'array'], true) && ! app()->environment(['local', 'testing'])) {
-                    return back()->withErrors([
-                        'username' => 'Layanan email belum dikonfigurasi untuk mengirim OTP. Hubungi administrator untuk mengaktifkan SMTP.',
-                    ])->withInput();
+        if (! $user) {
+            $siswa = \App\Models\Siswa::where('email', strtolower($search))->orWhere('nis', $search)->first();
+            if ($siswa) {
+                $user = User::where('student_id', $siswa->id)->where('role_id', 3)->first();
+                if ($user && empty($user->email) && ! empty($siswa->email)) {
+                    $user->email = strtolower($siswa->email);
+                    $user->save();
                 }
-
-                DB::table('password_reset_otps')->where('user_id', $user->getKey())->delete();
-
-                $code = (string) random_int(0, 999999);
-                $code = str_pad($code, 6, '0', STR_PAD_LEFT);
-                $challengeId = DB::table('password_reset_otps')->insertGetId([
-                    'user_id' => $user->getKey(),
-                    'email' => strtolower($user->email),
-                    'code_hash' => Hash::make($code),
-                    'attempts' => 0,
-                    'expires_at' => now()->addMinutes(10),
-                    'created_at' => now(),
-                ]);
-
-                $request->session()->put('password_reset_otp_id', $challengeId);
-                try {
-                    Notification::send($user, new PasswordResetOtpNotification($code));
-                } catch (\Throwable $exception) {
-                    report($exception);
-
-                    // Di mode lokal/pengembangan, jika kredensial SMTP Gmail di .env belum valid atau butuh Google App Password,
-                    // jangan memblokir alur pengujian. Tampilkan kode OTP langsung agar pengguna tetap bisa menyelesaikan reset.
-                    if (app()->environment('local') || config('app.debug')) {
-                        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan Pengembang: Pengiriman email gagal karena kredensial SMTP Gmail di .env belum valid atau memerlukan 16 digit Google App Password. Silakan masukkan kode OTP di atas untuk melanjutkan).');
-                    }
-
-                    DB::table('password_reset_otps')->where('id', $challengeId)->delete();
-                    $request->session()->forget('password_reset_otp_id');
-
-                    return back()->withErrors([
-                        'username' => 'Kode OTP gagal dikirim ke email pemulihan. Pastikan koneksi email aktif atau hubungi administrator.',
-                    ])->withInput();
-                }
-
-                $emailParts = explode('@', $user->email);
-                $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
-
-                return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . ') dan berlaku selama 10 menit.');
             }
         }
 
-        return redirect()->route('password.reset')->with('status', 'Jika akun Anda terdaftar dan memiliki email pemulihan, kode OTP 6 digit telah dikirim. Bagi siswa tanpa email, silakan hubungi Wali Kelas.');
+        // Cek jika akun tidak ditemukan atau tidak terdaftar di role manapun
+        $validRoles = [1, 2, 3, 4, 5, 6];
+        if (! $user || ! in_array((int) ($user->role_id ?? 0), $validRoles, true)) {
+            return back()->withErrors([
+                'username' => 'Email tidak terdaftar.',
+            ])->withInput();
+        }
+
+        // Jika akun adalah siswa dan tidak memiliki email pemulihan
+        if ((int) $user->role_id === 3 && empty($user->email)) {
+            return back()->with('info_siswa', 'Akun Siswa (' . ($user->fullname ?: $user->username) . ') belum memiliki email pemulihan. Silakan temui Wali Kelas atau Waka Kurikulum untuk mereset sandi Anda secara langsung.')->withInput();
+        }
+
+        if (empty($user->email)) {
+            return back()->withErrors([
+                'username' => 'Akun belum memiliki email pemulihan yang terdaftar. Hubungi administrator.',
+            ])->withInput();
+        }
+
+        if (in_array(config('mail.default'), ['log', 'array'], true) && ! app()->environment(['local', 'testing'])) {
+            return back()->withErrors([
+                'username' => 'Layanan email belum dikonfigurasi untuk mengirim OTP. Hubungi administrator untuk mengaktifkan SMTP.',
+            ])->withInput();
+        }
+
+        DB::table('password_reset_otps')->where('user_id', $user->getKey())->delete();
+
+        $code = (string) random_int(0, 999999);
+        $code = str_pad($code, 6, '0', STR_PAD_LEFT);
+        $challengeId = DB::table('password_reset_otps')->insertGetId([
+            'user_id' => $user->getKey(),
+            'email' => strtolower($user->email),
+            'code_hash' => Hash::make($code),
+            'attempts' => 0,
+            'expires_at' => now()->addMinutes(10),
+            'created_at' => now(),
+        ]);
+
+        $request->session()->put('password_reset_otp_id', $challengeId);
+        try {
+            Notification::send($user, new PasswordResetOtpNotification($code));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            // Di mode lokal/pengembangan, jika kredensial SMTP Gmail di .env belum valid atau butuh Google App Password,
+            // jangan memblokir alur pengujian. Tampilkan kode OTP langsung agar pengguna tetap bisa menyelesaikan reset.
+            if (app()->environment('local') || config('app.debug')) {
+                return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Catatan Pengembang: Pengiriman email gagal karena kredensial SMTP Gmail di .env belum valid atau memerlukan 16 digit Google App Password. Silakan masukkan kode OTP di atas untuk melanjutkan).');
+            }
+
+            DB::table('password_reset_otps')->where('id', $challengeId)->delete();
+            $request->session()->forget('password_reset_otp_id');
+
+            return back()->withErrors([
+                'username' => 'Kode OTP gagal dikirim ke email pemulihan. Pastikan koneksi email aktif atau hubungi administrator.',
+            ])->withInput();
+        }
+
+        $emailParts = explode('@', $user->email);
+        $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
+
+        return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . ') dan berlaku selama 10 menit.');
     })->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password', function () {
