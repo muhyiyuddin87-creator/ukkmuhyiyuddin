@@ -12,13 +12,13 @@
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
                 <a href="{{ route('waka.alumni.export', request()->query()) }}" class="btn-standard border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition shadow-xs">
-                    📥 Ekspor CSV
+                    Ekspor CSV
                 </a>
                 <a href="{{ route('waka.kenaikan_kelas') }}" class="btn-standard border border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100 transition shadow-xs">
-                    ⚡ Kenaikan Kelas Serentak
+                    Kenaikan Kelas Serentak
                 </a>
                 <a href="{{ route('waka.siswa') }}" class="btn-standard border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs">
-                    ← Data Siswa Aktif
+                    Data Siswa Aktif
                 </a>
             </div>
         </div>
@@ -96,9 +96,9 @@
                                 {{ $alumni->name }}
                                 @if($alumni->phone || $alumni->email)
                                     <div class="text-[11px] font-normal text-slate-400 mt-0.5">
-                                        {{ $alumni->phone ? '📞 ' . $alumni->phone : '' }}
+                                        {{ $alumni->phone ?? '' }}
                                         {{ $alumni->phone && $alumni->email ? ' • ' : '' }}
-                                        {{ $alumni->email ? '✉️ ' . $alumni->email : '' }}
+                                        {{ $alumni->email ?? '' }}
                                     </div>
                                 @endif
                             </td>
@@ -124,11 +124,11 @@
                                     @csrf
                                     @if($alumni->account_active)
                                         <button type="submit" class="btn-table border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 transition shadow-2xs" title="Kunci akun agar tidak bisa login">
-                                            🔒 Kunci Akun
+                                            Kunci Akun
                                         </button>
                                     @else
                                         <button type="submit" class="btn-table border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition shadow-2xs" title="Buka akses akun sementara">
-                                            🔓 Buka Akses
+                                            Buka Akses
                                         </button>
                                     @endif
                                 </form>
@@ -137,7 +137,6 @@
                     @empty
                         <tr>
                             <td colspan="9" class="py-12 text-center text-slate-400">
-                                <div class="text-4xl mb-2">🎓</div>
                                 <p class="text-base font-semibold text-slate-600">Belum ada data alumni di arsip.</p>
                                 <p class="text-xs text-slate-400 mt-1">Data alumni akan otomatis terisi saat Anda memproses kelulusan di menu <a href="{{ route('waka.kenaikan_kelas') }}" class="text-sky-600 hover:underline">Kenaikan Kelas & Kelulusan</a>.</p>
                             </td>

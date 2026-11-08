@@ -12,10 +12,10 @@
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('waka.alumni') }}" class="btn-standard border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 transition shadow-xs">
-                    🎓 Buka Data Alumni
+                    Buka Data Alumni
                 </a>
                 <a href="{{ route('waka.siswa') }}" class="btn-standard border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition shadow-xs">
-                    ← Kembali ke Data Siswa
+                    Kembali ke Data Siswa
                 </a>
             </div>
         </div>
@@ -40,12 +40,10 @@
         <div class="rounded-2xl border border-sky-200 bg-linear-to-br from-sky-50 to-white p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <span class="rounded-lg bg-sky-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-sky-800">Tingkat X (Kelas 10)</span>
-                <span class="text-2xl">⬆️</span>
             </div>
             <div class="mt-4">
                 <div class="text-3xl font-extrabold text-sky-950">{{ $countX }} <span class="text-sm font-medium text-slate-500">siswa aktif</span></div>
-                <p class="mt-2 text-xs font-semibold text-sky-700 flex items-center gap-1.5">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <p class="mt-2 text-xs font-semibold text-sky-700">
                     Akan naik serentak menjadi <strong>Tingkat XI</strong>
                 </p>
                 <p class="mt-1 text-[11px] text-slate-500">Contoh: X RPL 1 → XI RPL 1</p>
@@ -56,12 +54,10 @@
         <div class="rounded-2xl border border-indigo-200 bg-linear-to-br from-indigo-50 to-white p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <span class="rounded-lg bg-indigo-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-indigo-800">Tingkat XI (Kelas 11)</span>
-                <span class="text-2xl">🚀</span>
             </div>
             <div class="mt-4">
                 <div class="text-3xl font-extrabold text-indigo-950">{{ $countXI }} <span class="text-sm font-medium text-slate-500">siswa aktif</span></div>
-                <p class="mt-2 text-xs font-semibold text-indigo-700 flex items-center gap-1.5">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <p class="mt-2 text-xs font-semibold text-indigo-700">
                     Akan naik serentak menjadi <strong>Tingkat XII</strong>
                 </p>
                 <p class="mt-1 text-[11px] text-slate-500">Contoh: XI RPL 1 → XII RPL 1</p>
@@ -72,12 +68,10 @@
         <div class="rounded-2xl border border-emerald-200 bg-linear-to-br from-emerald-50 to-white p-5 shadow-sm">
             <div class="flex items-center justify-between">
                 <span class="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">Tingkat XII (Kelas 12)</span>
-                <span class="text-2xl">🎓</span>
             </div>
             <div class="mt-4">
                 <div class="text-3xl font-extrabold text-emerald-950">{{ $countXII }} <span class="text-sm font-medium text-slate-500">siswa aktif</span></div>
-                <p class="mt-2 text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="mt-2 text-xs font-semibold text-emerald-700">
                     Akan <strong>Lulus & Dinonaktifkan Akunnya</strong>
                 </p>
                 <p class="mt-1 text-[11px] text-slate-500">Data otomatis disimpan ke Arsip Alumni & akun terkunci</p>
@@ -90,8 +84,8 @@
         @csrf
 
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mb-6">
-            <h3 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
-                <span>⚙️</span> Parameter Kelulusan & Tahun Ajaran
+            <h3 class="text-lg font-bold text-slate-800 mb-1">
+                Parameter Kelulusan & Tahun Ajaran
             </h3>
             <p class="text-sm text-slate-500 mb-5">Masukkan informasi tahun kelulusan untuk siswa kelas XII yang akan diluluskan.</p>
 
@@ -126,8 +120,8 @@
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mb-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <span>⚠️</span> Pengecualian: Siswa Tinggal Kelas / Tidak Lulus
+                    <h3 class="text-lg font-bold text-slate-800">
+                        Pengecualian: Siswa Tinggal Kelas / Tidak Lulus
                     </h3>
                     <p class="text-sm text-slate-500 mt-0.5">
                         Secara default, <strong>seluruh siswa aktif akan dipromosikan/diluluskan</strong>. Centang siswa di bawah jika ada yang <strong>tidak naik kelas</strong> atau <strong>tidak lulus</strong> agar dipertahankan di kelasnya saat ini.
@@ -176,15 +170,15 @@
         <!-- Tombol Eksekusi -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50/50 p-6 shadow-sm">
             <div>
-                <h4 class="font-bold text-rose-950 text-base flex items-center gap-2">
-                    <span>⚡</span> Siap Menjalankan Kenaikan Kelas & Kelulusan?
+                <h4 class="font-bold text-rose-950 text-base">
+                    Siap Menjalankan Kenaikan Kelas & Kelulusan?
                 </h4>
                 <p class="text-xs text-rose-800 mt-1">
                     Tindakan ini akan memperbarui kelas seluruh siswa aktif dan memindahkan siswa kelas XII ke arsip alumni serta menonaktifkan akun login mereka.
                 </p>
             </div>
-            <button type="submit" class="shrink-0 rounded-xl bg-rose-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-rose-700 transition shadow-md flex items-center gap-2">
-                <span>🚀</span> Proses Kenaikan & Kelulusan Serentak
+            <button type="submit" class="shrink-0 rounded-xl bg-rose-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-rose-700 transition shadow-md">
+                Proses Kenaikan & Kelulusan Serentak
             </button>
         </div>
     </form>
