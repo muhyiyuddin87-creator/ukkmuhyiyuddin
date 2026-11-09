@@ -37,8 +37,16 @@ Route::get('/', function () use ($dashboardRoleForUser) {
         return redirect()->route('dashboard.role', ['role' => $dashboardRoleForUser(Auth::user())]);
     }
 
-    return redirect()->route('login');
-});
+    $totalSiswa = Schema::hasTable('siswas') ? DB::table('siswas')->count() : 1711;
+    $totalGuru = Schema::hasTable('users') ? DB::table('users')->whereIn('role_id', [2, 4])->count() : 93;
+    $totalKelas = Schema::hasTable('siswas') ? DB::table('siswas')->distinct('kelas')->count('kelas') : 48;
+    $totalJadwal = Schema::hasTable('schedules') ? DB::table('schedules')->count() : 1363;
+    $activeCycle = Schema::hasTable('system_configurations')
+        ? (int) (DB::table('system_configurations')->value('active_cycle') ?? 1)
+        : 1;
+
+    return view('landing', compact('totalSiswa', 'totalGuru', 'totalKelas', 'totalJadwal', 'activeCycle'));
+})->name('landing');
 
 Route::get('/login', function () use ($dashboardRoleForUser) {
     if (Auth::check()) {
