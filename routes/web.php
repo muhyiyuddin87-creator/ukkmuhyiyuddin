@@ -4130,6 +4130,14 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             ? DB::table('schedules')->where('teacher_id', $userId)->count()
             : 0;
         $filterByTeacher = ! $isKesiswaan || $teacherScheduleCount > 0;
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $filterDate = $request->query('date');
+        if ($filterDate && ! $startDate && ! $endDate) {
+            $startDate = $filterDate;
+            $endDate = $filterDate;
+        }
+
         $jadwals = Schema::hasTable('schedules')
             ? DB::table('schedules')
                 ->when($filterByTeacher, fn ($query) => $query->where('teacher_id', $userId))
@@ -4138,10 +4146,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 })
                 ->get()
             : collect();
-        $journals = Schema::hasTable('journals')
+
+        $allJournals = Schema::hasTable('journals')
             ? DB::table('journals')
                 ->leftJoin('schedules', 'journals.schedule_id', '=', 'schedules.id')
-                ->select('journals.*', 'schedules.subject')
+                ->select('journals.*', 'schedules.subject', 'schedules.class_name', 'schedules.day_of_week')
                 ->when($filterByTeacher, fn ($query) => $query->where('schedules.teacher_id', $userId))
                 ->when(! $filterByTeacher, fn ($query) => $query->where('journals.created_by', $userId))
                 ->when($filterByTeacher, fn ($query) => $query->where(function ($authorQuery) use ($userId) {
@@ -4151,6 +4160,12 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 ->orderByDesc('journals.date')
                 ->get()
             : collect();
+
+        $journals = $allJournals->when($startDate, function ($collection) use ($startDate) {
+            return $collection->where('date', '>=', $startDate);
+        })->when($endDate, function ($collection) use ($endDate) {
+            return $collection->where('date', '<=', $endDate);
+        })->values();
         $editJournal = null;
         if ($request->filled('edit')) {
             $editJournal = DB::table('journals')
@@ -4259,6 +4274,9 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'schedulesWithJournals' => $schedulesWithJournals,
             'todayDayName' => $todayDayName,
             'daysMap' => $daysMap,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'totalAllJournals' => $allJournals->count(),
         ]);
     })->name('guru.jurnal');
 

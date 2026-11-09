@@ -361,10 +361,15 @@
 
         <!-- Table 2: Jurnal dari DB -->
         <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
-                    <h3 class="text-xl font-bold text-slate-800">Jurnal Mengajar (Tersimpan)</h3>
-                    <p class="mt-1 text-sm text-slate-500">Catatan materi dan kegiatan pembelajaran yang telah disimpan.</p>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xl font-bold text-slate-800">Jurnal Mengajar (Tersimpan)</h3>
+                        <span id="dash-journal-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            <span id="dash-journal-visible-count">{{ $journals->count() }}</span> Data
+                        </span>
+                    </div>
+                    <p class="mt-1 text-sm text-slate-500">Catatan materi dan kegiatan pembelajaran yang telah Anda simpan.</p>
                 </div>
                 <a href="{{ route('guru.jurnal') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 transition shadow">
                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -372,8 +377,54 @@
                 </a>
             </div>
 
+            <!-- Filter Tanggal Jurnal Dashboard -->
+            <div class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+                    <div class="lg:col-span-3">
+                        <label for="dash-filter-start-date" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Dari Tanggal
+                        </label>
+                        <input type="date" id="dash-filter-start-date" class="h-8 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100 outline-none transition">
+                    </div>
+                    <div class="lg:col-span-3">
+                        <label for="dash-filter-end-date" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Sampai Tanggal
+                        </label>
+                        <input type="date" id="dash-filter-end-date" class="h-8 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100 outline-none transition">
+                    </div>
+                    <div class="lg:col-span-4">
+                        <label for="dash-filter-search" class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Cari Mapel / Materi
+                        </label>
+                        <input type="text" id="dash-filter-search" placeholder="Cari materi..." class="h-8 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100 outline-none transition">
+                    </div>
+                    <div class="lg:col-span-2 flex items-center gap-1.5">
+                        <button type="button" onclick="resetDashJournalFilter()" class="h-8 w-full inline-flex items-center justify-center px-3 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Presets -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-2 mt-2 border-t border-slate-200/70 text-xs">
+                    <span class="text-slate-500 font-semibold mr-1">Pintasan:</span>
+                    <button type="button" onclick="setDashJournalPreset('today')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        Hari Ini
+                    </button>
+                    <button type="button" onclick="setDashJournalPreset('7days')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        7 Hari Terakhir
+                    </button>
+                    <button type="button" onclick="setDashJournalPreset('this_month')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        Bulan Ini
+                    </button>
+                    <button type="button" onclick="setDashJournalPreset('all')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        Semua
+                    </button>
+                </div>
+            </div>
+
             <div class="overflow-x-auto table-scroll-container">
-                <table class="w-full min-w-[700px] text-left text-sm">
+                <table class="w-full min-w-[700px] text-left text-sm" id="dash-journal-table">
                     <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
                         <tr>
                             <th class="px-4 py-3 rounded-l-lg">Tanggal</th>
@@ -383,16 +434,16 @@
                             <th class="px-4 py-3 rounded-r-lg">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-slate-100" id="dash-journal-table-body">
                         @forelse($journals as $j)
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-4 py-3.5 font-semibold text-slate-800">{{ $j->date }}</td>
+                        <tr class="dash-journal-row hover:bg-slate-50 transition" data-date="{{ $j->date }}" data-search="{{ strtolower(($j->subject ?? '') . ' ' . ($j->topic_description ?? '') . ' ' . $j->date) }}">
+                            <td class="px-4 py-3.5 font-semibold text-slate-800 whitespace-nowrap">{{ $j->date }}</td>
                             <td class="px-4 py-3.5 font-medium text-indigo-700">{{ $j->subject ?? '-' }}</td>
-                            <td class="px-4 py-3.5 text-slate-700">{{ $j->topic_description }}</td>
+                            <td class="px-4 py-3.5 text-slate-700 max-w-xs break-words">{{ $j->topic_description }}</td>
                             <td class="px-4 py-3.5">
                                 @if($j->photo_path)
                                     <a href="{{ asset('storage/' . $j->photo_path) }}" target="_blank" rel="noopener" class="inline-flex flex-col items-start gap-1 text-xs font-semibold text-indigo-700 hover:underline">
-                                        <img src="{{ asset('storage/' . $j->photo_path) }}" alt="Bukti foto jurnal tanggal {{ $j->date }}" class="h-12 w-16 rounded object-cover">
+                                        <img src="{{ asset('storage/' . $j->photo_path) }}" alt="Bukti foto jurnal tanggal {{ $j->date }}" class="h-12 w-16 rounded object-cover shadow-2xs">
                                         Lihat foto
                                     </a>
                                 @else
@@ -410,6 +461,11 @@
                             </td>
                         </tr>
                         @endforelse
+                        <tr id="dash-no-matching-journals" class="hidden">
+                            <td colspan="5" class="px-4 py-6 text-center text-slate-400 italic">
+                                Tidak ada data jurnal yang sesuai dengan filter tanggal atau pencarian yang dipilih.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -467,5 +523,92 @@
             btnGrid.className = 'guru-toggle-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
         }
     }
+
+    // Dashboard Journal Filter Functions
+    const dashFilterStartDate = document.getElementById('dash-filter-start-date');
+    const dashFilterEndDate = document.getElementById('dash-filter-end-date');
+    const dashFilterSearch = document.getElementById('dash-filter-search');
+    const dashJournalRows = document.querySelectorAll('.dash-journal-row');
+    const dashNoMatching = document.getElementById('dash-no-matching-journals');
+    const dashVisibleCount = document.getElementById('dash-journal-visible-count');
+
+    function applyDashJournalFilter() {
+        if (!dashJournalRows.length) return;
+        const start = dashFilterStartDate ? dashFilterStartDate.value : '';
+        const end = dashFilterEndDate ? dashFilterEndDate.value : '';
+        const query = dashFilterSearch ? dashFilterSearch.value.toLowerCase().trim() : '';
+
+        let visible = 0;
+        dashJournalRows.forEach(row => {
+            const date = row.getAttribute('data-date') || '';
+            const searchContent = row.getAttribute('data-search') || '';
+
+            let matchDate = true;
+            if (start && date < start) matchDate = false;
+            if (end && date > end) matchDate = false;
+
+            let matchText = true;
+            if (query && !searchContent.includes(query)) matchText = false;
+
+            if (matchDate && matchText) {
+                row.classList.remove('hidden');
+                visible++;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        if (dashNoMatching) {
+            if (visible === 0) {
+                dashNoMatching.classList.remove('hidden');
+            } else {
+                dashNoMatching.classList.add('hidden');
+            }
+        }
+
+        if (dashVisibleCount) {
+            dashVisibleCount.textContent = visible;
+        }
+    }
+
+    function setDashJournalPreset(type) {
+        const today = new Date();
+        const formatIso = d => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        if (type === 'today') {
+            const todayStr = formatIso(today);
+            if (dashFilterStartDate) dashFilterStartDate.value = todayStr;
+            if (dashFilterEndDate) dashFilterEndDate.value = todayStr;
+        } else if (type === '7days') {
+            const prev = new Date();
+            prev.setDate(today.getDate() - 6);
+            if (dashFilterStartDate) dashFilterStartDate.value = formatIso(prev);
+            if (dashFilterEndDate) dashFilterEndDate.value = formatIso(today);
+        } else if (type === 'this_month') {
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            if (dashFilterStartDate) dashFilterStartDate.value = formatIso(firstDay);
+            if (dashFilterEndDate) dashFilterEndDate.value = formatIso(lastDay);
+        } else if (type === 'all') {
+            if (dashFilterStartDate) dashFilterStartDate.value = '';
+            if (dashFilterEndDate) dashFilterEndDate.value = '';
+            if (dashFilterSearch) dashFilterSearch.value = '';
+        }
+
+        applyDashJournalFilter();
+    }
+
+    function resetDashJournalFilter() {
+        setDashJournalPreset('all');
+    }
+
+    if (dashFilterStartDate) dashFilterStartDate.addEventListener('change', applyDashJournalFilter);
+    if (dashFilterEndDate) dashFilterEndDate.addEventListener('change', applyDashJournalFilter);
+    if (dashFilterSearch) dashFilterSearch.addEventListener('input', applyDashJournalFilter);
 </script>
 @endpush

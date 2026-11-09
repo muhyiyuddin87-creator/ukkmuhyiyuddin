@@ -43,10 +43,103 @@
             @endif
 
             <!-- Tabel Jurnal Tersimpan -->
-            <section class="rounded-2xl bg-white p-6 shadow-sm mb-6">
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Jurnal Tersimpan</h3>
+            <section class="rounded-2xl bg-white p-6 shadow-sm mb-6 border border-slate-100">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-bold text-slate-800">Riwayat Jurnal Mengajar</h3>
+                            <span id="journal-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $roleId === 4 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-indigo-100 text-indigo-800 border-indigo-200' }} border">
+                                <span id="journal-visible-count">{{ $journals->count() }}</span> Data
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Daftar rekaman materi dan kegiatan KBM yang telah tersimpan di sistem.</p>
+                    </div>
+
+                    @if(!empty($startDate) || !empty($endDate))
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            Filter: {{ $startDate ?: 'Awal' }} s.d. {{ $endDate ?: 'Sekarang' }}
+                        </span>
+                        <a href="{{ route('guru.jurnal') }}" class="text-xs font-semibold text-rose-600 hover:text-rose-800 underline">Hapus Filter</a>
+                    </div>
+                    @endif
+                </div>
+
+                <!-- Panel Filtering Tanggal & Pencarian -->
+                <div class="mb-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                    <form method="GET" action="{{ route('guru.jurnal') }}" id="journal-filter-form" class="space-y-3">
+                        @if(request()->filled('edit'))
+                            <input type="hidden" name="edit" value="{{ request('edit') }}">
+                        @endif
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+                            <!-- Input Dari Tanggal -->
+                            <div class="lg:col-span-3">
+                                <label for="filter-start-date" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Dari Tanggal
+                                </label>
+                                <input type="date" id="filter-start-date" name="start_date" value="{{ $startDate ?? '' }}"
+                                    class="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                            </div>
+
+                            <!-- Input Sampai Tanggal -->
+                            <div class="lg:col-span-3">
+                                <label for="filter-end-date" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Sampai Tanggal
+                                </label>
+                                <input type="date" id="filter-end-date" name="end_date" value="{{ $endDate ?? '' }}"
+                                    class="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                            </div>
+
+                            <!-- Input Cari Mapel / Materi -->
+                            <div class="lg:col-span-4">
+                                <label for="filter-search-text" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                                    Cari Mapel / Materi
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </span>
+                                    <input type="text" id="filter-search-text" placeholder="Ketik kata kunci mapel atau materi..."
+                                        class="h-9 w-full rounded-xl border border-slate-300 bg-white pl-8 pr-3 text-xs font-medium text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition">
+                                </div>
+                            </div>
+
+                            <!-- Tombol Submit & Reset -->
+                            <div class="lg:col-span-2 flex items-center gap-1.5">
+                                <button type="submit" class="h-9 flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl {{ $roleId === 4 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-slate-900 hover:bg-slate-800' }} px-3 text-xs font-bold text-white shadow-xs transition active:scale-95">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                    <span>Filter</span>
+                                </button>
+                                <button type="button" onclick="resetJournalDateFilter()" class="h-9 inline-flex items-center justify-center px-3 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100 transition" title="Reset filter">
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pintasan Cepat Tanggal (Presets) -->
+                        <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-200/70 text-xs">
+                            <span class="text-slate-500 font-semibold mr-1">Pintasan Cepat:</span>
+                            <button type="button" onclick="setJournalPreset('today')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                Hari Ini
+                            </button>
+                            <button type="button" onclick="setJournalPreset('7days')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                7 Hari Terakhir
+                            </button>
+                            <button type="button" onclick="setJournalPreset('this_month')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                Bulan Ini
+                            </button>
+                            <button type="button" onclick="setJournalPreset('all')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                Semua Tanggal
+                            </button>
+                            <span id="active-filter-summary" class="ml-auto text-[11px] font-semibold text-slate-500 hidden sm:inline-block"></span>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="overflow-x-auto table-scroll-container">
-                    <table class="w-full min-w-[700px] text-left text-sm">
+                    <table class="w-full min-w-[700px] text-left text-sm" id="journal-history-table">
                         <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3">Tanggal</th>
@@ -58,16 +151,26 @@
                                 <th class="px-4 py-3">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100" id="journal-table-body">
                             @forelse($journals as $j)
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-3 font-semibold text-slate-800">{{ $j->date }}</td>
-                                <td class="px-4 py-3 font-medium {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }}">{{ $j->subject ?? 'Jadwal #' . $j->schedule_id }}</td>
-                                <td class="px-4 py-3 text-slate-700">{{ $j->topic_description }}</td>
+                            <tr class="journal-row hover:bg-slate-50 transition" data-date="{{ $j->date }}" data-search="{{ strtolower(($j->subject ?? '') . ' ' . ($j->topic_description ?? '') . ' ' . $j->date) }}">
+                                <td class="px-4 py-3 font-semibold text-slate-800 whitespace-nowrap">
+                                    <div class="flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span>{{ $j->date }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 font-medium {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }}">
+                                    {{ $j->subject ?? 'Jadwal #' . $j->schedule_id }}
+                                    @if(!empty($j->class_name))
+                                        <span class="block text-xs font-semibold text-slate-500">{{ $j->class_name }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-slate-700 max-w-xs break-words">{{ $j->topic_description }}</td>
                                 <td class="px-4 py-3">
                                     @if($j->photo_path)
                                         <a href="{{ asset('storage/' . $j->photo_path) }}" target="_blank" rel="noopener" class="inline-flex flex-col items-start gap-1 text-xs font-semibold {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }} hover:underline">
-                                            <img src="{{ asset('storage/' . $j->photo_path) }}" alt="Bukti foto jurnal tanggal {{ $j->date }}" class="h-12 w-16 rounded object-cover">
+                                            <img src="{{ asset('storage/' . $j->photo_path) }}" alt="Bukti foto jurnal tanggal {{ $j->date }}" class="h-12 w-16 rounded object-cover shadow-2xs">
                                             Lihat foto
                                         </a>
                                     @else
@@ -91,10 +194,17 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr>
-                                <td colspan="{{ (!empty($canTakeAttendance) || ($roleId === 2 && ($isWali ?? false))) ? 7 : 6 }}" class="px-4 py-6 text-center text-slate-400 italic">Belum ada jurnal tersimpan.</td>
+                            <tr id="server-empty-row">
+                                <td colspan="{{ (!empty($canTakeAttendance) || ($roleId === 2 && ($isWali ?? false))) ? 7 : 6 }}" class="px-4 py-8 text-center text-slate-400 italic">
+                                    Belum ada jurnal yang tersimpan{{ (!empty($startDate) || !empty($endDate)) ? ' pada rentang tanggal ini.' : '.' }}
+                                </td>
                             </tr>
                             @endforelse
+                            <tr id="no-matching-journals" class="hidden">
+                                <td colspan="{{ (!empty($canTakeAttendance) || ($roleId === 2 && ($isWali ?? false))) ? 7 : 6 }}" class="px-4 py-8 text-center text-slate-400 italic">
+                                    Tidak ada data jurnal yang sesuai dengan filter tanggal atau pencarian yang dipilih.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -394,8 +504,114 @@
             scheduleSelect.addEventListener('change', renderAttendance);
         }
 
+        // Filtering Riwayat Jurnal
+        const filterStartDate = document.getElementById('filter-start-date');
+        const filterEndDate = document.getElementById('filter-end-date');
+        const filterSearchText = document.getElementById('filter-search-text');
+        const journalRows = document.querySelectorAll('.journal-row');
+        const noMatchingJournals = document.getElementById('no-matching-journals');
+        const journalVisibleCount = document.getElementById('journal-visible-count');
+        const activeFilterSummary = document.getElementById('active-filter-summary');
+
+        function applyJournalClientFilter() {
+            if (!journalRows.length) return;
+            const start = filterStartDate ? filterStartDate.value : '';
+            const end = filterEndDate ? filterEndDate.value : '';
+            const query = filterSearchText ? filterSearchText.value.toLowerCase().trim() : '';
+
+            let visibleCount = 0;
+            journalRows.forEach(row => {
+                const date = row.getAttribute('data-date') || '';
+                const searchContent = row.getAttribute('data-search') || '';
+
+                let matchDate = true;
+                if (start && date < start) matchDate = false;
+                if (end && date > end) matchDate = false;
+
+                let matchText = true;
+                if (query && !searchContent.includes(query)) matchText = false;
+
+                if (matchDate && matchText) {
+                    row.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (noMatchingJournals) {
+                if (visibleCount === 0) {
+                    noMatchingJournals.classList.remove('hidden');
+                } else {
+                    noMatchingJournals.classList.add('hidden');
+                }
+            }
+
+            if (journalVisibleCount) {
+                journalVisibleCount.textContent = visibleCount;
+            }
+
+            if (activeFilterSummary) {
+                if (start || end || query) {
+                    let desc = [];
+                    if (start && end) desc.push(`${start} s/d ${end}`);
+                    else if (start) desc.push(`≥ ${start}`);
+                    else if (end) desc.push(`≤ ${end}`);
+                    if (query) desc.push(`"${query}"`);
+                    activeFilterSummary.textContent = `Filter: ${desc.join(' • ')}`;
+                } else {
+                    activeFilterSummary.textContent = '';
+                }
+            }
+        }
+
+        function setJournalPreset(type) {
+            const today = new Date();
+            const formatIso = d => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            if (type === 'today') {
+                const todayStr = formatIso(today);
+                if (filterStartDate) filterStartDate.value = todayStr;
+                if (filterEndDate) filterEndDate.value = todayStr;
+            } else if (type === '7days') {
+                const prev = new Date();
+                prev.setDate(today.getDate() - 6);
+                if (filterStartDate) filterStartDate.value = formatIso(prev);
+                if (filterEndDate) filterEndDate.value = formatIso(today);
+            } else if (type === 'this_month') {
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                if (filterStartDate) filterStartDate.value = formatIso(firstDay);
+                if (filterEndDate) filterEndDate.value = formatIso(lastDay);
+            } else if (type === 'all') {
+                if (filterStartDate) filterStartDate.value = '';
+                if (filterEndDate) filterEndDate.value = '';
+                if (filterSearchText) filterSearchText.value = '';
+            }
+
+            applyJournalClientFilter();
+        }
+
+        function resetJournalDateFilter() {
+            if (window.location.search.includes('start_date') || window.location.search.includes('end_date')) {
+                window.location.href = "{{ route('guru.jurnal') }}";
+            } else {
+                setJournalPreset('all');
+            }
+        }
+
+        if (filterStartDate) filterStartDate.addEventListener('change', applyJournalClientFilter);
+        if (filterEndDate) filterEndDate.addEventListener('change', applyJournalClientFilter);
+        if (filterSearchText) filterSearchText.addEventListener('input', applyJournalClientFilter);
+
         // Initial execution
         filterSchedulesByDay();
         renderAttendance();
+        applyJournalClientFilter();
     </script>
 @endpush
