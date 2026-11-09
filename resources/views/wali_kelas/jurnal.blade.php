@@ -37,7 +37,7 @@
                 <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <span class="mb-1.5 block">Tanggal</span>
-                        <input type="date" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" min="{{ date('Y-m-d') }}" required class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
+                        <input type="date" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" required class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition">
                     </label>
                     <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <span class="mb-1.5 block">Jadwal / Mata Pelajaran</span>

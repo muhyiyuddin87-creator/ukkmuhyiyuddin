@@ -408,8 +408,14 @@
                 <!-- Presets -->
                 <div class="flex flex-wrap items-center gap-1.5 pt-2 mt-2 border-t border-slate-200/70 text-xs">
                     <span class="text-slate-500 font-semibold mr-1">Pintasan:</span>
+                    <button type="button" onclick="setDashJournalPreset('all')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        Semua
+                    </button>
                     <button type="button" onclick="setDashJournalPreset('today')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
                         Hari Ini
+                    </button>
+                    <button type="button" onclick="setDashJournalPreset('yesterday')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        Kemarin
                     </button>
                     <button type="button" onclick="setDashJournalPreset('7days')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
                         7 Hari Terakhir
@@ -417,8 +423,8 @@
                     <button type="button" onclick="setDashJournalPreset('this_month')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
                         Bulan Ini
                     </button>
-                    <button type="button" onclick="setDashJournalPreset('all')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
-                        Semua
+                    <button type="button" onclick="setDashJournalPreset('last_month')" class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-medium transition">
+                        Bulan Lalu
                     </button>
                 </div>
             </div>
@@ -584,6 +590,12 @@
             const todayStr = formatIso(today);
             if (dashFilterStartDate) dashFilterStartDate.value = todayStr;
             if (dashFilterEndDate) dashFilterEndDate.value = todayStr;
+        } else if (type === 'yesterday') {
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            const yestStr = formatIso(yesterday);
+            if (dashFilterStartDate) dashFilterStartDate.value = yestStr;
+            if (dashFilterEndDate) dashFilterEndDate.value = yestStr;
         } else if (type === '7days') {
             const prev = new Date();
             prev.setDate(today.getDate() - 6);
@@ -592,6 +604,11 @@
         } else if (type === 'this_month') {
             const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            if (dashFilterStartDate) dashFilterStartDate.value = formatIso(firstDay);
+            if (dashFilterEndDate) dashFilterEndDate.value = formatIso(lastDay);
+        } else if (type === 'last_month') {
+            const firstDay = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
             if (dashFilterStartDate) dashFilterStartDate.value = formatIso(firstDay);
             if (dashFilterEndDate) dashFilterEndDate.value = formatIso(lastDay);
         } else if (type === 'all') {

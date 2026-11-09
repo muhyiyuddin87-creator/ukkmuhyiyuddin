@@ -121,8 +121,14 @@
                         <!-- Pintasan Cepat Tanggal (Presets) -->
                         <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-200/70 text-xs">
                             <span class="text-slate-500 font-semibold mr-1">Pintasan Cepat:</span>
+                            <button type="button" onclick="setJournalPreset('all')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                Semua Tanggal
+                            </button>
                             <button type="button" onclick="setJournalPreset('today')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
                                 Hari Ini
+                            </button>
+                            <button type="button" onclick="setJournalPreset('yesterday')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                Kemarin
                             </button>
                             <button type="button" onclick="setJournalPreset('7days')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
                                 7 Hari Terakhir
@@ -130,8 +136,8 @@
                             <button type="button" onclick="setJournalPreset('this_month')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
                                 Bulan Ini
                             </button>
-                            <button type="button" onclick="setJournalPreset('all')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
-                                Semua Tanggal
+                            <button type="button" onclick="setJournalPreset('last_month')" class="preset-btn px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300 font-medium transition shadow-2xs">
+                                Bulan Lalu
                             </button>
                             <span id="active-filter-summary" class="ml-auto text-[11px] font-semibold text-slate-500 hidden sm:inline-block"></span>
                         </div>
@@ -225,7 +231,8 @@
                                     Hari: <span id="journal-selected-day" class="font-bold {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }}">{{ $todayDayName ?? 'Hari Ini' }}</span>
                                 </span>
                             </div>
-                            <input type="date" id="journal-date-input" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
+                            <input type="date" id="journal-date-input" name="date" value="{{ old('date', $editJournal->date ?? date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" required>
+                            <p class="mt-1 text-[11px] text-slate-500 font-medium">💡 <strong>Bebas memilih tanggal:</strong> Anda dapat memilih tanggal hari ini maupun tanggal-tanggal sebelumnya untuk mencatat jurnal susulan.</p>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Pilih Jadwal / Mata Pelajaran</label>
@@ -578,6 +585,12 @@
                 const todayStr = formatIso(today);
                 if (filterStartDate) filterStartDate.value = todayStr;
                 if (filterEndDate) filterEndDate.value = todayStr;
+            } else if (type === 'yesterday') {
+                const yesterday = new Date();
+                yesterday.setDate(today.getDate() - 1);
+                const yestStr = formatIso(yesterday);
+                if (filterStartDate) filterStartDate.value = yestStr;
+                if (filterEndDate) filterEndDate.value = yestStr;
             } else if (type === '7days') {
                 const prev = new Date();
                 prev.setDate(today.getDate() - 6);
@@ -586,6 +599,11 @@
             } else if (type === 'this_month') {
                 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                 const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                if (filterStartDate) filterStartDate.value = formatIso(firstDay);
+                if (filterEndDate) filterEndDate.value = formatIso(lastDay);
+            } else if (type === 'last_month') {
+                const firstDay = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
                 if (filterStartDate) filterStartDate.value = formatIso(firstDay);
                 if (filterEndDate) filterEndDate.value = formatIso(lastDay);
             } else if (type === 'all') {
