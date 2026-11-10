@@ -2,7 +2,7 @@
     $cid = $componentId ?? 'selfie-camera-' . uniqid();
     $inputId = $inputId ?? 'leave-photo';
     $inputName = $inputName ?? 'photo';
-    $label = $label ?? 'Foto Bukti Selfie (Real-Time)';
+    $label = $label ?? 'Foto Bukti Selfie / Surat Keterangan';
     $isRequired = !empty($required);
     $studentDisplayName = $studentName ?? (Auth::user()->fullname ?? Auth::user()->username ?? 'Siswa');
     $studentClassDisplay = $studentClass ?? '';
@@ -12,23 +12,25 @@
      data-student-name="{{ $studentDisplayName }}"
      data-student-class="{{ $studentClassDisplay }}">
     
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-2">
         <label class="block text-sm font-semibold text-slate-700">
             {{ $label }}
             @if($isRequired)
                 <span class="text-rose-500 font-bold">* (Wajib Lampirkan Foto)</span>
             @else
-                <span class="font-normal text-slate-500">(opsional, kamera live)</span>
+                <span class="font-normal text-slate-500">(opsional, kamera live / galeri)</span>
             @endif
         </label>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
             <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Kamera Selfie Real-Time
+            Kamera &amp; Galeri
         </span>
     </div>
 
-    <!-- Hidden input file yang menampung file hasil jepretan kamera real-time -->
-    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" capture="user" class="hidden">
+    <!-- Hidden input file utama yang dikirim ke backend -->
+    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" class="hidden">
+    <!-- Hidden input khusus untuk memilih file dari galeri / dokumen perangkat -->
+    <input type="file" id="{{ $cid }}-input-gallery" accept="image/jpeg,image/png,image/webp" class="hidden">
 
     <!-- Box 1: Tampilan Awal (Idle State) -->
     <div id="{{ $cid }}-box-idle" class="rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-6 text-center transition hover:bg-emerald-50">
@@ -38,9 +40,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
         </div>
-        <h4 class="text-base font-bold text-slate-800">Buka Kamera Selfie Real-Time</h4>
+        <h4 class="text-base font-bold text-slate-800">Lampirkan Foto Bukti (Kamera atau Galeri)</h4>
         <p class="mt-1 text-xs text-slate-500 max-w-md mx-auto">
-            Gunakan kamera depan untuk mengambil foto bukti langsung saat ini. Sistem otomatis mencantumkan nama, kelas, serta tanggal dan waktu pengambilan.
+            Gunakan kamera selfie langsung ATAU unggah foto surat dokter / keterangan dari galeri perangkat Anda (maks. 5 MB).
         </p>
         <div class="mt-4 flex flex-wrap justify-center items-center gap-3">
             <button type="button" id="{{ $cid }}-btn-open" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition">
@@ -48,6 +50,12 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 Buka Kamera Selfie Real-Time
+            </button>
+            <button type="button" id="{{ $cid }}-btn-gallery" class="inline-flex items-center gap-2 rounded-xl border border-emerald-400 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 active:scale-95 transition">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Pilih dari Galeri / Berkas
             </button>
         </div>
         <!-- Pesan error kamera jika ditolak / tidak didukung -->
@@ -93,25 +101,40 @@
         </div>
     </div>
 
-    <!-- Box 3: Tampilan Pratinjau Foto Hasil Jepretan -->
+    <!-- Box 3: Tampilan Pratinjau Foto Hasil Jepretan / Unggahan Galeri -->
     <div id="{{ $cid }}-box-preview" class="hidden rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
         <div class="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center">
-            <img id="{{ $cid }}-img-preview" class="max-h-80 w-full object-contain" alt="Pratinjau Foto Selfie">
+            <img id="{{ $cid }}-img-preview" class="max-h-80 w-full object-contain" alt="Pratinjau Foto Bukti">
             <span class="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-600/95 backdrop-blur-xs px-3 py-1 text-xs font-semibold text-white shadow">
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
-                Foto Real-Time Siap Dikirim
+                <span id="{{ $cid }}-badge-text">Foto Siap Dikirim</span>
             </span>
         </div>
         <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p id="{{ $cid }}-txt-timestamp" class="text-xs text-slate-500 truncate">Foto tercatat dengan stempel nama &amp; waktu otomatis.</p>
-            <button type="button" id="{{ $cid }}-btn-retake" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition">
-                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Foto Ulang (Selfie Baru)
-            </button>
+            <p id="{{ $cid }}-txt-timestamp" class="text-xs text-slate-500 truncate">Foto tercatat dengan stempel keterangan.</p>
+            <div class="flex items-center flex-wrap gap-2">
+                <button type="button" id="{{ $cid }}-btn-retake" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Selfie Ulang
+                </button>
+                <button type="button" id="{{ $cid }}-btn-retake-gallery" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Ganti dari Galeri
+                </button>
+                <button type="button" id="{{ $cid }}-btn-remove" class="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Hapus
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -124,19 +147,24 @@
 
     const inputId = @json($inputId);
     const fileInput = document.getElementById(inputId);
+    const inputGallery = document.getElementById(`${cid}-input-gallery`);
     const boxIdle = document.getElementById(`${cid}-box-idle`);
     const boxViewfinder = document.getElementById(`${cid}-box-viewfinder`);
     const boxPreview = document.getElementById(`${cid}-box-preview`);
     const video = document.getElementById(`${cid}-video`);
     const shutter = document.getElementById(`${cid}-shutter`);
     const imgPreview = document.getElementById(`${cid}-img-preview`);
+    const badgeText = document.getElementById(`${cid}-badge-text`);
     const txtTimestamp = document.getElementById(`${cid}-txt-timestamp`);
     const errorMsg = document.getElementById(`${cid}-error-msg`);
 
     const btnOpen = document.getElementById(`${cid}-btn-open`);
+    const btnGallery = document.getElementById(`${cid}-btn-gallery`);
     const btnCancel = document.getElementById(`${cid}-btn-cancel`);
     const btnCapture = document.getElementById(`${cid}-btn-capture`);
     const btnRetake = document.getElementById(`${cid}-btn-retake`);
+    const btnRetakeGallery = document.getElementById(`${cid}-btn-retake-gallery`);
+    const btnRemove = document.getElementById(`${cid}-btn-remove`);
 
     const studentName = root.getAttribute('data-student-name') || 'Siswa';
     const studentClass = root.getAttribute('data-student-class') || '';
@@ -154,6 +182,19 @@
         }
     }
 
+    function clearPhoto() {
+        if (fileInput) {
+            fileInput.value = '';
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (inputGallery) inputGallery.value = '';
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+        if (imgPreview) imgPreview.removeAttribute('src');
+    }
+
     function showIdle() {
         stopStream();
         boxIdle.classList.remove('hidden');
@@ -167,7 +208,7 @@
         errorMsg.textContent = '';
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            errorMsg.textContent = 'Browser Anda tidak mendukung akses kamera langsung atau Anda mengakses tanpa koneksi aman (HTTPS). Pastikan menggunakan browser modern dan izinkan akses kamera.';
+            errorMsg.textContent = 'Browser Anda tidak mendukung akses kamera langsung atau Anda mengakses tanpa koneksi aman (HTTPS). Pastikan menggunakan browser modern atau gunakan tombol "Pilih dari Galeri / Berkas".';
             errorMsg.classList.remove('hidden');
             return;
         }
@@ -193,15 +234,71 @@
             console.error('Camera error:', err);
             let msg = 'Gagal mengakses kamera. ';
             if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                msg += 'Izin akses kamera ditolak. Silakan izinkan akses kamera di pengaturan browser Anda.';
+                msg += 'Izin akses kamera ditolak. Silakan izinkan akses kamera di pengaturan browser atau pilih foto dari galeri.';
             } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                msg += 'Perangkat kamera tidak ditemukan pada perangkat Anda.';
+                msg += 'Perangkat kamera tidak ditemukan. Anda dapat menggunakan opsi "Pilih dari Galeri / Berkas".';
             } else {
-                msg += err.message || 'Pastikan izin kamera diizinkan.';
+                msg += (err.message || 'Pastikan izin kamera diizinkan.') + ' Anda juga dapat memilih foto dari galeri.';
             }
             errorMsg.textContent = msg;
             errorMsg.classList.remove('hidden');
         }
+    }
+
+    function handleGallerySelect(e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        // Validasi tipe file gambar
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        if (!validTypes.includes(file.type.toLowerCase())) {
+            alert('Format berkas tidak didukung. Harap pilih gambar dengan format JPG, JPEG, PNG, atau WEBP.');
+            if (inputGallery) inputGallery.value = '';
+            return;
+        }
+
+        // Validasi ukuran berkas (maksimal 5 MB)
+        const maxBytes = 5 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            alert(`Ukuran berkas (${sizeMB} MB) melebihi batas maksimal 5 MB. Silakan pilih foto dengan ukuran lebih kecil.`);
+            if (inputGallery) inputGallery.value = '';
+            return;
+        }
+
+        // Sinkronkan berkas ke input utama (name="photo") menggunakan DataTransfer
+        if (fileInput) {
+            try {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            } catch (err) {
+                console.warn('DataTransfer not fully supported:', err);
+            }
+        }
+
+        // Tampilkan pratinjau foto galeri
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+        previewUrl = URL.createObjectURL(file);
+        if (imgPreview) imgPreview.src = previewUrl;
+
+        if (badgeText) {
+            badgeText.textContent = 'Foto dari Galeri / Dokumen Terlampir';
+        }
+        if (txtTimestamp) {
+            const sizeFormatted = file.size > 1024 * 1024 
+                ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
+                : (file.size / 1024).toFixed(1) + ' KB';
+            txtTimestamp.textContent = `File Berkas: ${file.name} (${sizeFormatted})`;
+        }
+
+        stopStream();
+        boxIdle.classList.add('hidden');
+        boxViewfinder.classList.add('hidden');
+        boxPreview.classList.remove('hidden');
     }
 
     function capturePhoto() {
@@ -211,12 +308,14 @@
         }
 
         // Shutter flash effect
-        shutter.classList.remove('opacity-0');
-        shutter.classList.add('opacity-90');
-        setTimeout(() => {
-            shutter.classList.remove('opacity-90');
-            shutter.classList.add('opacity-0');
-        }, 120);
+        if (shutter) {
+            shutter.classList.remove('opacity-0');
+            shutter.classList.add('opacity-90');
+            setTimeout(() => {
+                shutter.classList.remove('opacity-90');
+                shutter.classList.add('opacity-0');
+            }, 120);
+        }
 
         const width = video.videoWidth || 640;
         const height = video.videoHeight || 480;
@@ -279,13 +378,13 @@
             const fileName = `selfie_${Date.now()}.jpg`;
             const file = new File([blob], fileName, { type: 'image/jpeg' });
 
-            // Masukkan ke input file melalui DataTransfer
+            // Masukkan ke input file utama melalui DataTransfer
             if (fileInput) {
                 try {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
-                    // Trigger change event agar form listener mendeteksi file baru
+                    // Trigger change event agar listener form mendeteksi file baru
                     fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                 } catch (e) {
                     console.warn('DataTransfer not supported:', e);
@@ -297,8 +396,9 @@
                 URL.revokeObjectURL(previewUrl);
             }
             previewUrl = URL.createObjectURL(blob);
-            imgPreview.src = previewUrl;
-            txtTimestamp.textContent = `Tercatat: ${studentInfoText} (${dateStr} ${timeStr} WIB)`;
+            if (imgPreview) imgPreview.src = previewUrl;
+            if (badgeText) badgeText.textContent = 'Foto Real-Time Siap Dikirim';
+            if (txtTimestamp) txtTimestamp.textContent = `Tercatat: ${studentInfoText} (${dateStr} ${timeStr} WIB)`;
 
             stopStream();
             boxViewfinder.classList.add('hidden');
@@ -307,18 +407,32 @@
     }
 
     if (btnOpen) btnOpen.addEventListener('click', openCamera);
+    if (btnGallery && inputGallery) {
+        btnGallery.addEventListener('click', () => inputGallery.click());
+    }
+    if (inputGallery) {
+        inputGallery.addEventListener('change', handleGallerySelect);
+    }
     if (btnCancel) btnCancel.addEventListener('click', showIdle);
     if (btnCapture) btnCapture.addEventListener('click', capturePhoto);
 
     if (btnRetake) {
         btnRetake.addEventListener('click', () => {
-            if (fileInput) fileInput.value = '';
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-                previewUrl = null;
-            }
-            imgPreview.removeAttribute('src');
+            clearPhoto();
             openCamera();
+        });
+    }
+
+    if (btnRetakeGallery && inputGallery) {
+        btnRetakeGallery.addEventListener('click', () => {
+            inputGallery.click();
+        });
+    }
+
+    if (btnRemove) {
+        btnRemove.addEventListener('click', () => {
+            clearPhoto();
+            showIdle();
         });
     }
 
@@ -326,4 +440,3 @@
     window.addEventListener('beforeunload', stopStream);
 })();
 </script>
-
