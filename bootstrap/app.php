@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\PreventBackHistory;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,9 +16,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->appendToGroup('web', [
+            PreventBackHistory::class,
+        ]);
         $middleware->alias([
             'active.account' => EnsureAccountIsActive::class,
             'password.changed' => EnsurePasswordIsChanged::class,
+            'prevent-back-history' => PreventBackHistory::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

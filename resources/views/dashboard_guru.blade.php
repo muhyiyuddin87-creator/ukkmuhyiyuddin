@@ -35,6 +35,17 @@
             $hasSchedules = ($totalJadwal ?? 0) > 0 && isset($jadwals) && $jadwals->isNotEmpty();
             $hasTodayMissing = $hasSchedules && isset($missingJournalsToday) && $missingJournalsToday->isNotEmpty();
             $alertSchedules = $hasTodayMissing ? $missingJournalsToday : collect();
+
+            $nowTime = now();
+            $hasOverdue30 = false;
+            foreach ($alertSchedules as $sched) {
+                $schedEndTimeStr = $sched->end_time ? substr($sched->end_time, 0, 8) : '00:00:00';
+                $schedEndCarbon = \Carbon\Carbon::createFromTimeString($schedEndTimeStr);
+                if ($nowTime->greaterThan($schedEndCarbon->copy()->addMinutes(30))) {
+                    $hasOverdue30 = true;
+                    break;
+                }
+            }
             $dayThemes = [
                 'Senin' => [
                     'border' => 'border-t-4 border-t-emerald-500',
@@ -81,30 +92,58 @@
         @endphp
 
         @if($hasTodayMissing)
-            <section role="alert" class="rounded-2xl border border-amber-300 bg-amber-50 p-5 shadow-sm">
+            <section role="alert" class="rounded-2xl border-2 {{ $hasOverdue30 ? 'border-rose-400 bg-rose-50/90 shadow-rose-100' : 'border-amber-300 bg-amber-50' }} p-5 shadow-sm transition">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <svg class="h-5 w-5 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            <h3 class="font-bold text-amber-900 text-base">Jurnal belum diisi</h3>
-                            <span class="rounded-full bg-amber-200/90 px-2.5 py-0.5 text-xs font-bold text-amber-900">
-                                {{ $alertSchedules->count() }} jadwal
-                            </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            @if($hasOverdue30)
+                                <svg class="h-5 w-5 text-rose-600 flex-shrink-0 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <h3 class="font-bold text-rose-950 text-base">Peringatan Keterlambatan Pengisian Jurnal</h3>
+                                <span class="rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow-xs animate-pulse">
+                                    ⚠️ Terlambat Mengisi Jurnal (>30 Menit)
+                                </span>
+                            @else
+                                <svg class="h-5 w-5 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <h3 class="font-bold text-amber-900 text-base">Jurnal belum diisi</h3>
+                                <span class="rounded-full bg-amber-200/90 px-2.5 py-0.5 text-xs font-bold text-amber-900">
+                                    {{ $alertSchedules->count() }} jadwal
+                                </span>
+                            @endif
                         </div>
-                        <p class="mt-1.5 text-sm text-amber-800">
-                            Anda memiliki jadwal mengajar <strong>hari ini</strong> yang belum memiliki catatan jurnal:
+                        <p class="mt-1.5 text-sm {{ $hasOverdue30 ? 'text-rose-800' : 'text-amber-800' }}">
+                            @if($hasOverdue30)
+                                Waktu sistem telah melewati batas <strong>30 menit</strong> setelah jam KBM selesai. Harap segera melengkapi jurnal dan presensi siswa:
+                            @else
+                                Anda memiliki jadwal mengajar <strong>hari ini</strong> yang belum memiliki catatan jurnal:
+                            @endif
                         </p>
-                        <ul class="mt-3 list-inside list-disc space-y-1.5 text-sm text-amber-900">
+                        <ul class="mt-3 list-none space-y-2 text-sm {{ $hasOverdue30 ? 'text-rose-950' : 'text-amber-900' }}">
                             @foreach($alertSchedules as $schedule)
-                                <li>
-                                    <span class="font-semibold">{{ $schedule->subject }}</span>
-                                    ({{ $schedule->day_of_week }}, {{ substr($schedule->start_time, 0, 5) }}–{{ substr($schedule->end_time, 0, 5) }} WIB)
-                                    @if(!empty($schedule->class_name)) · Kelas <span class="font-semibold">{{ $schedule->class_name }}</span> @endif
+                                @php
+                                    $sEndTimeStr = $schedule->end_time ? substr($schedule->end_time, 0, 8) : '00:00:00';
+                                    $sEndCarbon = \Carbon\Carbon::createFromTimeString($sEndTimeStr);
+                                    $isThisSchedOverdue = now()->greaterThan($sEndCarbon->copy()->addMinutes(30));
+                                @endphp
+                                <li class="flex flex-wrap items-center gap-2 rounded-xl {{ $isThisSchedOverdue ? 'bg-rose-100/70 border border-rose-300' : 'bg-amber-100/60 border border-amber-200' }} px-3 py-2">
+                                    <span class="font-bold">{{ $schedule->subject }}</span>
+                                    <span class="text-xs">({{ $schedule->day_of_week }}, {{ substr($schedule->start_time, 0, 5) }}–{{ substr($schedule->end_time, 0, 5) }} WIB)</span>
+                                    @if(!empty($schedule->class_name))
+                                        <span class="text-xs font-medium">· Kelas <span class="font-semibold">{{ $schedule->class_name }}</span></span>
+                                    @endif
+                                    @if($isThisSchedOverdue)
+                                        <span class="ml-auto inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-0.5 text-[11px] font-bold text-white shadow-2xs">
+                                            ⚠️ Terlambat Mengisi Jurnal (>30 Menit)
+                                        </span>
+                                    @else
+                                        <span class="ml-auto inline-flex items-center rounded-md bg-amber-200/90 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
+                                            Belum Diisi
+                                        </span>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
                     </div>
-                    <a href="{{ route('guru.jurnal') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700 shadow-sm active:scale-95">
+                    <a href="{{ route('guru.jurnal') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl {{ $hasOverdue30 ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' : 'bg-amber-600 hover:bg-amber-700' }} px-5 py-2.5 text-sm font-semibold text-white transition shadow-sm active:scale-95">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         <span>Isi Jurnal Sekarang</span>
                     </a>

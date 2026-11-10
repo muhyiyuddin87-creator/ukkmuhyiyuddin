@@ -240,13 +240,18 @@ Route::post('/login', function (Request $request) use ($dashboardRoleForUser) {
     ])->onlyInput('username');
 })->name('login.post');
 
-Route::post('/logout', function (Request $request) {
+Route::match(['get', 'post'], '/logout', function (Request $request) {
     Auth::logout();
 
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
-    return redirect()->route('login');
+    $response = redirect()->route('login');
+    $response->headers->set('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+    $response->headers->set('Pragma', 'no-cache');
+    $response->headers->set('Expires', 'Sun, 02 Jan 1990 00:00:00 GMT');
+
+    return $response;
 })->name('logout');
 
 Route::middleware(['auth', 'active.account', 'password.changed'])->group(function () use ($dashboardRoleForUser) {
@@ -3705,6 +3710,39 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
         return redirect()->route('waka.jadwal')->with('success', 'Pengaturan putaran jadwal berhasil disimpan.');
     })->name('waka.jadwal.configure');
+
+    // TC-SEC-03 & TC-SCH-04: Rute khusus Waka mengunci jadwal (menolak non-Waka dengan 403)
+    Route::match(['get', 'post'], '/waka/lock-schedule', function (Request $request) use ($ensureScheduleConfig) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403, 'Akses ditolak: Hanya Waka Kurikulum yang memiliki izin mengunci jadwal.');
+        $config = $ensureScheduleConfig();
+        $activeCycle = (int) ($config->active_cycle ?? 1);
+        $lockedColumn = $activeCycle === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
+        $currentLock = (bool) ($config->{$lockedColumn} ?? false) || (bool) ($config->is_scheduled_locked ?? false);
+        $newLock = $request->has('locked') ? (bool) $request->input('locked') : ! $currentLock;
+
+        DB::table('system_configurations')->where('id', (int) $config->id)->update([
+            'is_scheduled_locked' => $newLock,
+            $lockedColumn => $newLock,
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('waka.jadwal')->with('success', 'Status penguncian jadwal berhasil diubah menjadi: ' . ($newLock ? 'Terkunci' : 'Terbuka'));
+    })->name('waka.schedule.lock');
+
+    // TC-SEC-03 & TC-SCH-03: Rute khusus Waka beralih siklus/putaran KBM (menolak non-Waka dengan 403)
+    Route::match(['get', 'post'], '/waka/toggle-cycle', function (Request $request) use ($ensureScheduleConfig) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403, 'Akses ditolak: Hanya Waka Kurikulum yang memiliki izin mengubah putaran KBM.');
+        $config = $ensureScheduleConfig();
+        $currentCycle = (int) ($config->active_cycle ?? 1);
+        $newCycle = $currentCycle === 1 ? 2 : 1;
+
+        DB::table('system_configurations')->where('id', (int) $config->id)->update([
+            'active_cycle' => $newCycle,
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('waka.jadwal')->with('success', "Putaran KBM berhasil dialihkan ke Putaran {$newCycle}.");
+    })->name('waka.cycle.toggle');
 
     Route::post('/waka/jadwal', function (Request $request) use ($ensureScheduleConfig, $findScheduleConflict, $currentAcademicYear) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);

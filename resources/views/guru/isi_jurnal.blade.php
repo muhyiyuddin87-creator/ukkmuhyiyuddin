@@ -249,8 +249,34 @@
                             <textarea name="topic_description" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" placeholder="Tuliskan materi dan kegiatan pembelajaran..." required>{{ old('topic_description', $editJournal->topic_description ?? '') }}</textarea>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Bukti Foto (opsional, maks. 5 MB)</label>
-                            <input type="file" name="photo" accept="image/*" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm file:mr-3 file:h-7 file:rounded-md file:border-0 {{ $roleId === 4 ? 'file:bg-amber-100 file:text-amber-700' : 'file:bg-indigo-100 file:text-indigo-700' }} file:font-semibold file:px-2.5 file:text-xs focus:outline-none">
+                            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                                <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Bukti Foto Dokumentasi KBM (Maks. 5 MB)</label>
+                                <button type="button" id="btn-open-classroom-webcam" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    <span>Ambil Foto via Webcam</span>
+                                </button>
+                            </div>
+                            <input type="file" id="journal-photo-input" name="photo" accept="image/*" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm file:mr-3 file:h-7 file:rounded-md file:border-0 {{ $roleId === 4 ? 'file:bg-amber-100 file:text-amber-700' : 'file:bg-indigo-100 file:text-indigo-700' }} file:font-semibold file:px-2.5 file:text-xs focus:outline-none">
+
+                            <!-- Preview foto yang dijepret via webcam realtime -->
+                            <div id="webcam-captured-preview" class="mt-3 hidden rounded-xl border border-emerald-300 bg-emerald-50/70 p-3">
+                                <div class="flex items-center justify-between gap-3 flex-wrap">
+                                    <div class="flex items-center gap-3">
+                                        <img id="webcam-preview-img" class="h-14 w-20 rounded-lg object-cover border border-emerald-300 shadow-xs" alt="Foto Suasana Kelas">
+                                        <div>
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                                                ✓ Foto Realtime Siap Diunggah
+                                            </span>
+                                            <p class="text-xs text-slate-500 mt-0.5" id="webcam-file-info">Terlampir dari tangkapan kamera/webcam.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" id="btn-retake-webcam" class="rounded-lg border border-emerald-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition">Ambil Ulang</button>
+                                        <button type="button" id="btn-remove-webcam" class="rounded-lg border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">Hapus</button>
+                                    </div>
+                                </div>
+                            </div>
+
                             @if($editJournal?->photo_path)
                                 <div class="mt-2 flex items-center gap-2 text-xs text-slate-500">
                                     <a href="{{ asset('storage/' . $editJournal->photo_path) }}" target="_blank" rel="noopener" class="font-semibold {{ $roleId === 4 ? 'text-amber-700' : 'text-indigo-700' }} underline">
@@ -285,6 +311,69 @@
                     </div>
                 </form>
             </section>
+
+    <!-- Modal Webcam Real-Time untuk Dokumentasi Kelas (TC-JRN-02) -->
+    <div id="classroom-webcam-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4 overflow-y-auto">
+        <div class="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-200 flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-3.5 bg-slate-50">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Ambil Foto Suasana Kelas via Webcam</h3>
+                        <p class="text-xs text-slate-500">Realtime Camera / Webcam Documentation</p>
+                    </div>
+                </div>
+                <button type="button" id="btn-close-webcam-modal" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Video Viewfinder -->
+            <div class="relative bg-slate-950 flex items-center justify-center aspect-4/3 max-h-[400px] overflow-hidden">
+                <video id="classroom-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+                <canvas id="classroom-canvas" class="hidden"></canvas>
+                <div id="classroom-flash" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-150"></div>
+
+                <!-- Overlay Info -->
+                <div class="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 backdrop-blur-xs px-3 py-1 text-xs font-semibold text-white">
+                        <span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                        LIVE WEBCAM KBM
+                    </span>
+                    <button type="button" id="btn-switch-camera" class="pointer-events-auto rounded-full bg-slate-900/80 backdrop-blur-xs p-2 text-white hover:bg-slate-800 transition" title="Ganti Kamera">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+
+                <div class="absolute bottom-3 inset-x-3 pointer-events-none text-center">
+                    <span class="inline-block rounded-full bg-black/60 px-3 py-1 text-[11px] text-slate-200">
+                        Pastikan suasana kelas terlihat jelas
+                    </span>
+                </div>
+
+                <!-- Error message box -->
+                <div id="classroom-webcam-error" class="hidden absolute inset-4 rounded-xl bg-rose-900/90 p-4 text-xs text-white flex flex-col items-center justify-center text-center">
+                    <p class="font-bold text-sm mb-1">Gagal Mengakses Kamera</p>
+                    <p id="classroom-webcam-error-text">Pastikan Anda telah memberikan izin akses kamera atau gawai Anda memiliki webcam aktif.</p>
+                </div>
+            </div>
+
+            <!-- Modal Footer Controls -->
+            <div class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-5 py-3">
+                <button type="button" id="btn-cancel-webcam" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition">
+                    Batal
+                </button>
+                <button type="button" id="btn-capture-classroom" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-700 active:scale-95 transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>Jepret Foto Sekarang</span>
+                </button>
+                <div class="w-12"></div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -626,6 +715,165 @@
         if (filterStartDate) filterStartDate.addEventListener('change', applyJournalClientFilter);
         if (filterEndDate) filterEndDate.addEventListener('change', applyJournalClientFilter);
         if (filterSearchText) filterSearchText.addEventListener('input', applyJournalClientFilter);
+
+        // ================= WEBCAM CONTROLS (TC-JRN-02) =================
+        const webcamModal = document.getElementById('classroom-webcam-modal');
+        const btnOpenWebcam = document.getElementById('btn-open-classroom-webcam');
+        const btnCloseWebcam = document.getElementById('btn-close-webcam-modal');
+        const btnCancelWebcam = document.getElementById('btn-cancel-webcam');
+        const btnCaptureWebcam = document.getElementById('btn-capture-classroom');
+        const btnSwitchCamera = document.getElementById('btn-switch-camera');
+        const btnRetakeWebcam = document.getElementById('btn-retake-webcam');
+        const btnRemoveWebcam = document.getElementById('btn-remove-webcam');
+        const classroomVideo = document.getElementById('classroom-video');
+        const classroomCanvas = document.getElementById('classroom-canvas');
+        const classroomFlash = document.getElementById('classroom-flash');
+        const webcamErrorBox = document.getElementById('classroom-webcam-error');
+        const webcamErrorText = document.getElementById('classroom-webcam-error-text');
+        const webcamCapturedPreview = document.getElementById('webcam-captured-preview');
+        const webcamPreviewImg = document.getElementById('webcam-preview-img');
+        const webcamFileInput = document.getElementById('journal-photo-input');
+
+        let webcamStream = null;
+        let currentFacingMode = 'environment';
+
+        async function startWebcam() {
+            if (webcamErrorBox) webcamErrorBox.classList.add('hidden');
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (webcamErrorBox) {
+                    webcamErrorBox.classList.remove('hidden');
+                    webcamErrorText.textContent = 'Peramban Anda tidak mendukung akses webcam/kamera secara langsung.';
+                }
+                return;
+            }
+
+            try {
+                if (webcamStream) {
+                    webcamStream.getTracks().forEach(t => t.stop());
+                }
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+                try {
+                    webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (fallbackErr) {
+                    webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                }
+                classroomVideo.srcObject = webcamStream;
+                await classroomVideo.play();
+            } catch (err) {
+                console.error('Webcam error:', err);
+                if (webcamErrorBox) {
+                    webcamErrorBox.classList.remove('hidden');
+                    webcamErrorText.textContent = 'Tidak dapat mengakses kamera: ' + (err.message || 'Izin kamera ditolak atau kamera sedang digunakan aplikasi lain.');
+                }
+            }
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(t => t.stop());
+                webcamStream = null;
+            }
+            if (classroomVideo) {
+                classroomVideo.srcObject = null;
+            }
+        }
+
+        function openWebcamModal() {
+            if (webcamModal) {
+                webcamModal.classList.remove('hidden');
+                startWebcam();
+            }
+        }
+
+        function closeWebcamModal() {
+            stopWebcam();
+            if (webcamModal) {
+                webcamModal.classList.add('hidden');
+            }
+        }
+
+        if (btnOpenWebcam) btnOpenWebcam.addEventListener('click', openWebcamModal);
+        if (btnCloseWebcam) btnCloseWebcam.addEventListener('click', closeWebcamModal);
+        if (btnCancelWebcam) btnCancelWebcam.addEventListener('click', closeWebcamModal);
+        if (btnRetakeWebcam) btnRetakeWebcam.addEventListener('click', openWebcamModal);
+
+        if (btnSwitchCamera) {
+            btnSwitchCamera.addEventListener('click', () => {
+                currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+                startWebcam();
+            });
+        }
+
+        if (btnRemoveWebcam) {
+            btnRemoveWebcam.addEventListener('click', () => {
+                if (webcamCapturedPreview) webcamCapturedPreview.classList.add('hidden');
+                if (webcamPreviewImg) webcamPreviewImg.src = '';
+                if (webcamFileInput) webcamFileInput.value = '';
+            });
+        }
+
+        if (btnCaptureWebcam) {
+            btnCaptureWebcam.addEventListener('click', () => {
+                if (!classroomVideo || !classroomVideo.videoWidth) {
+                    alert('Kamera belum siap mengambil gambar. Silakan tunggu sebentar.');
+                    return;
+                }
+
+                if (classroomFlash) {
+                    classroomFlash.classList.remove('opacity-0');
+                    setTimeout(() => classroomFlash.classList.add('opacity-0'), 150);
+                }
+
+                const width = classroomVideo.videoWidth;
+                const height = classroomVideo.videoHeight;
+                classroomCanvas.width = width;
+                classroomCanvas.height = height;
+
+                const ctx = classroomCanvas.getContext('2d');
+                ctx.drawImage(classroomVideo, 0, 0, width, height);
+
+                const now = new Date();
+                const timeString = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' +
+                                   now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                ctx.fillRect(16, height - 48, 360, 36);
+                ctx.font = 'bold 15px sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('📷 Dokumentasi KBM • ' + timeString, 26, height - 25);
+
+                classroomCanvas.toBlob((blob) => {
+                    if (!blob) return;
+                    const fileName = 'webcam_kbm_' + Date.now() + '.jpg';
+                    const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+                    if (window.DataTransfer && webcamFileInput) {
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        webcamFileInput.files = dataTransfer.files;
+                    }
+
+                    if (webcamPreviewImg) {
+                        webcamPreviewImg.src = URL.createObjectURL(blob);
+                    }
+                    const infoEl = document.getElementById('webcam-file-info');
+                    if (infoEl) {
+                        infoEl.textContent = fileName + ' (' + (blob.size / 1024).toFixed(1) + ' KB)';
+                    }
+                    if (webcamCapturedPreview) {
+                        webcamCapturedPreview.classList.remove('hidden');
+                    }
+
+                    closeWebcamModal();
+                }, 'image/jpeg', 0.88);
+            });
+        }
 
         // Initial execution
         filterSchedulesByDay();
