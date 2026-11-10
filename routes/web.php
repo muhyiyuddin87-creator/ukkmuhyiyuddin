@@ -958,11 +958,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 ->get()
             : collect();
 
-        return view('siswa.izin', [
-            'user' => Auth::user(),
-            'student' => $student,
-            'leaveRequests' => $leaveRequests,
-        ]);
+        return response()
+            ->view('siswa.izin', [
+                'user' => Auth::user(),
+                'student' => $student,
+                'leaveRequests' => $leaveRequests,
+            ])
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
     })->name('siswa.izin');
 
     Route::post('/siswa/izin', function (Request $request) {
