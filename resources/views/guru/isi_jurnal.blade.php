@@ -248,17 +248,24 @@
                             <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Materi / Kegiatan Pembelajaran</label>
                             <textarea name="topic_description" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm {{ $roleId === 4 ? 'focus:border-amber-500 focus:ring-amber-100' : 'focus:border-indigo-500 focus:ring-indigo-100' }} focus:ring-2 outline-none transition" placeholder="Tuliskan materi dan kegiatan pembelajaran..." required>{{ old('topic_description', $editJournal->topic_description ?? '') }}</textarea>
                         </div>
+                        {{-- =========================================================================
+                             FITUR TC-JRN-02: UPLOAD FOTO & DOKUMENTASI KBM VIA WEBCAM LANGSUNG
+                             - Guru dapat memilih file foto dari galeri/explorer ATAU
+                             - Mengambil foto suasana kelas secara realtime via kamera/webcam.
+                             ========================================================================= --}}
                         <div>
                             <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
                                 <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500">Bukti Foto Dokumentasi KBM (Maks. 5 MB)</label>
+                                {{-- Tombol untuk membuka modal webcam / kamera live --}}
                                 <button type="button" id="btn-open-classroom-webcam" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition">
                                     <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                     <span>Ambil Foto via Webcam</span>
                                 </button>
                             </div>
+                            {{-- Input file standar (juga otomatis diisi file hasil jepretan webcam) --}}
                             <input type="file" id="journal-photo-input" name="photo" accept="image/*" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm file:mr-3 file:h-7 file:rounded-md file:border-0 {{ $roleId === 4 ? 'file:bg-amber-100 file:text-amber-700' : 'file:bg-indigo-100 file:text-indigo-700' }} file:font-semibold file:px-2.5 file:text-xs focus:outline-none">
 
-                            <!-- Preview foto yang dijepret via webcam realtime -->
+                            {{-- Preview foto hasil jepretan webcam realtime sebelum disimpan --}}
                             <div id="webcam-captured-preview" class="mt-3 hidden rounded-xl border border-emerald-300 bg-emerald-50/70 p-3">
                                 <div class="flex items-center justify-between gap-3 flex-wrap">
                                     <div class="flex items-center gap-3">
@@ -312,6 +319,13 @@
                 </form>
             </section>
 
+    {{-- =========================================================================
+         FITUR TC-JRN-02: MODAL KAMERA & VIEWFINDER REALTIME WEBCAM
+         - Membuka stream video dari webcam/kamera pengguna
+         - Mendukung pemilihan kamera (depan/belakang pada gawai tablet/HP)
+         - Mengambil frame instan dengan efek shutter flash
+         - Membubuhkan watermark tanggal dan jam secara otomatis
+         ========================================================================= --}}
     <!-- Modal Webcam Real-Time untuk Dokumentasi Kelas (TC-JRN-02) -->
     <div id="classroom-webcam-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4 overflow-y-auto">
         <div class="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl overflow-hidden border border-slate-200 flex flex-col">
@@ -716,7 +730,12 @@
         if (filterEndDate) filterEndDate.addEventListener('change', applyJournalClientFilter);
         if (filterSearchText) filterSearchText.addEventListener('input', applyJournalClientFilter);
 
-        // ================= WEBCAM CONTROLS (TC-JRN-02) =================
+        // =========================================================================
+        // FITUR TC-JRN-02: KONTROL WEBCAM LIVE & PENYIMPANAN BUKTI KBM REALTIME
+        // - Mengakses kamera (webcam PC atau kamera HP) via getUserMedia
+        // - Menangkap frame, memberikan watermark timestamp realtime
+        // - Mengubah hasil canvas menjadi objek File (image/jpeg) dan mengisi form
+        // =========================================================================
         const webcamModal = document.getElementById('classroom-webcam-modal');
         const btnOpenWebcam = document.getElementById('btn-open-classroom-webcam');
         const btnCloseWebcam = document.getElementById('btn-close-webcam-modal');
@@ -735,8 +754,9 @@
         const webcamFileInput = document.getElementById('journal-photo-input');
 
         let webcamStream = null;
-        let currentFacingMode = 'environment';
+        let currentFacingMode = 'environment'; // Default ke kamera belakang untuk suasana kelas
 
+        // Fungsi untuk memulai streaming video dari webcam/kamera
         async function startWebcam() {
             if (webcamErrorBox) webcamErrorBox.classList.add('hidden');
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -762,6 +782,7 @@
                 try {
                     webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
                 } catch (fallbackErr) {
+                    // Fallback ke kamera bawaan jika facingMode tidak didukung (misal di PC desktop)
                     webcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 }
                 classroomVideo.srcObject = webcamStream;
@@ -775,6 +796,7 @@
             }
         }
 
+        // Fungsi untuk menghentikan streaming kamera (menghemat resource & baterai)
         function stopWebcam() {
             if (webcamStream) {
                 webcamStream.getTracks().forEach(t => t.stop());
@@ -785,6 +807,7 @@
             }
         }
 
+        // Fungsi membuka modal webcam
         function openWebcamModal() {
             if (webcamModal) {
                 webcamModal.classList.remove('hidden');
@@ -792,6 +815,7 @@
             }
         }
 
+        // Fungsi menutup modal webcam
         function closeWebcamModal() {
             stopWebcam();
             if (webcamModal) {
@@ -799,11 +823,13 @@
             }
         }
 
+        // Event listener pembuka dan penutup modal
         if (btnOpenWebcam) btnOpenWebcam.addEventListener('click', openWebcamModal);
         if (btnCloseWebcam) btnCloseWebcam.addEventListener('click', closeWebcamModal);
         if (btnCancelWebcam) btnCancelWebcam.addEventListener('click', closeWebcamModal);
         if (btnRetakeWebcam) btnRetakeWebcam.addEventListener('click', openWebcamModal);
 
+        // Event listener toggle kamera depan/belakang
         if (btnSwitchCamera) {
             btnSwitchCamera.addEventListener('click', () => {
                 currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
@@ -811,6 +837,7 @@
             });
         }
 
+        // Event listener hapus foto tangkapan
         if (btnRemoveWebcam) {
             btnRemoveWebcam.addEventListener('click', () => {
                 if (webcamCapturedPreview) webcamCapturedPreview.classList.add('hidden');
@@ -819,6 +846,7 @@
             });
         }
 
+        // Event listener eksekusi jepret foto (Capture snapshot dari video ke file input)
         if (btnCaptureWebcam) {
             btnCaptureWebcam.addEventListener('click', () => {
                 if (!classroomVideo || !classroomVideo.videoWidth) {
@@ -826,11 +854,13 @@
                     return;
                 }
 
+                // Animasi flash shutter
                 if (classroomFlash) {
                     classroomFlash.classList.remove('opacity-0');
                     setTimeout(() => classroomFlash.classList.add('opacity-0'), 150);
                 }
 
+                // Render frame video ke elemen canvas
                 const width = classroomVideo.videoWidth;
                 const height = classroomVideo.videoHeight;
                 classroomCanvas.width = width;
@@ -839,6 +869,7 @@
                 const ctx = classroomCanvas.getContext('2d');
                 ctx.drawImage(classroomVideo, 0, 0, width, height);
 
+                // Tambahkan watermark waktu & tanggal realtime pada foto
                 const now = new Date();
                 const timeString = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' +
                                    now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
@@ -848,17 +879,20 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fillText('📷 Dokumentasi KBM • ' + timeString, 26, height - 25);
 
+                // Konversi canvas menjadi file Blob dan masukkan ke input form photo
                 classroomCanvas.toBlob((blob) => {
                     if (!blob) return;
                     const fileName = 'webcam_kbm_' + Date.now() + '.jpg';
                     const file = new File([blob], fileName, { type: 'image/jpeg' });
 
+                    // Simulasikan pemilihan file menggunakan DataTransfer API
                     if (window.DataTransfer && webcamFileInput) {
                         const dataTransfer = new DataTransfer();
                         dataTransfer.items.add(file);
                         webcamFileInput.files = dataTransfer.files;
                     }
 
+                    // Tampilkan thumbnail pratinjau hasil foto
                     if (webcamPreviewImg) {
                         webcamPreviewImg.src = URL.createObjectURL(blob);
                     }
@@ -870,6 +904,7 @@
                         webcamCapturedPreview.classList.remove('hidden');
                     }
 
+                    // Tutup modal dan hentikan stream webcam
                     closeWebcamModal();
                 }, 'image/jpeg', 0.88);
             });

@@ -240,6 +240,13 @@ Route::post('/login', function (Request $request) use ($dashboardRoleForUser) {
     ])->onlyInput('username');
 })->name('login.post');
 
+// =========================================================================
+// FITUR TC-SEC-05: LOGOUT DENGAN INVALIDASI SESI & HEADER ANTI-CACHE
+// - Menghapus sesi otentikasi pengguna secara menyeluruh
+// - Me-regenerate CSRF token agar token lama tidak dapat dieksploitasi ulang
+// - Mengirimkan header Cache-Control: no-cache, no-store untuk mencegah browser
+//   menyimpan halaman internal di bfcache (Back-Forward Cache) ketika tombol Back ditekan
+// =========================================================================
 Route::match(['get', 'post'], '/logout', function (Request $request) {
     Auth::logout();
 
@@ -3711,7 +3718,12 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return redirect()->route('waka.jadwal')->with('success', 'Pengaturan putaran jadwal berhasil disimpan.');
     })->name('waka.jadwal.configure');
 
-    // TC-SEC-03 & TC-SCH-04: Rute khusus Waka mengunci jadwal (menolak non-Waka dengan 403)
+    // =========================================================================
+    // FITUR TC-SEC-03 & TC-SCH-04: RUTE KHUSUS WAKA MENGUNCI JADWAL KBM
+    // - Proteksi Backend: Jika diakses oleh non-Waka (Guru/Siswa/Ortu), sistem
+    //   secara tegas melempar HTTP 403 Forbidden (bukan hanya menyembunyikan tombol UI)
+    // - TC-SCH-04: Waka Kurikulum dapat mengunci (lock) jadwal KBM aktif
+    // =========================================================================
     Route::match(['get', 'post'], '/waka/lock-schedule', function (Request $request) use ($ensureScheduleConfig) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403, 'Akses ditolak: Hanya Waka Kurikulum yang memiliki izin mengunci jadwal.');
         $config = $ensureScheduleConfig();
@@ -3729,7 +3741,12 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return redirect()->route('waka.jadwal')->with('success', 'Status penguncian jadwal berhasil diubah menjadi: ' . ($newLock ? 'Terkunci' : 'Terbuka'));
     })->name('waka.schedule.lock');
 
-    // TC-SEC-03 & TC-SCH-03: Rute khusus Waka beralih siklus/putaran KBM (menolak non-Waka dengan 403)
+    // =========================================================================
+    // FITUR TC-SEC-03 & TC-SCH-03: RUTE KHUSUS WAKA PERGANTIAN SIKLUS / PUTARAN KBM
+    // - Proteksi Backend: Akses langsung via URL oleh peran selain Waka langsung
+    //   ditolak dengan respons HTTP 403 Unauthorized
+    // - TC-SCH-03: Waka Kurikulum dapat beralih antara Putaran 1 & Putaran 2 secara dinamis
+    // =========================================================================
     Route::match(['get', 'post'], '/waka/toggle-cycle', function (Request $request) use ($ensureScheduleConfig) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403, 'Akses ditolak: Hanya Waka Kurikulum yang memiliki izin mengubah putaran KBM.');
         $config = $ensureScheduleConfig();

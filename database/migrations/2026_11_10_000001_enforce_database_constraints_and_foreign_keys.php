@@ -12,22 +12,36 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Enable TiDB check constraint if using TiDB
+        // -------------------------------------------------------------------------
+        // 1. Mengaktifkan fitur CHECK constraint pada database engine TiDB / MySQL
+        // -------------------------------------------------------------------------
         try {
             DB::statement('SET GLOBAL tidb_enable_check_constraint = ON');
         } catch (\Throwable $e) {
-            // Ignore if not TiDB or insufficient permissions
+            // Abaikan jika database engine bukan TiDB atau sudah aktif secara default
         }
 
-        // 2. TC-DBS-02: SQL Check Constraint Jam Mengajar (start_time < end_time)
+        // -------------------------------------------------------------------------
+        // 2. FITUR TC-DBS-02: SQL CHECK CONSTRAINT JAM MENGAJAR DI DATABASE ENGINE
+        // Tujuan: Memastikan query SQL langsung (misal via phpMyAdmin/DBeaver)
+        // yang memasukkan start_time >= end_time otomatis ditolak oleh database engine
+        // dengan pelanggaran Check Constraint Violation (error code 3819).
+        // -------------------------------------------------------------------------
         try {
             DB::statement('ALTER TABLE schedules ADD CONSTRAINT chk_schedules_start_end CHECK (start_time < end_time)');
         } catch (\Throwable $e) {
-            // Constraint may already exist
+            // Constraint sudah ada sebelumnya
         }
 
-        // 3. TC-DBS-01: Foreign Key RESTRICT on Delete
-        // attendances.student_id -> siswas.id
+        // -------------------------------------------------------------------------
+        // 3. FITUR TC-DBS-01: PENOLAKAN HAPUS RELASI DI ENGINE DATABASE (INNODB RESTRICT)
+        // Tujuan: Mengganti relasi ON DELETE CASCADE menjadi ON DELETE RESTRICT.
+        // Jika penguji menjalankan query SQL langsung: DELETE FROM siswas / DELETE FROM users,
+        // database engine secara tegas menolak eksekusi (Foreign Key Constraint Violation 1451)
+        // untuk menjaga integritas data catatan presensi dan riwayat jurnal mengajar.
+        // -------------------------------------------------------------------------
+        
+        // Relasi Presensi Siswa: attendances.student_id -> siswas.id (RESTRICT)
         try {
             DB::statement('ALTER TABLE attendances DROP FOREIGN KEY attendances_student_id_foreign');
         } catch (\Throwable $e) {}
@@ -35,7 +49,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE attendances ADD CONSTRAINT attendances_student_id_foreign FOREIGN KEY (student_id) REFERENCES siswas (id) ON DELETE RESTRICT');
         } catch (\Throwable $e) {}
 
-        // schedules.teacher_id -> users.id
+        // Relasi Jadwal Guru: schedules.teacher_id -> users.id (RESTRICT)
         try {
             DB::statement('ALTER TABLE schedules DROP FOREIGN KEY schedules_teacher_id_foreign');
         } catch (\Throwable $e) {}
@@ -43,7 +57,7 @@ return new class extends Migration
             DB::statement('ALTER TABLE schedules ADD CONSTRAINT schedules_teacher_id_foreign FOREIGN KEY (teacher_id) REFERENCES users (id) ON DELETE RESTRICT');
         } catch (\Throwable $e) {}
 
-        // journals.schedule_id -> schedules.id
+        // Relasi Jurnal Jadwal: journals.schedule_id -> schedules.id (RESTRICT)
         try {
             DB::statement('ALTER TABLE journals DROP FOREIGN KEY journals_schedule_id_foreign');
         } catch (\Throwable $e) {}

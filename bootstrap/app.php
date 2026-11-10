@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // FITUR TC-SEC-05: Pasang middleware anti-bfcache pada semua web request agar halaman terlindungi setelah logout
         $middleware->appendToGroup('web', [
             PreventBackHistory::class,
         ]);

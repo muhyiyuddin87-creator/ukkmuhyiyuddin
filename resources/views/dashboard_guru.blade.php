@@ -31,16 +31,24 @@
             </div>
         </header>
 
+        {{-- =========================================================================
+             FITUR TC-ALT-01 & TC-ALT-02: PERINGATAN KETERLAMBATAN PENGISIAN JURNAL
+             - TC-ALT-01: Mendeteksi apakah jam sistem telah melewati 30 menit dari jam KBM selesai
+               (now() > end_time + 30 menit). Menampilkan indikator visual khusus keterlambatan.
+             - TC-ALT-02: Alert ini otomatis hilang begitu guru selesai mengisi dan menyimpan jurnal.
+             ========================================================================= --}}
         @php
             $hasSchedules = ($totalJadwal ?? 0) > 0 && isset($jadwals) && $jadwals->isNotEmpty();
             $hasTodayMissing = $hasSchedules && isset($missingJournalsToday) && $missingJournalsToday->isNotEmpty();
             $alertSchedules = $hasTodayMissing ? $missingJournalsToday : collect();
 
+            // Cek apakah ada jadwal mengajar hari ini yang belum diisi dan sudah lewat > 30 menit dari end_time
             $nowTime = now();
             $hasOverdue30 = false;
             foreach ($alertSchedules as $sched) {
                 $schedEndTimeStr = $sched->end_time ? substr($sched->end_time, 0, 8) : '00:00:00';
                 $schedEndCarbon = \Carbon\Carbon::createFromTimeString($schedEndTimeStr);
+                // Kondisi: waktu sekarang > waktu jam selesai + 30 menit
                 if ($nowTime->greaterThan($schedEndCarbon->copy()->addMinutes(30))) {
                     $hasOverdue30 = true;
                     break;
@@ -91,18 +99,21 @@
             $daysList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         @endphp
 
+        {{-- Banner Peringatan Pengisian Jurnal (TC-ALT-01: Visual merah jika lewat >30 menit, kuning jika belum lewat) --}}
         @if($hasTodayMissing)
             <section role="alert" class="rounded-2xl border-2 {{ $hasOverdue30 ? 'border-rose-400 bg-rose-50/90 shadow-rose-100' : 'border-amber-300 bg-amber-50' }} p-5 shadow-sm transition">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
                             @if($hasOverdue30)
+                                {{-- Indikator Visual Darurat: Ikon berkedip dan Badge Terlambat >30 Menit --}}
                                 <svg class="h-5 w-5 text-rose-600 flex-shrink-0 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 <h3 class="font-bold text-rose-950 text-base">Peringatan Keterlambatan Pengisian Jurnal</h3>
                                 <span class="rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow-xs animate-pulse">
                                     ⚠️ Terlambat Mengisi Jurnal (>30 Menit)
                                 </span>
                             @else
+                                {{-- Indikator Peringatan Normal Hari Ini (Belum lewat 30 menit) --}}
                                 <svg class="h-5 w-5 text-amber-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 <h3 class="font-bold text-amber-900 text-base">Jurnal belum diisi</h3>
                                 <span class="rounded-full bg-amber-200/90 px-2.5 py-0.5 text-xs font-bold text-amber-900">
@@ -117,9 +128,11 @@
                                 Anda memiliki jadwal mengajar <strong>hari ini</strong> yang belum memiliki catatan jurnal:
                             @endif
                         </p>
+                        {{-- Daftar jadwal yang belum diisi berserta status ketepatan waktunya --}}
                         <ul class="mt-3 list-none space-y-2 text-sm {{ $hasOverdue30 ? 'text-rose-950' : 'text-amber-900' }}">
                             @foreach($alertSchedules as $schedule)
                                 @php
+                                    // Evaluasi keterlambatan per jadwal spesifik (now() > end_time + 30 menit)
                                     $sEndTimeStr = $schedule->end_time ? substr($schedule->end_time, 0, 8) : '00:00:00';
                                     $sEndCarbon = \Carbon\Carbon::createFromTimeString($sEndTimeStr);
                                     $isThisSchedOverdue = now()->greaterThan($sEndCarbon->copy()->addMinutes(30));
@@ -143,6 +156,7 @@
                             @endforeach
                         </ul>
                     </div>
+                    {{-- Tombol Tindakan Cepat: Mengisi Jurnal (Setelah diisi, alert otomatis hilang / TC-ALT-02) --}}
                     <a href="{{ route('guru.jurnal') }}" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl {{ $hasOverdue30 ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-200' : 'bg-amber-600 hover:bg-amber-700' }} px-5 py-2.5 text-sm font-semibold text-white transition shadow-sm active:scale-95">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         <span>Isi Jurnal Sekarang</span>

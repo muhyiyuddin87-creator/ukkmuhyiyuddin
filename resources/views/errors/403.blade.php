@@ -1,3 +1,9 @@
+{{-- =========================================================================
+     FITUR TC-SEC-03: HALAMAN RESPONS 403 UNAUTHORIZED / FORBIDDEN
+     - Ditampilkan ketika pengguna non-Waka (Guru/Siswa/Ortu) mencoba mengakses URL
+       khusus Waka Kurikulum (misal: /waka/lock-schedule atau /waka/toggle-cycle)
+     - Memberikan feedback penolakan backend dan tombol kembali ke Dashboard pengguna
+     ========================================================================= --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
