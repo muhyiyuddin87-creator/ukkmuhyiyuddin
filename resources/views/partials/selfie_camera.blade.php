@@ -2,7 +2,7 @@
     $cid = $componentId ?? 'selfie-camera-' . uniqid();
     $inputId = $inputId ?? 'leave-photo';
     $inputName = $inputName ?? 'photo';
-    $label = $label ?? 'Foto Bukti Selfie / Surat Keterangan';
+    $label = $label ?? 'Foto Bukti (Kamera Selfie / Berkas Galeri)';
     $isRequired = !empty($required);
     $studentDisplayName = $studentName ?? (Auth::user()->fullname ?? Auth::user()->username ?? 'Siswa');
     $studentClassDisplay = $studentClass ?? '';
@@ -27,10 +27,8 @@
         </span>
     </div>
 
-    <!-- Hidden input file utama yang dikirim ke backend -->
-    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/jpeg,image/png,image/webp" class="hidden">
-    <!-- Hidden input khusus untuk memilih file dari galeri / dokumen perangkat -->
-    <input type="file" id="{{ $cid }}-input-gallery" accept="image/jpeg,image/png,image/webp" class="hidden">
+    <!-- Hidden input file tunggal yang dikirim langsung ke backend dalam form -->
+    <input type="file" id="{{ $inputId }}" name="{{ $inputName }}" accept="image/*,.jpg,.jpeg,.png,.webp,.jfif" class="hidden">
 
     <!-- Box 1: Tampilan Awal (Idle State) -->
     <div id="{{ $cid }}-box-idle" class="rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-6 text-center transition hover:bg-emerald-50">
@@ -147,7 +145,6 @@
 
     const inputId = @json($inputId);
     const fileInput = document.getElementById(inputId);
-    const inputGallery = document.getElementById(`${cid}-input-gallery`);
     const boxIdle = document.getElementById(`${cid}-box-idle`);
     const boxViewfinder = document.getElementById(`${cid}-box-viewfinder`);
     const boxPreview = document.getElementById(`${cid}-box-preview`);
@@ -185,9 +182,8 @@
     function clearPhoto() {
         if (fileInput) {
             fileInput.value = '';
-            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
         }
-        if (inputGallery) inputGallery.value = '';
+        window.__leavePhotoFile = null;
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl);
             previewUrl = null;
@@ -245,15 +241,16 @@
         }
     }
 
-    function handleGallerySelect(e) {
-        const file = e.target.files && e.target.files[0];
+    // Handler ketika siswa memilih file foto dari galeri/penyimpanan perangkat
+    function handleFileSelection() {
+        const file = fileInput && fileInput.files && fileInput.files[0];
         if (!file) return;
 
-        // Validasi tipe file gambar
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-        if (!validTypes.includes(file.type.toLowerCase())) {
+        // Validasi tipe berkas gambar (cek MIME type atau ekstensi berkas)
+        const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpe?g|png|webp|jfif|bmp)$/i.test(file.name);
+        if (!isImage) {
             alert('Format berkas tidak didukung. Harap pilih gambar dengan format JPG, JPEG, PNG, atau WEBP.');
-            if (inputGallery) inputGallery.value = '';
+            clearPhoto();
             return;
         }
 
@@ -262,21 +259,12 @@
         if (file.size > maxBytes) {
             const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
             alert(`Ukuran berkas (${sizeMB} MB) melebihi batas maksimal 5 MB. Silakan pilih foto dengan ukuran lebih kecil.`);
-            if (inputGallery) inputGallery.value = '';
+            clearPhoto();
             return;
         }
 
-        // Sinkronkan berkas ke input utama (name="photo") menggunakan DataTransfer
-        if (fileInput) {
-            try {
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                fileInput.files = dt.files;
-                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-            } catch (err) {
-                console.warn('DataTransfer not fully supported:', err);
-            }
-        }
+        // Simpan referensi file secara global sebagai jaminan pengiriman FormData
+        window.__leavePhotoFile = file;
 
         // Tampilkan pratinjau foto galeri
         if (previewUrl) {
@@ -286,7 +274,7 @@
         if (imgPreview) imgPreview.src = previewUrl;
 
         if (badgeText) {
-            badgeText.textContent = 'Foto dari Galeri / Dokumen Terlampir';
+            badgeText.textContent = '✓ Foto dari Galeri / Dokumen Terlampir';
         }
         if (txtTimestamp) {
             const sizeFormatted = file.size > 1024 * 1024 
@@ -377,15 +365,14 @@
 
             const fileName = `selfie_${Date.now()}.jpg`;
             const file = new File([blob], fileName, { type: 'image/jpeg' });
+            window.__leavePhotoFile = file;
 
-            // Masukkan ke input file utama melalui DataTransfer
+            // Masukkan ke input file utama melalui DataTransfer jika didukung
             if (fileInput) {
                 try {
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
                     fileInput.files = dataTransfer.files;
-                    // Trigger change event agar listener form mendeteksi file baru
-                    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
                 } catch (e) {
                     console.warn('DataTransfer not supported:', e);
                 }
@@ -397,7 +384,7 @@
             }
             previewUrl = URL.createObjectURL(blob);
             if (imgPreview) imgPreview.src = previewUrl;
-            if (badgeText) badgeText.textContent = 'Foto Real-Time Siap Dikirim';
+            if (badgeText) badgeText.textContent = '✓ Foto Real-Time Siap Dikirim';
             if (txtTimestamp) txtTimestamp.textContent = `Tercatat: ${studentInfoText} (${dateStr} ${timeStr} WIB)`;
 
             stopStream();
@@ -406,13 +393,18 @@
         }, 'image/jpeg', 0.90);
     }
 
+    // Event Listeners
     if (btnOpen) btnOpen.addEventListener('click', openCamera);
-    if (btnGallery && inputGallery) {
-        btnGallery.addEventListener('click', () => inputGallery.click());
+
+    // Tombol Pilih dari Galeri langsung memicu input file utama secara native
+    if (btnGallery && fileInput) {
+        btnGallery.addEventListener('click', () => fileInput.click());
     }
-    if (inputGallery) {
-        inputGallery.addEventListener('change', handleGallerySelect);
+
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelection);
     }
+
     if (btnCancel) btnCancel.addEventListener('click', showIdle);
     if (btnCapture) btnCapture.addEventListener('click', capturePhoto);
 
@@ -423,9 +415,9 @@
         });
     }
 
-    if (btnRetakeGallery && inputGallery) {
+    if (btnRetakeGallery && fileInput) {
         btnRetakeGallery.addEventListener('click', () => {
-            inputGallery.click();
+            fileInput.click();
         });
     }
 

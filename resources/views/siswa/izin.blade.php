@@ -309,7 +309,8 @@
                 success.classList.add('hidden');
 
                 const photoInput = document.getElementById('leave-photo');
-                if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+                const hasFile = (photoInput && photoInput.files && photoInput.files.length > 0) || (window.__leavePhotoFile && window.__leavePhotoFile.size > 0);
+                if (!hasFile) {
                     errors.innerHTML = '<div class="flex items-center gap-2"><svg class="h-5 w-5 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span><strong>Peringatan:</strong> Pengajuan tidak dapat dikirim karena belum melampirkan foto bukti! Silakan ambil foto lewat tombol <strong>Buka Kamera Selfie Real-Time</strong> atau unggah lewat <strong>Pilih dari Galeri / Berkas</strong>.</span></div>';
                     errors.classList.remove('hidden');
                     errors.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -320,10 +321,17 @@
                 button.disabled = true;
 
                 try {
+                    const formData = new FormData(form);
+                    // Pastikan file foto masuk ke FormData (baik native input maupun fallback window.__leavePhotoFile)
+                    const attachedPhoto = formData.get('photo');
+                    if ((!attachedPhoto || !(attachedPhoto instanceof File) || attachedPhoto.size === 0) && window.__leavePhotoFile) {
+                        formData.set('photo', window.__leavePhotoFile);
+                    }
+
                     const response = await fetch(form.action, {
                         method: 'POST',
                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                        body: new FormData(form),
+                        body: formData,
                     });
                     const result = await response.json();
 
@@ -333,13 +341,12 @@
                     }
 
                     form.reset();
+                    window.__leavePhotoFile = null;
                     // Reset kamera selfie / berkas galeri ke state awal
                     const cameraCancelBtn = document.getElementById('leave-selfie-camera-btn-cancel');
                     if (cameraCancelBtn) cameraCancelBtn.click();
                     const cameraFileInput = document.getElementById('leave-photo');
                     if (cameraFileInput) cameraFileInput.value = '';
-                    const cameraGalleryInput = document.getElementById('leave-selfie-camera-input-gallery');
-                    if (cameraGalleryInput) cameraGalleryInput.value = '';
                     const cameraPreview = document.getElementById('leave-selfie-camera-box-preview');
                     if (cameraPreview) cameraPreview.classList.add('hidden');
                     const cameraIdle = document.getElementById('leave-selfie-camera-box-idle');

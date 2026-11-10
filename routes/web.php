@@ -979,7 +979,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $validated = $request->validate([
             'leave_type' => ['nullable', 'string', Rule::in(['Sakit', 'Izin', 'Izin Keluar Saat KBM'])],
             'reason' => ['required', 'string', 'max:2000'],
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp,jfif', 'max:5120'],
         ], [
             'photo.required' => 'Foto bukti (foto selfie atau surat keterangan) wajib dikirim.',
             'photo.image' => 'File bukti harus berupa gambar foto (JPG, PNG, WEBP).',
