@@ -3318,6 +3318,13 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return response()->download($path, 'JADWAL_PUTARAN_2.xlsx');
     })->name('waka.jadwal.download.putaran2');
 
+    Route::get('/waka/jadwal/download/data-master', function () {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+        $path = public_path('downloads/DATA_MASTER_DAN_ALOKASI_JADWAL.xlsx');
+        abort_unless(file_exists($path), 404, 'File data master belum tersedia.');
+        return response()->download($path, 'DATA_MASTER_GURU_MAPEL_RUANG_KELAS.xlsx');
+    })->name('waka.jadwal.download.master');
+
     Route::get('/waka/jadwal/auto-generate/template', function () {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
 
