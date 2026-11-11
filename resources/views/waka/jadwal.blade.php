@@ -394,12 +394,30 @@
                         </div>
                     </form>
 
-                    <a href="{{ route('waka.jadwal.pdf', ['cycle' => $activeCycle, 'jurusan' => $selectedJurusan ?? '', 'tingkat' => $selectedTingkat ?? '', 'rombel' => $selectedRombel ?? '', 'q' => $search ?? '']) }}" target="_blank" rel="noopener" class="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-rose-700 active:scale-95 transition whitespace-nowrap">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Ubah ke PDF
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('waka.jadwal.pdf', ['cycle' => $activeCycle, 'jurusan' => $selectedJurusan ?? '', 'tingkat' => $selectedTingkat ?? '', 'rombel' => $selectedRombel ?? '', 'q' => $search ?? '']) }}" target="_blank" rel="noopener" class="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-rose-700 active:scale-95 transition whitespace-nowrap">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Ubah ke PDF
+                        </a>
+
+                        @if(!$scheduleLocked)
+                            <button type="button" onclick="openBulkDeleteModal()" class="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-bold text-white shadow-sm hover:bg-red-700 active:scale-95 transition whitespace-nowrap" title="Hapus semua jadwal pada putaran ini">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Hapus Semua Jadwal
+                            </button>
+                        @else
+                            <button type="button" disabled title="Putaran sedang dikunci" class="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-100 border border-slate-200 px-3.5 text-sm font-semibold text-slate-400 cursor-not-allowed whitespace-nowrap">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                Terkunci
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
             <div class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-200">
@@ -588,6 +606,88 @@
                 </table>
             </div>
         </section>
+
+        <!-- Modal Konfirmasi Hapus Semua Jadwal -->
+        <div id="bulkDeleteModal" onclick="if(event.target === this) closeBulkDeleteModal()" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+            <div class="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+                <form method="POST" action="{{ route('waka.jadwal.destroy.all') }}">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="cycle_number" value="{{ $activeCycle }}">
+                    <input type="hidden" name="q" value="{{ $search ?? '' }}">
+                    <input type="hidden" name="jurusan" value="{{ $selectedJurusan ?? '' }}">
+                    <input type="hidden" name="tingkat" value="{{ $selectedTingkat ?? '' }}">
+                    <input type="hidden" name="rombel" value="{{ $selectedRombel ?? '' }}">
+                    <input type="hidden" name="kelas" value="{{ $selectedKelas ?? '' }}">
+
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-slate-800">Hapus Semua Jadwal</h3>
+                            <p class="mt-1 text-xs text-slate-500">
+                                Tindakan ini akan menghapus jadwal secara massal dari sistem untuk <strong>Tahun Ajaran {{ $academicYear }}</strong>.
+                            </p>
+                        </div>
+                        <button type="button" onclick="closeBulkDeleteModal()" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="mt-5 space-y-3">
+                        @php
+                            $isFiltered = (($selectedJurusan ?? '') !== '' || ($selectedTingkat ?? '') !== '' || ($selectedRombel ?? '') !== '' || ($search ?? '') !== '');
+                            $filteredCount = method_exists($jadwals, 'total') ? $jadwals->total() : $jadwals->count();
+                            $totalInCycle = $totalCycleSchedules ?? $filteredCount;
+                        @endphp
+
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Pilih Cakupan Jadwal yang Ingin Dihapus</label>
+                        
+                        @if($isFiltered)
+                            <div class="rounded-xl border border-rose-200 bg-rose-50/40 p-3.5 hover:bg-rose-50 transition cursor-pointer flex items-start gap-3">
+                                <input type="radio" id="scope_all" name="scope" value="all" checked class="mt-1 h-4 w-4 text-rose-600 focus:ring-rose-500">
+                                <label for="scope_all" class="cursor-pointer text-xs flex-1">
+                                    <span class="font-bold text-rose-700 block text-sm">Hapus Seluruh Jadwal Putaran {{ $activeCycle }}</span>
+                                    <span class="text-slate-600 block mt-0.5">Menghapus total <strong>{{ $totalInCycle }} jadwal</strong> di Putaran {{ $activeCycle }} secara menyeluruh.</span>
+                                </label>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-200 p-3.5 hover:border-rose-300 hover:bg-slate-50 transition cursor-pointer flex items-start gap-3">
+                                <input type="radio" id="scope_filtered" name="scope" value="filtered" class="mt-1 h-4 w-4 text-rose-600 focus:ring-rose-500">
+                                <label for="scope_filtered" class="cursor-pointer text-xs flex-1">
+                                    <span class="font-bold text-slate-800 block text-sm">Hanya Hapus Hasil Filter / Pencarian Saat Ini</span>
+                                    <span class="text-slate-500 block mt-0.5">Hanya menghapus <strong>{{ $filteredCount }} jadwal</strong> yang sedang tampil pada filter pencarian aktif.</span>
+                                </label>
+                            </div>
+                        @else
+                            <input type="hidden" name="scope" value="all">
+                            <div class="rounded-xl bg-rose-50 border border-rose-200 p-4 text-xs text-rose-900">
+                                <p class="font-bold text-sm mb-1">Konfirmasi Penghapusan Total Putaran {{ $activeCycle }}</p>
+                                <p>Akan menghapus seluruh <strong>{{ $totalInCycle }} jadwal</strong> yang terdaftar pada Putaran {{ $activeCycle }} (Tahun Ajaran {{ $academicYear }}).</p>
+                            </div>
+                        @endif
+
+                        <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2">
+                            <svg class="h-4 w-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span><strong>Peringatan:</strong> Jadwal yang dihapus tidak dapat dipulihkan. Jurnal atau presensi yang terhubung ke jadwal ini juga akan otomatis dibersihkan agar integritas database tetap terjaga.</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <button type="button" onclick="closeBulkDeleteModal()" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-rose-700 active:scale-95 transition">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Ya, Hapus Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
 @endsection
 
 @push('scripts')
@@ -821,6 +921,26 @@
         }
         return confirm(`Mulai proses penyusunan jadwal otomatis dari file Excel pada Putaran ${cycle}?`);
     }
+
+    function openBulkDeleteModal() {
+        const modal = document.getElementById('bulkDeleteModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeBulkDeleteModal() {
+        const modal = document.getElementById('bulkDeleteModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeBulkDeleteModal();
+    });
 
     // Muat 3 baris kosong secara default saat halaman dibuka
     document.addEventListener('DOMContentLoaded', () => {

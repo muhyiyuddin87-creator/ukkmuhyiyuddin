@@ -3114,9 +3114,17 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
         $jurusanOptions = ['RPL', 'TKJ', 'DKV', 'AKL', 'MP', 'BR', 'BD', 'LPS'];
 
+        $totalCycleSchedules = DB::table('schedules')
+            ->where('cycle_number', $activeCycle)
+            ->where(function ($query) use ($currentAcademicYear) {
+                $query->where('academic_year', $currentAcademicYear)->orWhereNull('academic_year');
+            })
+            ->count();
+
         return view('waka.jadwal', [
             'user' => Auth::user(),
             'jadwals' => $jadwals,
+            'totalCycleSchedules' => $totalCycleSchedules,
             'gurus' => $gurus,
             'rooms' => $rooms,
             'classOptions' => $classOptions,
@@ -4043,6 +4051,106 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
         return redirect()->route('waka.jadwal')->with('success', 'Jadwal berhasil diperbarui.');
     })->name('waka.jadwal.update');
+
+    Route::match(['DELETE', 'POST'], '/waka/jadwal/destroy-all', function (Request $request) use ($ensureScheduleConfig, $currentAcademicYear) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $cycleNumber = (int) $request->input('cycle_number', 1);
+        $config = $ensureScheduleConfig();
+        $lockColumn = $cycleNumber === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
+        if (! empty($config->{$lockColumn})) {
+            return back()->withErrors(['schedule' => "Putaran {$cycleNumber} sedang dikunci. Buka kunci terlebih dahulu untuk menghapus jadwal."]);
+        }
+
+        $scope = $request->input('scope', 'all');
+
+        $query = DB::table('schedules')
+            ->where('schedules.cycle_number', $cycleNumber)
+            ->where(function ($q) use ($currentAcademicYear) {
+                $q->where('schedules.academic_year', $currentAcademicYear)->orWhereNull('schedules.academic_year');
+            });
+
+        if ($scope === 'filtered') {
+            $search = trim((string) $request->input('q', ''));
+            $selectedJurusan = trim((string) $request->input('jurusan', ''));
+            $selectedTingkat = trim((string) $request->input('tingkat', ''));
+            $selectedRombel = trim((string) $request->input('rombel', ''));
+            $selectedKelas = trim((string) $request->input('kelas', ''));
+
+            if ($search !== '') {
+                $query->leftJoin('users', 'schedules.teacher_id', '=', 'users.id');
+                $query->where(function ($q) use ($search) {
+                    $q->where('schedules.subject', 'like', "%{$search}%")
+                        ->orWhere('users.fullname', 'like', "%{$search}%")
+                        ->orWhere('schedules.class_name', 'like', "%{$search}%")
+                        ->orWhere('schedules.day_of_week', 'like', "%{$search}%");
+                });
+            }
+
+            if (! empty($selectedJurusan)) {
+                $classesInJurusan = DB::table('siswas')
+                    ->where('jurusan', $selectedJurusan)
+                    ->whereNotNull('kelas')
+                    ->pluck('kelas')
+                    ->unique()
+                    ->all();
+
+                $query->where(function ($q) use ($selectedJurusan, $classesInJurusan) {
+                    if (! empty($classesInJurusan)) {
+                        $q->whereIn('schedules.class_name', $classesInJurusan);
+                    }
+                    $q->orWhere('schedules.class_name', 'like', "% {$selectedJurusan}%")
+                      ->orWhere('schedules.class_name', 'like', "%{$selectedJurusan}%");
+                });
+            }
+
+            if (! empty($selectedTingkat)) {
+                $query->where(function ($q) use ($selectedTingkat) {
+                    $q->where('schedules.class_name', 'like', "{$selectedTingkat} %")
+                        ->orWhere('schedules.class_name', 'like', "{$selectedTingkat}-%")
+                        ->orWhere('schedules.class_name', '=', $selectedTingkat);
+                });
+            }
+
+            if (! empty($selectedRombel)) {
+                $query->where(function ($q) use ($selectedRombel) {
+                    $q->where('schedules.class_name', 'like', "% {$selectedRombel}")
+                        ->orWhere('schedules.class_name', 'like', "%-{$selectedRombel}")
+                        ->orWhere('schedules.class_name', 'like', "% {$selectedRombel} %");
+                    if ($selectedRombel === '1') {
+                        $q->orWhere(function ($sub) {
+                            $sub->where('schedules.class_name', 'not like', '% 2')
+                                ->where('schedules.class_name', 'not like', '% 3')
+                                ->where('schedules.class_name', 'not like', '% 4');
+                        });
+                    }
+                });
+            }
+
+            if (! empty($selectedKelas)) {
+                $query->where('schedules.class_name', $selectedKelas);
+            }
+        }
+
+        $scheduleIds = (clone $query)->distinct()->pluck('schedules.id')->all();
+        $count = count($scheduleIds);
+
+        if ($count === 0) {
+            return back()->with('info', 'Tidak ada jadwal yang cocok untuk dihapus.');
+        }
+
+        DB::transaction(function () use ($scheduleIds) {
+            $journalIds = DB::table('journals')->whereIn('schedule_id', $scheduleIds)->pluck('id')->all();
+            if (! empty($journalIds)) {
+                DB::table('attendances')->whereIn('journal_id', $journalIds)->delete();
+                DB::table('journals')->whereIn('id', $journalIds)->delete();
+            }
+            DB::table('schedules')->whereIn('id', $scheduleIds)->delete();
+        });
+
+        $scopeDesc = $scope === 'filtered' ? ' (sesuai filter pencarian)' : '';
+        return redirect()->route('waka.jadwal')->with('success', "Berhasil menghapus {$count} jadwal dari Putaran {$cycleNumber}{$scopeDesc}.");
+    })->name('waka.jadwal.destroy.all');
 
     Route::delete('/waka/jadwal/{id}', function (int $id) use ($ensureScheduleConfig, $currentAcademicYear) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);

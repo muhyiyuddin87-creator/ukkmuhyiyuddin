@@ -491,3 +491,4 @@ class AutoScheduleGeneratorService
         return $allocations;
     }
 }
+
