@@ -274,10 +274,55 @@ class AutoScheduleGeneratorService
                     $currentDayLoad = $classDailyJp[$day][$className] ?? 0;
                     $score -= ($currentDayLoad * 25);
 
-                    // Sedikit bonus untuk slot pagi hari
-                    if ($candidateSlots[0]['seq'] <= 3) {
-                        $score += 50;
+                    $startSeq = $candidateSlots[0]['seq'];
+                    $endSeq = end($candidateSlots)['seq'];
+
+                    // Heuristik Pemadatan Jadwal dari Jam Pertama (Pack from Jam ke-1):
+                    $isDayEmptyForClass = ($currentDayLoad === 0);
+                    if ($isDayEmptyForClass) {
+                        // Jika hari ini belum ada jadwal sama sekali untuk kelas ini, prioritaskan mulai dari Jam ke-1
+                        if ($startSeq === 1) {
+                            $score += 2500;
+                        } else {
+                            // Penalti jika memulai di jam 2, 3, dst padahal jam 1 masih kosong
+                            $score -= ($startSeq * 500);
+                        }
+                    } else {
+                        // Jika hari ini sudah ada jadwal untuk kelas ini:
+                        // Cek apakah jam ke-1 untuk kelas ini sudah terisi
+                        $period1Filled = ! empty($classBusy[$day][$className]['period_1']);
+                        if (! $period1Filled) {
+                            if ($startSeq === 1) {
+                                $score += 3000; // Segera isi jam ke-1 yang masih bolong!
+                            } else {
+                                $score -= 1200; // Jangan tambah jadwal di siang jika jam 1 belum terisi
+                            }
+                        }
+
+                        // Cek kekompakan (Contiguity): Apakah slot ini menempel langsung sebelum atau sesudah slot yang sudah ada?
+                        $prevSeq = $startSeq - 1;
+                        $nextSeq = $endSeq + 1;
+                        $prevCode = "period_{$prevSeq}";
+                        $nextCode = "period_{$nextSeq}";
+
+                        $attached = false;
+                        if (! empty($classBusy[$day][$className][$prevCode])) {
+                            $attached = true;
+                            $score += 1000;
+                        }
+                        if (! empty($classBusy[$day][$className][$nextCode])) {
+                            $attached = true;
+                            $score += 1000;
+                        }
+
+                        // Jika tidak menempel sama sekali (menciptakan jeda/bolong di tengah hari), beri penalti
+                        if (! $attached) {
+                            $score -= 800;
+                        }
                     }
+
+                    // Bonus bertingkat untuk jam lebih awal agar sisa jam kosong berada di akhir hari (pulang awal)
+                    $score += max(0, (11 - $startSeq) * 20);
 
                     if ($score > $bestScore) {
                         $bestScore = $score;
