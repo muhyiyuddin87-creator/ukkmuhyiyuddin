@@ -117,23 +117,15 @@
                     </div>
                 </div>
 
-                <div class="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/20 p-6 text-center mb-5">
-                    <svg class="mx-auto h-12 w-12 text-indigo-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                <div class="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/20 p-5 text-center mb-5">
                     <h4 class="text-sm font-bold text-slate-800">Pilih Berkas Alokasi Jadwal (.xlsx, .xls, .csv)</h4>
-                    <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                        Format berkas berisi kolom: <strong>Nama Guru</strong>, <strong>Mata Pelajaran</strong>, <strong>Kelas</strong>, <strong>Ruangan</strong>, <strong>Jumlah JP</strong>, dan <strong>Jenis</strong>.
-                    </p>
                     <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
                         <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="text-xs text-slate-600 file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700 focus:outline-none">
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('waka.jadwal.download.master') }}" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition shadow-2xs" title="Unduh data gabungan Guru, Mapel, Ruangan, Kelas yang ada di project">
-                                <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <a href="{{ route('waka.jadwal.download.master') }}" class="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition shadow-2xs" title="Unduh data gabungan Guru, Mapel, Ruangan, Kelas yang ada di project">
                                 Unduh Data Master (.xlsx)
                             </a>
-                            <a href="{{ route('waka.jadwal.auto.template') }}" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition shadow-2xs">
-                                <svg class="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <a href="{{ route('waka.jadwal.auto.template') }}" class="inline-flex items-center rounded-lg bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition shadow-2xs">
                                 Template Kosong
                             </a>
                         </div>
@@ -141,9 +133,8 @@
                 </div>
 
                 <div class="flex items-center justify-end">
-                    <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition active:scale-95">
-                        <svg class="h-5 w-5 text-amber-300" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        <span>⚡ Susun Jadwal Otomatis dari Excel</span>
+                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition active:scale-95">
+                        Susun Jadwal Otomatis dari Excel
                     </button>
                 </div>
             </form>
