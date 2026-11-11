@@ -149,25 +149,93 @@
                     </div>
                 </div>
 
-                <!-- Filter Hari Interaktif -->
-                <div class="mb-6 flex flex-wrap items-center gap-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
-                    <button type="button" onclick="filterDashboardDay('all')" class="dashboard-day-btn active inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold bg-emerald-600 text-white shadow-xs transition" data-day="all">
-                        <span>Semua Hari</span>
-                        <span class="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">{{ $jadwalList->count() }}</span>
-                    </button>
-                    @foreach($daysList as $d)
-                        @php
-                            $countDay = $jadwalList->where('day_of_week', $d)->count();
-                        @endphp
-                        <button type="button" onclick="filterDashboardDay('{{ $d }}')" class="dashboard-day-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition" data-day="{{ $d }}">
-                            <span>{{ $d }}</span>
-                            <span class="rounded-full bg-slate-100 text-slate-700 px-1.5 py-0.2 text-[10px] font-bold">{{ $countDay }}</span>
+                <!-- Bar Navigasi Filter Hari Interaktif & Mode Tampilan -->
+                <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+                    <div class="flex flex-wrap items-center gap-1.5" id="dashboard-day-filter-container">
+                        <button type="button" onclick="filterDashboardDay('all')" class="dashboard-day-btn active inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold bg-emerald-600 text-white shadow-xs transition" data-day="all">
+                            <span>Semua Hari</span>
+                            <span class="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">{{ $jadwalList->count() }}</span>
                         </button>
-                    @endforeach
+                        @foreach($daysList as $d)
+                            @php
+                                $countDay = $jadwalList->where('day_of_week', $d)->count();
+                            @endphp
+                            <button type="button" onclick="filterDashboardDay('{{ $d }}')" class="dashboard-day-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition" data-day="{{ $d }}">
+                                <span>{{ $d }}</span>
+                                <span class="rounded-full bg-slate-100 text-slate-700 px-1.5 py-0.2 text-[10px] font-bold">{{ $countDay }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <!-- Toggle View Mode: Tabel Resmi (Default) vs Kartu -->
+                    <div class="inline-flex items-center rounded-xl bg-white p-1 border border-slate-200 self-start sm:self-auto">
+                        <button type="button" onclick="switchDashboardViewMode('table')" id="dash-view-table" class="dash-toggle-btn active inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs transition">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            <span>Tabel</span>
+                        </button>
+                        <button type="button" onclick="switchDashboardViewMode('grid')" id="dash-view-grid" class="dash-toggle-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                            <span>Kartu</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Grid Kartu Jadwal Modern -->
-                <div id="dashboard-schedule-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- 1. Tampilan Konsep Utama: Tabel Jadwal Resmi Bergaris -->
+                <div id="dashboard-schedule-table-view" class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
+                    <div class="overflow-x-auto table-scroll-container">
+                        <table class="official-schedule-table w-full text-left text-xs border-collapse border border-slate-700 min-w-[850px]">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
+                                    <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
+                                    <th class="border border-slate-700 px-4 py-3 w-28">HARI</th>
+                                    <th class="border border-slate-700 px-4 py-3 w-40">WAKTU / JAM</th>
+                                    <th class="border border-slate-700 px-4 py-3">MATA PELAJARAN</th>
+                                    <th class="border border-slate-700 px-4 py-3">GURU PENGAMPU</th>
+                                    <th class="border border-slate-700 px-4 py-3 w-24 text-center">KELAS</th>
+                                    <th class="border border-slate-700 px-4 py-3 w-28 text-center">RUANGAN</th>
+                                    <th class="border border-slate-700 px-4 py-3 w-24 text-center">JENIS</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700" id="dashboard-schedule-table-body">
+                                @forelse($jadwalList as $index => $j)
+                                    @php
+                                        $periodLabel = \App\Support\SchoolTimetable::labelFor($j->day_of_week, $j->start_time, $j->end_time);
+                                        $startTime = substr($j->start_time, 0, 5);
+                                        $endTime = substr($j->end_time, 0, 5);
+                                        $teacherName = $j->guru_name ?? ('Guru #' . ($j->teacher_id ?? '-'));
+                                        $className = $j->class_name ?? ($studentClass ?? '-');
+                                        $roomName = $j->nama_ruangan ?? ($j->room_id ? 'Ruang ' . $j->room_id : '-');
+                                        $jenis = in_array($j->cycle_type, ['Regular', 'Normada', null], true) ? 'Normada' : $j->cycle_type;
+                                    @endphp
+                                    <tr class="dashboard-schedule-row transition hover:bg-emerald-50/40 {{ $index % 2 === 1 ? 'bg-slate-50/70' : 'bg-white' }}" data-day="{{ $j->day_of_week }}">
+                                        <td class="border border-slate-700 px-3 py-3 text-center font-bold text-slate-800 dashboard-schedule-row-num">{{ $index + 1 }}</td>
+                                        <td class="border border-slate-700 px-4 py-3 font-bold text-slate-900">{{ $j->day_of_week }}</td>
+                                        <td class="border border-slate-700 px-4 py-3 text-slate-800 whitespace-nowrap">
+                                            <div class="font-medium text-slate-900">{{ $startTime }} - {{ $endTime }} WIB</div>
+                                            @if($periodLabel)
+                                                <div class="text-[10px] text-slate-500 italic mt-0.5">{{ $periodLabel }}</div>
+                                            @endif
+                                        </td>
+                                        <td class="border border-slate-700 px-4 py-3 font-bold text-slate-900">{{ $j->subject }}</td>
+                                        <td class="border border-slate-700 px-4 py-3 font-medium text-slate-800">{{ $teacherName }}</td>
+                                        <td class="border border-slate-700 px-4 py-3 text-center font-bold text-slate-900">{{ $className }}</td>
+                                        <td class="border border-slate-700 px-4 py-3 text-center text-slate-700">{{ $roomName }}</td>
+                                        <td class="border border-slate-700 px-4 py-3 text-center font-semibold text-slate-700">{{ $jenis }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="border border-slate-700 px-4 py-12 text-center text-slate-500 italic">
+                                            Tidak ada jadwal pelajaran yang ditemukan untuk kelas ini pada Putaran {{ $activeCycle }}.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Grid Kartu Jadwal Modern (Tampilan Alternatif) -->
+                <div id="dashboard-schedule-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     @forelse ($jadwalList as $jadwal)
                         @php
                             $theme = $dayThemes[$jadwal->day_of_week] ?? [
@@ -334,7 +402,11 @@
 
 @push('scripts')
 <script>
+    let currentDashboardDay = 'all';
+
     function filterDashboardDay(day) {
+        currentDashboardDay = day;
+        const rows = document.querySelectorAll('.dashboard-schedule-row');
         const cards = document.querySelectorAll('.dashboard-schedule-card');
         const buttons = document.querySelectorAll('.dashboard-day-btn');
 
@@ -346,6 +418,20 @@
             }
         });
 
+        // Filter tabel & susun ulang penomoran urut secara dinamis
+        let visibleCount = 0;
+        rows.forEach(row => {
+            if (day === 'all' || row.getAttribute('data-day') === day) {
+                row.style.display = '';
+                visibleCount++;
+                const numCell = row.querySelector('.dashboard-schedule-row-num');
+                if (numCell) numCell.textContent = visibleCount;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Filter kartu
         cards.forEach(card => {
             if (day === 'all' || card.getAttribute('data-day') === day) {
                 card.style.display = 'flex';
@@ -353,6 +439,27 @@
                 card.style.display = 'none';
             }
         });
+    }
+
+    function switchDashboardViewMode(mode) {
+        const tableView = document.getElementById('dashboard-schedule-table-view');
+        const cardGrid = document.getElementById('dashboard-schedule-grid');
+        const btnTable = document.getElementById('dash-view-table');
+        const btnGrid = document.getElementById('dash-view-grid');
+
+        if (mode === 'table') {
+            tableView.classList.remove('hidden');
+            cardGrid.classList.add('hidden');
+            btnTable.className = 'dash-toggle-btn active inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs transition';
+            btnGrid.className = 'dash-toggle-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
+        } else {
+            tableView.classList.add('hidden');
+            cardGrid.classList.remove('hidden');
+            btnGrid.className = 'dash-toggle-btn active inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs transition';
+            btnTable.className = 'dash-toggle-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
+        }
+
+        filterDashboardDay(currentDashboardDay);
     }
 </script>
 @endpush

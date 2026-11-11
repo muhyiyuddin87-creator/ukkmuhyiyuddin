@@ -244,7 +244,7 @@
                     @foreach($jadwals as $j)
                         <form id="update-schedule-{{ $j->id }}" method="POST" action="{{ route('waka.jadwal.update', $j->id) }}">@csrf @method('PATCH')</form>
                     @endforeach
-                    <table class="w-full min-w-[1300px] text-left text-xs border-collapse border border-slate-700">
+                    <table class="official-schedule-table w-full min-w-[1300px] text-left text-xs border-collapse border border-slate-700">
                         <thead>
                             <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
                                 <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>

@@ -36,14 +36,13 @@
             scrollbar-color: #cbd5e1 #f1f5f9;
         }
 
-        .overflow-x-auto:has(table) table,
-        .table-scroll-container table {
+        .overflow-x-auto:has(table:not(.official-schedule-table)) table:not(.official-schedule-table),
+        .table-scroll-container table:not(.official-schedule-table) {
             border-collapse: separate;
             border-spacing: 0;
         }
 
-        .overflow-x-auto:has(table) thead,
-        .table-scroll-container thead {
+        .table-scroll-container thead:not(:has(.official-schedule-table th)) {
             position: sticky;
             top: 0;
             z-index: 20;
@@ -51,13 +50,29 @@
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
-        .overflow-x-auto:has(table) thead th,
-        .table-scroll-container thead th {
+        .table-scroll-container thead:not(:has(.official-schedule-table th)) th {
             position: sticky;
             top: 0;
             z-index: 20;
             background-color: inherit;
             border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Konsep Resmi Tabel Jadwal Bergaris Tegas (Sesuai PDF/Cetak) */
+        .official-schedule-table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+
+        .official-schedule-table th,
+        .official-schedule-table td {
+            border: 1px solid #1e293b !important;
+        }
+
+        .official-schedule-table thead th {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-bottom: 2px solid #0f172a !important;
         }
 
         /* Scrollbar kustom halus */

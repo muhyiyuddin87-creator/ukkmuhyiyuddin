@@ -123,7 +123,7 @@
                 <!-- 1. Tampilan Konsep Utama: Tabel Jadwal Resmi Bergaris -->
                 <div id="schedule-table-container" class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
                     <div class="overflow-x-auto table-scroll-container">
-                        <table class="w-full text-left text-xs border-collapse border border-slate-700 min-w-[850px]">
+                        <table class="official-schedule-table w-full text-left text-xs border-collapse border border-slate-700 min-w-[850px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
                                     <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
