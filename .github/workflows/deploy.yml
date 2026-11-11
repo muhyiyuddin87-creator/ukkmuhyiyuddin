@@ -95,8 +95,11 @@ jobs:
 
             cd /var/www/ukkmuhyiyuddin
 
-            # Tarik kode terbaru dari GitHub
+            # Tarik kode terbaru dari GitHub dengan paksa (force sync) agar tidak terhambat perubahan lokal
             git config --global --add safe.directory /var/www/ukkmuhyiyuddin
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd -e .env -e storage/
             git pull origin main
 
             # Install dependensi PHP & build frontend Tailwind CSS
@@ -129,19 +132,23 @@ jobs:
             # Migrasi database TiDB Cloud jika ada perubahan tabel
             php artisan migrate --force
 
-            # Optimalkan cache Laravel
-            php artisan config:clear
+            # Optimalkan cache Laravel (bersihkan cache lama secara menyeluruh)
+            php artisan optimize:clear || true
+            php artisan view:clear || true
+            php artisan config:clear || true
+            php artisan route:clear || true
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
 
             # Pastikan permission folder storage & cache aman untuk web server www-data
-            chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
-            chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+            run_sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+            run_sudo chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
-            # Restart worker & reload PHP-FPM
-            sudo systemctl reload php8.4-fpm 2>/dev/null || systemctl reload php8.4-fpm 2>/dev/null || true
-            sudo systemctl restart ukk-worker.service 2>/dev/null || systemctl restart ukk-worker.service 2>/dev/null || true
+            # Restart worker & reload PHP-FPM dan Nginx
+            run_sudo systemctl reload php8.4-fpm 2>/dev/null || run_sudo systemctl reload php*-fpm 2>/dev/null || run_sudo systemctl restart php8.4-fpm 2>/dev/null || true
+            run_sudo systemctl restart ukk-worker.service 2>/dev/null || true
+            run_sudo systemctl reload nginx 2>/dev/null || true
 
             echo "✅ Deployment Selesai & Aplikasi Live di https://tugasukk.web.id!"
 

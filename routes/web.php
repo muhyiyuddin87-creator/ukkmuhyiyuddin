@@ -48,6 +48,14 @@ Route::get('/', function () use ($dashboardRoleForUser) {
     return view('landing', compact('totalSiswa', 'totalGuru', 'totalKelas', 'totalJadwal', 'activeCycle'));
 })->name('landing');
 
+Route::get('/api/version-check', function () {
+    return response()->json([
+        'status' => 'ok',
+        'build' => 'clean-table-v2',
+        'time' => '2026-11-11 20:30:00',
+    ]);
+});
+
 Route::get('/login', function () use ($dashboardRoleForUser) {
     if (Auth::check()) {
         return redirect()->route('dashboard.role', ['role' => $dashboardRoleForUser(Auth::user())]);
