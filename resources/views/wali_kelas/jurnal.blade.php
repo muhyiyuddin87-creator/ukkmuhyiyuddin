@@ -13,48 +13,49 @@
     </header>
     <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="mb-4 text-xl font-bold text-slate-800">Jadwal Kelas</h3>
-        <div class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
+        <div class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-200">
             <div class="overflow-x-auto table-scroll-container">
-                <table class="official-schedule-table w-full min-w-[950px] text-left text-xs border-collapse border border-slate-700">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
-                            <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
-                            <th class="border border-slate-700 px-4 py-3 w-28">HARI</th>
-                            <th class="border border-slate-700 px-4 py-3 w-40">WAKTU / JAM</th>
-                            <th class="border border-slate-700 px-4 py-3">MATA PELAJARAN</th>
-                            <th class="border border-slate-700 px-4 py-3">GURU PENGAMPU</th>
-                            <th class="border border-slate-700 px-4 py-3 w-28 text-center">KELAS</th>
-                            <th class="border border-slate-700 px-4 py-3 w-28 text-center">RUANGAN</th>
-                            <th class="border border-slate-700 px-4 py-3 w-24 text-center">JENIS</th>
+                <table class="w-full min-w-[950px] text-left text-sm">
+                    <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50/70">
+                        <tr>
+                            <th class="whitespace-nowrap px-4 py-3">Hari</th>
+                            <th class="whitespace-nowrap px-4 py-3">Mata Pelajaran</th>
+                            <th class="whitespace-nowrap px-4 py-3">Waktu Belajar</th>
+                            <th class="whitespace-nowrap px-4 py-3">Guru Pengampu</th>
+                            <th class="whitespace-nowrap px-4 py-3 text-center">Kelas</th>
+                            <th class="whitespace-nowrap px-4 py-3 text-center">Ruangan</th>
+                            <th class="whitespace-nowrap px-4 py-3 text-center">Jenis</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-700">
-                        @forelse($schedules as $index => $schedule)
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($schedules as $schedule)
                             @php
                                 $periodLabel = \App\Support\SchoolTimetable::labelFor($schedule->day_of_week, $schedule->start_time, $schedule->end_time);
+                                $startTime = substr($schedule->start_time, 0, 5);
+                                $endTime = substr($schedule->end_time, 0, 5);
+                                $jenis = in_array($schedule->cycle_type, ['Regular', 'Normada', null], true) ? 'Regular' : $schedule->cycle_type;
                             @endphp
-                            <tr class="{{ $index % 2 === 1 ? 'bg-slate-50/70' : 'bg-white' }} hover:bg-slate-100/70 transition">
-                                <td class="border border-slate-700 px-3 py-2.5 text-center font-bold text-slate-800">{{ $index + 1 }}</td>
-                                <td class="border border-slate-700 px-4 py-2.5 font-bold text-slate-900 whitespace-nowrap">{{ $schedule->day_of_week }}</td>
-                                <td class="border border-slate-700 px-4 py-2.5 text-slate-800 whitespace-nowrap">
-                                    <div class="font-bold">{{ substr($schedule->start_time, 0, 5) }} - {{ substr($schedule->end_time, 0, 5) }} WIB</div>
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="whitespace-nowrap px-4 py-3.5 font-bold text-slate-800">{{ $schedule->day_of_week }}</td>
+                                <td class="whitespace-nowrap px-4 py-3.5 font-medium text-slate-800">{{ $schedule->subject }}</td>
+                                <td class="whitespace-nowrap px-4 py-3.5 text-slate-600">
+                                    {{ $startTime }} - {{ $endTime }}
                                     @if($periodLabel)
-                                        <div class="text-[10px] text-slate-500 font-medium">{{ $periodLabel }}</div>
+                                        <span class="block text-[11px] text-slate-400 font-normal">{{ $periodLabel }}</span>
                                     @endif
                                 </td>
-                                <td class="border border-slate-700 px-4 py-2.5 font-bold text-slate-900">{{ $schedule->subject }}</td>
-                                <td class="border border-slate-700 px-4 py-2.5 font-medium text-slate-800">{{ $schedule->teacher_name ?? '-' }}</td>
-                                <td class="border border-slate-700 px-4 py-2.5 text-center font-bold text-slate-900 whitespace-nowrap">{{ $schedule->class_name ?? '-' }}</td>
-                                <td class="border border-slate-700 px-4 py-2.5 text-center text-slate-700 whitespace-nowrap">{{ $schedule->nama_ruangan ?? '-' }}</td>
-                                <td class="border border-slate-700 px-4 py-2.5 text-center whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ ($schedule->cycle_type ?? '') === 'Jurusan' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700' }}">
-                                        {{ ($schedule->cycle_type ?? '') === 'Regular' ? 'Normada' : ($schedule->cycle_type ?? 'Normada') }}
+                                <td class="whitespace-nowrap px-4 py-3.5 text-slate-700 font-medium">{{ $schedule->teacher_name ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-4 py-3.5 text-center font-bold text-slate-900">{{ $schedule->class_name ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-4 py-3.5 text-center text-slate-600">{{ $schedule->nama_ruangan ?? '-' }}</td>
+                                <td class="whitespace-nowrap px-4 py-3.5 text-center">
+                                    <span class="inline-flex items-center rounded-full px-3 py-0.5 text-xs font-semibold {{ $jenis === 'Jurusan' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800' }}">
+                                        {{ $jenis }}
                                     </span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="border border-slate-700 px-4 py-8 text-center italic text-slate-400">
+                                <td colspan="7" class="px-4 py-8 text-center italic text-slate-400">
                                     Belum ada jadwal untuk kelas yang ditugaskan.
                                 </td>
                             </tr>

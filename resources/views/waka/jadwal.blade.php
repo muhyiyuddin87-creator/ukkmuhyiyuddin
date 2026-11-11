@@ -239,26 +239,26 @@
                     </a>
                 </div>
             </div>
-            <div class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
+            <div class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-200">
                 <div class="overflow-x-auto table-scroll-container">
                     @foreach($jadwals as $j)
                         <form id="update-schedule-{{ $j->id }}" method="POST" action="{{ route('waka.jadwal.update', $j->id) }}">@csrf @method('PATCH')</form>
                     @endforeach
-                    <table class="official-schedule-table w-full min-w-[1300px] text-left text-xs border-collapse border border-slate-700">
-                        <thead>
-                            <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
-                                <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
-                                <th class="border border-slate-700 px-3 py-3 w-28">HARI</th>
-                                <th class="border border-slate-700 px-3 py-3 w-56">WAKTU / JAM</th>
-                                <th class="border border-slate-700 px-3 py-3">MATA PELAJARAN</th>
-                                <th class="border border-slate-700 px-3 py-3">GURU PENGAMPU</th>
-                                <th class="border border-slate-700 px-3 py-3 w-36 text-center">KELAS</th>
-                                <th class="border border-slate-700 px-3 py-3 w-36 text-center">RUANGAN</th>
-                                <th class="border border-slate-700 px-3 py-3 w-28 text-center">JENIS</th>
-                                <th class="border border-slate-700 px-3 py-3 w-32 text-center">AKSI</th>
+                    <table class="w-full min-w-[1300px] text-left text-xs">
+                        <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50/70">
+                            <tr>
+                                <th class="px-3 py-3 text-center w-12">NO</th>
+                                <th class="px-3 py-3 w-28">HARI</th>
+                                <th class="px-3 py-3 w-56">WAKTU / JAM</th>
+                                <th class="px-3 py-3">MATA PELAJARAN</th>
+                                <th class="px-3 py-3">GURU PENGAMPU</th>
+                                <th class="px-3 py-3 w-36 text-center">KELAS</th>
+                                <th class="px-3 py-3 w-36 text-center">RUANGAN</th>
+                                <th class="px-3 py-3 w-28 text-center">JENIS</th>
+                                <th class="px-3 py-3 w-32 text-center">AKSI</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-700">
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($jadwals as $index => $j)
                             @php
                                 $currentPeriodCode = \App\Support\SchoolTimetable::codeFor($j->day_of_week, $j->start_time, $j->end_time);
@@ -267,9 +267,9 @@
                                     ? $jadwals->firstItem() + $index 
                                     : $index + 1;
                             @endphp
-                            <tr class="{{ $index % 2 === 1 ? 'bg-slate-50/70' : 'bg-white' }} hover:bg-slate-100/70 transition" data-period-row data-original-day="{{ $j->day_of_week }}" data-legacy-start="{{ substr($j->start_time, 0, 5) }}" data-legacy-end="{{ substr($j->end_time, 0, 5) }}" data-legacy-code="{{ $currentPeriodCode ?? 'legacy' }}">
-                                <td class="border border-slate-700 px-3 py-2 text-center font-bold text-slate-800">{{ $rowNumber }}</td>
-                                <td class="border border-slate-700 px-2.5 py-2">
+                            <tr class="hover:bg-slate-50/80 transition" data-period-row data-original-day="{{ $j->day_of_week }}" data-legacy-start="{{ substr($j->start_time, 0, 5) }}" data-legacy-end="{{ substr($j->end_time, 0, 5) }}" data-legacy-code="{{ $currentPeriodCode ?? 'legacy' }}">
+                                <td class="px-3 py-3 text-center font-bold text-slate-800">{{ $rowNumber }}</td>
+                                <td class="px-2.5 py-3">
                                     <select form="update-schedule-{{ $j->id }}" name="day_of_week" required data-day-select class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs font-bold text-slate-900 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                         @foreach(\App\Support\SchoolTimetable::DAYS as $day)<option value="{{ $day }}" @selected($j->day_of_week === $day)>{{ $day }}</option>@endforeach
                                         @if(!in_array($j->day_of_week, \App\Support\SchoolTimetable::DAYS, true))
@@ -277,7 +277,7 @@
                                         @endif
                                     </select>
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2">
+                                <td class="px-2.5 py-3">
                                     <div class="grid grid-cols-2 gap-1.5">
                                         <label class="text-[10px] font-medium text-slate-500">Sesi Mulai<select form="update-schedule-{{ $j->id }}" name="start_period_code" required data-start-period class="mt-0.5 h-8 w-full rounded border border-slate-300 bg-white px-1.5 text-xs focus:border-sky-500 focus:outline-none"></select></label>
                                         <label class="text-[10px] font-medium text-slate-500">Sesi Selesai<select form="update-schedule-{{ $j->id }}" name="end_period_code" required data-end-period class="mt-0.5 h-8 w-full rounded border border-slate-300 bg-white px-1.5 text-xs focus:border-sky-500 focus:outline-none"></select></label>
@@ -289,15 +289,15 @@
                                     </div>
                                     <span data-period-preview class="mt-0.5 block text-[10px] text-slate-500">{{ $periodLabel ?? '' }}</span>
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2">
+                                <td class="px-2.5 py-3">
                                     <input form="update-schedule-{{ $j->id }}" name="subject" list="mapel-list" required maxlength="100" value="{{ $j->subject }}" class="h-9 w-full min-w-32 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-bold text-slate-900 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2">
+                                <td class="px-2.5 py-3">
                                     <select form="update-schedule-{{ $j->id }}" name="teacher_id" required class="h-9 w-full min-w-36 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                         @foreach($gurus as $guru)<option value="{{ $guru->id }}" @selected((int) $j->teacher_id === (int) $guru->id)>{{ $guru->fullname ?? $guru->username }}</option>@endforeach
                                     </select>
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2 text-center">
+                                <td class="px-2.5 py-3 text-center">
                                     @php
                                         $scheduleClass = $j->class_name ?? ($j->class_id !== null ? (string) $j->class_id : '');
                                     @endphp
@@ -311,13 +311,13 @@
                                         @endif
                                     </select>
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2 text-center">
+                                <td class="px-2.5 py-3 text-center">
                                     <select form="update-schedule-{{ $j->id }}" name="room_id" class="h-9 w-full min-w-28 rounded-lg border border-slate-300 bg-white px-2 text-xs text-slate-700 text-center focus:border-sky-500 focus:ring-1 focus:ring-sky-200 focus:outline-none">
                                         <option value="">-</option>
                                         @foreach($rooms as $room)<option value="{{ $room->id_ruangan }}" @selected((int) $j->room_id === (int) $room->id_ruangan)>{{ $room->nama_ruangan }}</option>@endforeach
                                     </select>
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2 text-center">
+                                <td class="px-2.5 py-3 text-center">
                                     @if(!$scheduleLocked)
                                         <select form="update-schedule-{{ $j->id }}" name="cycle_type" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs font-bold text-center focus:border-sky-500 focus:outline-none {{ $j->cycle_type === 'Jurusan' ? 'text-purple-700' : 'text-slate-700' }}">
                                             <option value="Normada" @selected(in_array($j->cycle_type, ['Normada', 'Regular']))>Normada</option>
@@ -328,12 +328,12 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ $j->cycle_type === 'Jurusan' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700' }}">{{ $j->cycle_type === 'Regular' ? 'Normada' : ($j->cycle_type ?? 'Normada') }}</span>
                                     @endif
                                 </td>
-                                <td class="border border-slate-700 px-2.5 py-2 text-center">
+                                <td class="px-2.5 py-3 text-center">
                                     @if(!$scheduleLocked)
                                         <div class="flex items-center justify-center gap-1.5">
                                             <button form="update-schedule-{{ $j->id }}" type="submit" class="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition inline-flex items-center justify-center shadow-xs">Simpan</button>
                                             <form method="POST" action="{{ route('waka.jadwal.destroy', $j->id) }}" onsubmit="return confirm('Hapus jadwal {{ $j->subject }}?')">
-                                                @csrf @method('DELETE')
+                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="h-8 rounded-lg bg-rose-100 px-2.5 text-xs font-bold text-rose-700 hover:bg-rose-200 transition inline-flex items-center justify-center">Hapus</button>
                                             </form>
                                         </div>
@@ -344,7 +344,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="border border-slate-700 px-4 py-8 text-center text-slate-500 italic">
+                                <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic">
                                     Belum ada jadwal tersimpan{{ (($selectedJurusan ?? '') !== '' || ($selectedTingkat ?? '') !== '' || ($search ?? '') !== '') ? ' yang sesuai dengan kriteria pencarian.' : '.' }}
                                     @if(($selectedJurusan ?? '') !== '' || ($selectedTingkat ?? '') !== '' || ($search ?? '') !== '')
                                         <div class="mt-2">

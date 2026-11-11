@@ -128,12 +128,8 @@
             <section class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div class="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <p class="text-xs font-bold uppercase tracking-widest text-emerald-700">Agenda Belajar</p>
-                        </div>
-                        <h3 class="mt-1 text-xl font-bold text-slate-800">Jadwal Pelajaran Tahun Ajaran {{ $academicYear }}</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Daftar mata pelajaran aktif untuk kelas <span class="font-semibold text-slate-700">{{ $studentClass ?? 'Belum terhubung' }}</span></p>
+                        <h3 class="text-xl font-bold text-slate-800">Jadwal Pelajaran Saya</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Daftar jadwal pelajaran yang telah ditetapkan untuk kelas {{ $studentClass ?? '-' }}.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
@@ -143,199 +139,81 @@
                             Putaran {{ $activeCycle }}
                         </span>
                         <a href="{{ route('siswa.jadwal') }}" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition active:scale-95">
-                            Lihat Semua & Cetak PDF
+                            Lihat Halaman Jadwal
                             <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </a>
                     </div>
                 </div>
 
-                <!-- Bar Navigasi Filter Hari Interaktif & Mode Tampilan -->
-                <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
-                    <div class="flex flex-wrap items-center gap-1.5" id="dashboard-day-filter-container">
-                        <button type="button" onclick="filterDashboardDay('all')" class="dashboard-day-btn active inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold bg-emerald-600 text-white shadow-xs transition" data-day="all">
-                            <span>Semua Hari</span>
-                            <span class="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">{{ $jadwalList->count() }}</span>
-                        </button>
-                        @foreach($daysList as $d)
-                            @php
-                                $countDay = $jadwalList->where('day_of_week', $d)->count();
-                            @endphp
-                            <button type="button" onclick="filterDashboardDay('{{ $d }}')" class="dashboard-day-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition" data-day="{{ $d }}">
-                                <span>{{ $d }}</span>
-                                <span class="rounded-full bg-slate-100 text-slate-700 px-1.5 py-0.2 text-[10px] font-bold">{{ $countDay }}</span>
-                            </button>
-                        @endforeach
-                    </div>
-
-                    <!-- Toggle View Mode: Tabel Resmi (Default) vs Kartu -->
-                    <div class="inline-flex items-center rounded-xl bg-white p-1 border border-slate-200 self-start sm:self-auto">
-                        <button type="button" onclick="switchDashboardViewMode('table')" id="dash-view-table" class="dash-toggle-btn active inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs transition">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                            <span>Tabel</span>
-                        </button>
-                        <button type="button" onclick="switchDashboardViewMode('grid')" id="dash-view-grid" class="dash-toggle-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                            <span>Kartu</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 1. Tampilan Konsep Utama: Tabel Jadwal Resmi Bergaris -->
-                <div id="dashboard-schedule-table-view" class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
-                    <div class="overflow-x-auto table-scroll-container">
-                        <table class="official-schedule-table w-full text-left text-xs border-collapse border border-slate-700 min-w-[850px]">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
-                                    <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
-                                    <th class="border border-slate-700 px-4 py-3 w-28">HARI</th>
-                                    <th class="border border-slate-700 px-4 py-3 w-40">WAKTU / JAM</th>
-                                    <th class="border border-slate-700 px-4 py-3">MATA PELAJARAN</th>
-                                    <th class="border border-slate-700 px-4 py-3">GURU PENGAMPU</th>
-                                    <th class="border border-slate-700 px-4 py-3 w-24 text-center">KELAS</th>
-                                    <th class="border border-slate-700 px-4 py-3 w-28 text-center">RUANGAN</th>
-                                    <th class="border border-slate-700 px-4 py-3 w-24 text-center">JENIS</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-700" id="dashboard-schedule-table-body">
-                                @forelse($jadwalList as $index => $j)
-                                    @php
-                                        $periodLabel = \App\Support\SchoolTimetable::labelFor($j->day_of_week, $j->start_time, $j->end_time);
-                                        $startTime = substr($j->start_time, 0, 5);
-                                        $endTime = substr($j->end_time, 0, 5);
-                                        $teacherName = $j->guru_name ?? ('Guru #' . ($j->teacher_id ?? '-'));
-                                        $className = $j->class_name ?? ($studentClass ?? '-');
-                                        $roomName = $j->nama_ruangan ?? ($j->room_id ? 'Ruang ' . $j->room_id : '-');
-                                        $jenis = in_array($j->cycle_type, ['Regular', 'Normada', null], true) ? 'Normada' : $j->cycle_type;
-                                    @endphp
-                                    <tr class="dashboard-schedule-row transition hover:bg-emerald-50/40 {{ $index % 2 === 1 ? 'bg-slate-50/70' : 'bg-white' }}" data-day="{{ $j->day_of_week }}">
-                                        <td class="border border-slate-700 px-3 py-3 text-center font-bold text-slate-800 dashboard-schedule-row-num">{{ $index + 1 }}</td>
-                                        <td class="border border-slate-700 px-4 py-3 font-bold text-slate-900">{{ $j->day_of_week }}</td>
-                                        <td class="border border-slate-700 px-4 py-3 text-slate-800 whitespace-nowrap">
-                                            <div class="font-medium text-slate-900">{{ $startTime }} - {{ $endTime }} WIB</div>
-                                            @if($periodLabel)
-                                                <div class="text-[10px] text-slate-500 italic mt-0.5">{{ $periodLabel }}</div>
-                                            @endif
-                                        </td>
-                                        <td class="border border-slate-700 px-4 py-3 font-bold text-slate-900">{{ $j->subject }}</td>
-                                        <td class="border border-slate-700 px-4 py-3 font-medium text-slate-800">{{ $teacherName }}</td>
-                                        <td class="border border-slate-700 px-4 py-3 text-center font-bold text-slate-900">{{ $className }}</td>
-                                        <td class="border border-slate-700 px-4 py-3 text-center text-slate-700">{{ $roomName }}</td>
-                                        <td class="border border-slate-700 px-4 py-3 text-center font-semibold text-slate-700">{{ $jenis }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="8" class="border border-slate-700 px-4 py-12 text-center text-slate-500 italic">
-                                            Tidak ada jadwal pelajaran yang ditemukan untuk kelas ini pada Putaran {{ $activeCycle }}.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 2. Grid Kartu Jadwal Modern (Tampilan Alternatif) -->
-                <div id="dashboard-schedule-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    @forelse ($jadwalList as $jadwal)
+                <!-- Filter Hari Interaktif (Pill style sederhana) -->
+                <div class="mb-5 flex flex-wrap items-center gap-1.5">
+                    <button type="button" onclick="filterDashboardDay('all')" class="dashboard-day-btn active inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold bg-emerald-600 text-white shadow-xs transition" data-day="all">
+                        <span>Semua Hari</span>
+                        <span class="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">{{ $jadwalList->count() }}</span>
+                    </button>
+                    @foreach($daysList as $d)
                         @php
-                            $theme = $dayThemes[$jadwal->day_of_week] ?? [
-                                'border' => 'border-t-4 border-t-slate-400',
-                                'badge' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                'time_pill' => 'bg-slate-700 text-white',
-                                'time_icon' => 'text-slate-300',
-                                'accent' => 'text-slate-600',
-                                'avatar' => 'bg-slate-700 text-white',
-                            ];
-
-                            $periodLabel = \App\Support\SchoolTimetable::labelFor($jadwal->day_of_week, $jadwal->start_time, $jadwal->end_time);
-                            if ($periodLabel) {
-                                $formattedPeriod = str_replace(
-                                    ['Jam ke-', ' sampai ', ' - '],
-                                    ['Jam ke - ', ' s/d ', ' s/d '],
-                                    $periodLabel
-                                );
-                            } else {
-                                $formattedPeriod = 'Jam Pembelajaran';
-                            }
-                            $startTime = substr($jadwal->start_time, 0, 5);
-                            $endTime = substr($jadwal->end_time, 0, 5);
-                            $teacherName = $jadwal->guru_name ?? ('Guru #' . ($jadwal->teacher_id ?? '-'));
-                            $initial = strtoupper(substr(trim($teacherName), 0, 1));
+                            $countDay = $jadwalList->where('day_of_week', $d)->count();
                         @endphp
+                        <button type="button" onclick="filterDashboardDay('{{ $d }}')" class="dashboard-day-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition" data-day="{{ $d }}">
+                            <span>{{ $d }}</span>
+                            <span class="rounded-full bg-slate-200 text-slate-700 px-1.5 py-0.2 text-[10px] font-bold">{{ $countDay }}</span>
+                        </button>
+                    @endforeach
+                </div>
 
-                        <div class="dashboard-schedule-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 {{ $theme['border'] }}" data-day="{{ $jadwal->day_of_week }}">
-                            <div>
-                                <!-- Header Atas: Badge Hari & Badge Jam Digital Senada Warna Hari -->
-                                <div class="flex items-center justify-between gap-2 mb-4">
-                                    <span class="inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider {{ $theme['badge'] }}">
-                                        {{ $jadwal->day_of_week }}
-                                    </span>
-                                    
-                                    <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold shadow-2xs {{ $theme['time_pill'] }}">
-                                        <svg class="h-3 w-3 {{ $theme['time_icon'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <span>{{ $startTime }} - {{ $endTime }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- Sub-info Sesi Jam & Siklus -->
-                                <div class="mb-3 flex items-center justify-between text-[11px] font-semibold text-slate-500">
-                                    <span class="inline-flex items-center gap-1 text-slate-600 font-mono">
-                                        <svg class="h-3 w-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        {{ $formattedPeriod }}
-                                    </span>
-                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                                        {{ $jadwal->cycle_type ?? 'Reguler' }}
-                                    </span>
-                                </div>
-
-                                <!-- Judul Mata Pelajaran -->
-                                <h3 class="text-base sm:text-lg font-bold text-slate-800 leading-snug tracking-tight group-hover:text-emerald-700 transition">
-                                    {{ $jadwal->subject }}
-                                </h3>
-
-                                <!-- Profil Guru Pengampu (Cardlet) -->
-                                <div class="mt-3.5 mb-4 flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 border border-slate-100">
-                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $theme['avatar'] }} text-xs font-bold shadow-2xs">
-                                        {{ $initial }}
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Guru Pengampu</p>
-                                        <p class="truncate text-xs font-semibold text-slate-800" title="{{ $teacherName }}">{{ $teacherName }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Footer Card: Ruangan & Putaran -->
-                            <div class="mt-auto border-t border-slate-100 pt-3 flex items-center justify-between text-xs">
-                                <div class="inline-flex items-center gap-1.5 font-medium text-slate-600 truncate bg-slate-100/70 px-2.5 py-1 rounded-lg">
-                                    <svg class="h-3.5 w-3.5 shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                    <span class="truncate">{{ $jadwal->nama_ruangan ?? ($jadwal->room_id ? 'Ruang ' . $jadwal->room_id : 'Ruang Kelas') }}</span>
-                                </div>
-                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200/80">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                    {{ $jadwal->cycle_number ? 'Putaran ' . $jadwal->cycle_number : ($jadwal->cycle_type ?? 'Reguler') }}
-                                </span>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
-                            <svg class="mx-auto h-12 w-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <p class="font-semibold text-slate-700">Tidak ada jadwal ditemukan</p>
-                            <p class="text-xs text-slate-400 mt-1">
-                                @if(!$studentClass)
-                                    Akun siswa belum terhubung ke data siswa yang memiliki kelas.
-                                @else
-                                    Belum ada jadwal pelajaran untuk kelas {{ $studentClass }} pada putaran ini.
-                                @endif
-                            </p>
-                        </div>
-                    @endforelse
+                <!-- Tabel Bersih Sesuai Konsep Gambar 2 -->
+                <div class="overflow-x-auto table-scroll-container">
+                    <table class="w-full text-left text-sm">
+                        <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50/70">
+                            <tr>
+                                <th class="whitespace-nowrap px-4 py-3">Hari</th>
+                                <th class="whitespace-nowrap px-4 py-3">Mata Pelajaran</th>
+                                <th class="whitespace-nowrap px-4 py-3">Waktu Belajar</th>
+                                <th class="whitespace-nowrap px-4 py-3">Guru Pengampu</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Kelas</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Ruangan</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center">Jenis</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($jadwalList as $j)
+                                @php
+                                    $periodLabel = \App\Support\SchoolTimetable::labelFor($j->day_of_week, $j->start_time, $j->end_time);
+                                    $startTime = substr($j->start_time, 0, 5);
+                                    $endTime = substr($j->end_time, 0, 5);
+                                    $teacherName = $j->guru_name ?? ('Guru #' . ($j->teacher_id ?? '-'));
+                                    $className = $j->class_name ?? ($studentClass ?? '-');
+                                    $roomName = $j->nama_ruangan ?? ($j->room_id ? 'Ruang ' . $j->room_id : '-');
+                                    $jenis = in_array($j->cycle_type, ['Regular', 'Normada', null], true) ? 'Regular' : $j->cycle_type;
+                                @endphp
+                                <tr class="dashboard-schedule-row hover:bg-slate-50/80 transition" data-day="{{ $j->day_of_week }}">
+                                    <td class="whitespace-nowrap px-4 py-3.5 font-bold text-slate-800">{{ $j->day_of_week }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 font-medium text-slate-800">{{ $j->subject }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-600">
+                                        {{ $startTime }} - {{ $endTime }}
+                                        @if($periodLabel)
+                                            <span class="block text-[11px] text-slate-400 font-normal">{{ $periodLabel }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-slate-700 font-medium">{{ $teacherName }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center text-slate-600 font-medium">{{ $className }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center text-slate-600">{{ $roomName }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3.5 text-center">
+                                        <span class="inline-flex items-center rounded-full px-3 py-0.5 text-xs font-semibold {{ $jenis === 'Jurusan' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800' }}">
+                                            {{ $jenis }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-4 py-8 text-center text-slate-400 italic">
+                                        Tidak ada jadwal pelajaran yang ditemukan untuk kelas ini pada Putaran {{ $activeCycle }}.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -418,48 +296,15 @@
             }
         });
 
-        // Filter tabel & susun ulang penomoran urut secara dinamis
         let visibleCount = 0;
         rows.forEach(row => {
             if (day === 'all' || row.getAttribute('data-day') === day) {
                 row.style.display = '';
                 visibleCount++;
-                const numCell = row.querySelector('.dashboard-schedule-row-num');
-                if (numCell) numCell.textContent = visibleCount;
             } else {
                 row.style.display = 'none';
             }
         });
-
-        // Filter kartu
-        cards.forEach(card => {
-            if (day === 'all' || card.getAttribute('data-day') === day) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-
-    function switchDashboardViewMode(mode) {
-        const tableView = document.getElementById('dashboard-schedule-table-view');
-        const cardGrid = document.getElementById('dashboard-schedule-grid');
-        const btnTable = document.getElementById('dash-view-table');
-        const btnGrid = document.getElementById('dash-view-grid');
-
-        if (mode === 'table') {
-            tableView.classList.remove('hidden');
-            cardGrid.classList.add('hidden');
-            btnTable.className = 'dash-toggle-btn active inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs transition';
-            btnGrid.className = 'dash-toggle-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
-        } else {
-            tableView.classList.add('hidden');
-            cardGrid.classList.remove('hidden');
-            btnGrid.className = 'dash-toggle-btn active inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 shadow-2xs transition';
-            btnTable.className = 'dash-toggle-btn inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
-        }
-
-        filterDashboardDay(currentDashboardDay);
     }
 </script>
 @endpush
