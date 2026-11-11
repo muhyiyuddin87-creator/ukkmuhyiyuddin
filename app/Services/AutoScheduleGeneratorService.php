@@ -354,24 +354,35 @@ class AutoScheduleGeneratorService
                         ->all();
 
                     if (! empty($oldScheduleIds)) {
-                        // Bersihkan presensi dan jurnal yang merujuk ke jadwal ini agar tidak memicu RESTRICT foreign key
-                        $journalIds = DB::table('journals')->whereIn('schedule_id', $oldScheduleIds)->pluck('id')->all();
-                        if (! empty($journalIds)) {
-                            DB::table('attendances')->whereIn('journal_id', $journalIds)->delete();
-                            DB::table('journals')->whereIn('id', $journalIds)->delete();
+                        // Bersihkan presensi dan jurnal yang merujuk ke jadwal ini secara bertahap agar tidak memicu RESTRICT foreign key
+                        foreach (array_chunk($oldScheduleIds, 500) as $idChunk) {
+                            $journalIds = DB::table('journals')->whereIn('schedule_id', $idChunk)->pluck('id')->all();
+                            if (! empty($journalIds)) {
+                                foreach (array_chunk($journalIds, 500) as $jChunk) {
+                                    DB::table('attendances')->whereIn('journal_id', $jChunk)->delete();
+                                    DB::table('journals')->whereIn('id', $jChunk)->delete();
+                                }
+                            }
+                            DB::table('schedules')->whereIn('id', $idChunk)->delete();
                         }
-                        DB::table('schedules')->whereIn('id', $oldScheduleIds)->delete();
                     }
                 }
 
                 $rowsToInsert = [];
                 $now = now();
                 foreach ($scheduledItems as $item) {
+                    $cleanClassName = mb_substr(trim((string) $item['class_name']), 0, 50);
+                    $cleanSubject = mb_substr(trim((string) $item['subject']), 0, 100);
+
+                    if (empty($cleanClassName) || $cleanClassName === '-') {
+                        continue;
+                    }
+
                     $rowsToInsert[] = [
-                        'teacher_id' => $item['teacher_id'],
-                        'class_name' => $item['class_name'],
-                        'room_id' => $item['room_id'],
-                        'subject' => $item['subject'],
+                        'teacher_id' => (int) $item['teacher_id'],
+                        'class_name' => $cleanClassName,
+                        'room_id' => ! empty($item['room_id']) ? (int) $item['room_id'] : null,
+                        'subject' => $cleanSubject,
                         'day_of_week' => $item['day_of_week'],
                         'start_time' => $item['start_time'],
                         'end_time' => $item['end_time'],
@@ -409,12 +420,44 @@ class AutoScheduleGeneratorService
         @ini_set('memory_limit', '512M');
         $spreadsheet = IOFactory::load($filePath);
 
-        // Pilih sheet alokasi yang relevan (sheet 1 atau sheet bernama Alokasi)
-        if ($spreadsheet->sheetNameExists('Alokasi Jadwal Siap Pakai')) {
-            $sheet = $spreadsheet->getSheetByName('Alokasi Jadwal Siap Pakai');
-        } elseif ($spreadsheet->sheetNameExists('Alokasi')) {
-            $sheet = $spreadsheet->getSheetByName('Alokasi');
-        } else {
+        // Pilih sheet alokasi secara cerdas: cari sheet yang memiliki Guru, Mapel, DAN Kelas
+        $sheet = null;
+        foreach ($spreadsheet->getAllSheets() as $sh) {
+            $title = strtolower($sh->getTitle());
+            if (str_contains($title, 'alokasi') || str_contains($title, 'jadwal')) {
+                $rowsPreview = $sh->rangeToArray('A1:G3', null, true, true, true);
+                $hasG = false; $hasM = false; $hasK = false;
+                foreach ($rowsPreview as $rp) {
+                    $joined = strtolower(implode(' ', array_filter($rp)));
+                    if (str_contains($joined, 'guru') || str_contains($joined, 'pengampu')) $hasG = true;
+                    if (str_contains($joined, 'mapel') || str_contains($joined, 'mata pelajaran')) $hasM = true;
+                    if (str_contains($joined, 'kelas') || str_contains($joined, 'class')) $hasK = true;
+                }
+                if ($hasG && $hasM && $hasK) {
+                    $sheet = $sh;
+                    break;
+                }
+            }
+        }
+
+        if (! $sheet) {
+            foreach ($spreadsheet->getAllSheets() as $sh) {
+                $rowsPreview = $sh->rangeToArray('A1:Z5', null, true, true, true);
+                $hasG = false; $hasM = false; $hasK = false;
+                foreach ($rowsPreview as $rp) {
+                    $joined = strtolower(implode(' ', array_filter($rp)));
+                    if (str_contains($joined, 'guru') || str_contains($joined, 'pengampu')) $hasG = true;
+                    if (str_contains($joined, 'mapel') || str_contains($joined, 'mata pelajaran')) $hasM = true;
+                    if (str_contains($joined, 'kelas') || str_contains($joined, 'class')) $hasK = true;
+                }
+                if ($hasG && $hasM && $hasK) {
+                    $sheet = $sh;
+                    break;
+                }
+            }
+        }
+
+        if (! $sheet) {
             $sheet = $spreadsheet->getSheet(0);
         }
 
@@ -476,9 +519,14 @@ class AutoScheduleGeneratorService
             $rawJp = (int) trim((string) ($r[$headerIndices['jp'] ?? 'E'] ?? '2'));
             $rawType = trim((string) ($r[$headerIndices['type'] ?? 'F'] ?? ''));
 
-            if (empty($rawTeacher) || empty($rawSubject) || empty($rawClass)) {
+            // Lewatkan baris yang tidak memiliki guru, mapel, atau kelas valid (misal tanda strip '-')
+            if (empty($rawTeacher) || empty($rawSubject) || empty($rawClass) || $rawClass === '-' || strlen($rawClass) < 2) {
                 continue;
             }
+
+            // Batasi panjang subject dan class name agar tidak melebihi kapasitas kolom database (VARCHAR 100 & 50)
+            $cleanSubject = mb_substr($rawSubject, 0, 100);
+            $cleanClass = mb_substr(strtoupper($rawClass), 0, 50);
 
             // Cocokkan Guru dengan pembersihan case-insensitive yang aman
             $matchedTeacherId = null;
@@ -517,8 +565,8 @@ class AutoScheduleGeneratorService
 
             $allocations[] = [
                 'teacher_id' => $matchedTeacherId,
-                'subject' => $rawSubject,
-                'class_name' => strtoupper($rawClass),
+                'subject' => $cleanSubject,
+                'class_name' => $cleanClass,
                 'room_id' => $matchedRoomId,
                 'jp' => max(1, min(8, $rawJp > 0 ? $rawJp : 2)),
                 'cycle_type' => str_contains(strtolower($rawType), 'jurusan') ? 'Jurusan' : 'Normada',

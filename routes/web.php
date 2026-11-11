@@ -3407,10 +3407,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 $raw = $request->input('allocations');
                 foreach ($raw as $item) {
                     if (! empty($item['teacher_id']) && ! empty($item['subject']) && ! empty($item['class_name'])) {
+                        $cls = mb_substr(trim((string) $item['class_name']), 0, 50);
+                        if ($cls === '-' || strlen($cls) < 2) {
+                            continue;
+                        }
+
                         $allocations[] = [
                             'teacher_id' => (int) $item['teacher_id'],
-                            'subject' => trim((string) $item['subject']),
-                            'class_name' => trim((string) $item['class_name']),
+                            'subject' => mb_substr(trim((string) $item['subject']), 0, 100),
+                            'class_name' => $cls,
                             'room_id' => ! empty($item['room_id']) ? (int) $item['room_id'] : null,
                             'jp' => max(1, min(8, (int) ($item['jp'] ?? 2))),
                             'cycle_type' => in_array($item['cycle_type'] ?? '', ['Jurusan', 'Normada', 'Regular'], true) ? $item['cycle_type'] : 'Normada',
