@@ -320,6 +320,22 @@ class AutoScheduleGeneratorService
                     'jp' => $jpNeeded,
                 ];
             } else {
+                // Jika blok 4 JP gagal ditempatkan dalam 1 sesi utuh, pecah menjadi 2x2 JP agar fleksibel di pagi hari
+                if ($jpNeeded === 4 && empty($block['is_split_fallback'])) {
+                    $splitBlock1 = $block;
+                    $splitBlock1['jp'] = 2;
+                    $splitBlock1['priority'] = ($roomId ? 100 : 0) + 20;
+                    $splitBlock1['is_split_fallback'] = true;
+
+                    $splitBlock2 = $block;
+                    $splitBlock2['jp'] = 2;
+                    $splitBlock2['priority'] = ($roomId ? 100 : 0) + 20;
+                    $splitBlock2['is_split_fallback'] = true;
+
+                    array_unshift($blocksToSchedule, $splitBlock1, $splitBlock2);
+                    continue;
+                }
+
                 $unassignedBlocks[] = $block;
             }
         }
@@ -328,13 +344,24 @@ class AutoScheduleGeneratorService
         if (! empty($scheduledItems)) {
             DB::transaction(function () use ($scheduledItems, $fresh, $cycleNumber, $academicYear) {
                 if ($fresh) {
-                    // Hapus jadwal lama hanya pada putaran dan tahun ajaran yang bersangkutan
-                    DB::table('schedules')
+                    // Dapatkan semua ID jadwal lama pada putaran dan tahun ajaran bersangkutan
+                    $oldScheduleIds = DB::table('schedules')
                         ->where('cycle_number', $cycleNumber)
                         ->where(function ($q) use ($academicYear) {
                             $q->where('academic_year', $academicYear)->orWhereNull('academic_year');
                         })
-                        ->delete();
+                        ->pluck('id')
+                        ->all();
+
+                    if (! empty($oldScheduleIds)) {
+                        // Bersihkan presensi dan jurnal yang merujuk ke jadwal ini agar tidak memicu RESTRICT foreign key
+                        $journalIds = DB::table('journals')->whereIn('schedule_id', $oldScheduleIds)->pluck('id')->all();
+                        if (! empty($journalIds)) {
+                            DB::table('attendances')->whereIn('journal_id', $journalIds)->delete();
+                            DB::table('journals')->whereIn('id', $journalIds)->delete();
+                        }
+                        DB::table('schedules')->whereIn('id', $oldScheduleIds)->delete();
+                    }
                 }
 
                 $rowsToInsert = [];
@@ -379,8 +406,18 @@ class AutoScheduleGeneratorService
      */
     public function parseAllocationFile(string $filePath): array
     {
+        @ini_set('memory_limit', '512M');
         $spreadsheet = IOFactory::load($filePath);
-        $sheet = $spreadsheet->getActiveSheet();
+
+        // Pilih sheet alokasi yang relevan (sheet 1 atau sheet bernama Alokasi)
+        if ($spreadsheet->sheetNameExists('Alokasi Jadwal Siap Pakai')) {
+            $sheet = $spreadsheet->getSheetByName('Alokasi Jadwal Siap Pakai');
+        } elseif ($spreadsheet->sheetNameExists('Alokasi')) {
+            $sheet = $spreadsheet->getSheetByName('Alokasi');
+        } else {
+            $sheet = $spreadsheet->getSheet(0);
+        }
+
         $rows = $sheet->toArray(null, true, true, true);
 
         if (empty($rows)) {
@@ -443,19 +480,19 @@ class AutoScheduleGeneratorService
                 continue;
             }
 
-            // Cocokkan Guru
+            // Cocokkan Guru dengan pembersihan case-insensitive yang aman
             $matchedTeacherId = null;
-            $cleanRawTeacher = strtolower(preg_replace('/[^a-z0-9]/', '', $rawTeacher));
+            $cleanRawTeacher = preg_replace('/[^a-z0-9]/', '', strtolower($rawTeacher));
 
             foreach ($teachers as $t) {
-                $cleanFullname = strtolower(preg_replace('/[^a-z0-9]/', '', $t->fullname ?? ''));
-                $cleanUsername = strtolower(preg_replace('/[^a-z0-9]/', '', $t->username ?? ''));
+                $cleanFullname = preg_replace('/[^a-z0-9]/', '', strtolower($t->fullname ?? ''));
+                $cleanUsername = preg_replace('/[^a-z0-9]/', '', strtolower($t->username ?? ''));
 
                 if ($cleanRawTeacher === $cleanFullname || $cleanRawTeacher === $cleanUsername) {
                     $matchedTeacherId = $t->id;
                     break;
                 }
-                if ($cleanFullname && (str_contains($cleanRawTeacher, $cleanFullname) || str_contains($cleanFullname, $cleanRawTeacher))) {
+                if ($cleanFullname && strlen($cleanFullname) >= 5 && (str_contains($cleanRawTeacher, $cleanFullname) || str_contains($cleanFullname, $cleanRawTeacher))) {
                     $matchedTeacherId = $t->id;
                     break;
                 }
@@ -468,10 +505,10 @@ class AutoScheduleGeneratorService
             // Cocokkan Ruangan jika diisi
             $matchedRoomId = null;
             if (! empty($rawRoom)) {
-                $cleanRawRoom = strtolower(preg_replace('/[^a-z0-9]/', '', $rawRoom));
+                $cleanRawRoom = preg_replace('/[^a-z0-9]/', '', strtolower($rawRoom));
                 foreach ($rooms as $rm) {
-                    $cleanRoomName = strtolower(preg_replace('/[^a-z0-9]/', '', $rm->nama_ruangan ?? ''));
-                    if ($cleanRawRoom === $cleanRoomName || str_contains($cleanRoomName, $cleanRawRoom) || str_contains($cleanRawRoom, $cleanRoomName)) {
+                    $cleanRoomName = preg_replace('/[^a-z0-9]/', '', strtolower($rm->nama_ruangan ?? ''));
+                    if ($cleanRawRoom === $cleanRoomName || (strlen($cleanRoomName) >= 3 && (str_contains($cleanRawRoom, $cleanRoomName) || str_contains($cleanRoomName, $cleanRawRoom)))) {
                         $matchedRoomId = $rm->id_ruangan;
                         break;
                     }
