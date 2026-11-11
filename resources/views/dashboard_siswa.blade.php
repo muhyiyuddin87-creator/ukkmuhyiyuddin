@@ -285,7 +285,6 @@
     function filterDashboardDay(day) {
         currentDashboardDay = day;
         const rows = document.querySelectorAll('.dashboard-schedule-row');
-        const cards = document.querySelectorAll('.dashboard-schedule-card');
         const buttons = document.querySelectorAll('.dashboard-day-btn');
 
         buttons.forEach(btn => {
