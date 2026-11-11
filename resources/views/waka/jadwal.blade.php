@@ -96,6 +96,169 @@
             </div>
         </section>
 
+        <!-- Section: Generator Jadwal Otomatis (1-Klik) -->
+        <section class="mb-6 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/40 via-white to-sky-50/30 p-6 shadow-sm overflow-hidden relative">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 pb-4 border-b border-indigo-100">
+                <div class="flex items-start gap-3.5">
+                    <div class="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-200">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-bold text-indigo-800 uppercase tracking-wide">Fitur Cerdas</span>
+                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">1-Klik Bebas Bentrok</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-800 mt-1">Pembuat Jadwal Otomatis (Auto Generator)</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                            Cukup masukkan data Guru, Mapel, Kelas, dan Ruangan. Algoritma sistem akan memetakan jam belajar secara otomatis ke slot hari Senin–Jumat tanpa ada tabrakan jadwal.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Toggle Mode: Form Dinamis vs Upload Excel -->
+                <div class="flex items-center rounded-xl bg-slate-100 p-1 border border-slate-200 shrink-0 self-start md:self-center">
+                    <button type="button" onclick="switchAutoGenMode('form')" id="btn-tab-form" class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold bg-white text-indigo-700 shadow-xs transition">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Input Form Web
+                    </button>
+                    <button type="button" onclick="switchAutoGenMode('excel')" id="btn-tab-excel" class="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Unggah File Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel 1: Input Form Web Dinamis -->
+            <div id="autogen-panel-form">
+                <form method="POST" action="{{ route('waka.jadwal.auto.generate') }}" id="form-auto-generate" onsubmit="return confirmAutoGen(this)">
+                    @csrf
+                    <!-- Bar Opsi Target & Pengaturan -->
+                    <div class="mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Target Putaran</label>
+                            <select name="cycle_number" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="1" @selected($activeCycle === 1)>Putaran 1 (Aktif: {{ $activeCycle === 1 ? 'Ya' : 'Tidak' }})</option>
+                                <option value="2" @selected($activeCycle === 2)>Putaran 2 (Aktif: {{ $activeCycle === 2 ? 'Ya' : 'Tidak' }})</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Mode Penyusunan</label>
+                            <select name="mode" id="autogen-mode-select" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="fresh">Bersihkan & Buat Ulang (Reset jadwal di putaran ini)</option>
+                                <option value="append">Isi Slot Kosong Saja (Pertahankan jadwal lama)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <div class="h-10 w-full rounded-lg bg-white border border-indigo-200 px-3 flex items-center justify-between text-xs text-slate-600">
+                                <span>Total Alokasi: <strong id="total-alloc-count" class="text-indigo-700">0</strong> baris</span>
+                                <span>Total Beban: <strong id="total-alloc-jp" class="text-indigo-700">0</strong> JP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Input Baris Alokasi -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white mb-4">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 border-b border-slate-200 font-bold uppercase tracking-wider text-slate-600">
+                                <tr>
+                                    <th class="px-3 py-3 text-center w-10">#</th>
+                                    <th class="px-3 py-3 min-w-[220px]">Guru Pengampu <span class="text-rose-500">*</span></th>
+                                    <th class="px-3 py-3 min-w-[200px]">Mata Pelajaran <span class="text-rose-500">*</span></th>
+                                    <th class="px-3 py-3 min-w-[140px]">Kelas Sasaran <span class="text-rose-500">*</span></th>
+                                    <th class="px-3 py-3 min-w-[160px]">Ruangan (Opsional)</th>
+                                    <th class="px-3 py-3 text-center w-24">Beban JP <span class="text-rose-500">*</span></th>
+                                    <th class="px-3 py-3 text-center w-28">Jenis</th>
+                                    <th class="px-3 py-3 text-center w-12">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allocation-table-body" class="divide-y divide-slate-100">
+                                <!-- Baris alokasi diisi via Javascript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tombol Tambah Baris & Aksi Cepat -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="addAllocationRow()" class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 border border-indigo-200 px-3.5 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition shadow-2xs">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                Tambah Baris
+                            </button>
+                            <button type="button" onclick="loadDemoAllocations()" class="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3.5 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100 transition shadow-2xs">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                📋 Muat 5 Data Demo
+                            </button>
+                            <button type="button" onclick="clearAllAllocationRows()" class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">
+                                Bersihkan
+                            </button>
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            Setiap baris alokasi akan otomatis ditempatkan pada slot jam kosong tanpa bentrok guru, kelas, maupun ruangan.
+                        </div>
+                    </div>
+
+                    <!-- Tombol Eksekusi Utama -->
+                    <div class="flex items-center justify-end">
+                        <button type="submit" id="btn-submit-autogen" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-sky-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:from-indigo-700 hover:to-sky-700 hover:shadow-lg transition active:scale-95">
+                            <svg class="h-5 w-5 text-amber-300 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span>⚡ Generate Jadwal Sekarang (1-Klik)</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Panel 2: Unggah Berkas Excel Alokasi -->
+            <div id="autogen-panel-excel" class="hidden">
+                <form method="POST" action="{{ route('waka.jadwal.auto.generate') }}" enctype="multipart/form-data" onsubmit="return confirmAutoGenExcel(this)">
+                    @csrf
+                    <div class="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Target Putaran</label>
+                            <select name="cycle_number" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="1" @selected($activeCycle === 1)>Putaran 1 (Aktif: {{ $activeCycle === 1 ? 'Ya' : 'Tidak' }})</option>
+                                <option value="2" @selected($activeCycle === 2)>Putaran 2 (Aktif: {{ $activeCycle === 2 ? 'Ya' : 'Tidak' }})</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Mode Penyusunan</label>
+                            <select name="mode" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="fresh">Bersihkan & Buat Ulang (Reset jadwal di putaran ini)</option>
+                                <option value="append">Isi Slot Kosong Saja (Pertahankan jadwal lama)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border-2 border-dashed border-indigo-200 bg-white p-6 text-center mb-5">
+                        <svg class="mx-auto h-12 w-12 text-indigo-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h4 class="text-sm font-bold text-slate-800">Pilih Berkas Alokasi Jadwal (.xlsx, .xls, .csv)</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                            Format berkas berisi kolom: <strong>Nama Guru</strong>, <strong>Mata Pelajaran</strong>, <strong>Kelas</strong>, <strong>Ruangan</strong>, <strong>Jumlah JP</strong>, dan <strong>Jenis</strong>.
+                        </p>
+                        <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="text-xs text-slate-600 file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700 focus:outline-none">
+                            <a href="{{ route('waka.jadwal.auto.template') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                Unduh Template Alokasi (.xlsx)
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end">
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition">
+                            <svg class="h-5 w-5 text-amber-300" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            <span>⚡ Proses & Generate dari Excel (1-Klik)</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
         <section class="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="mb-4">
                 <h3 class="text-lg font-bold text-slate-800">Input Jadwal Waka</h3>
@@ -470,6 +633,203 @@
         startSelect.addEventListener('change', updatePreview);
         endSelect.addEventListener('change', updatePreview);
         updatePeriodOptions(row.hasAttribute('data-original-day'));
+    });
+
+    // ==========================================
+    // LOGIKA GENERATOR JADWAL OTOMATIS (1-KLIK)
+    // ==========================================
+    const autogenGurus = @json($gurus);
+    const autogenRooms = @json($rooms);
+    const autogenClasses = @json($classOptions);
+    let allocRowIndex = 0;
+
+    function switchAutoGenMode(mode) {
+        const btnForm = document.getElementById('btn-tab-form');
+        const btnExcel = document.getElementById('btn-tab-excel');
+        const panelForm = document.getElementById('autogen-panel-form');
+        const panelExcel = document.getElementById('autogen-panel-excel');
+
+        if (mode === 'form') {
+            panelForm.classList.remove('hidden');
+            panelExcel.classList.add('hidden');
+            btnForm.className = 'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold bg-white text-indigo-700 shadow-xs transition';
+            btnExcel.className = 'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
+        } else {
+            panelForm.classList.add('hidden');
+            panelExcel.classList.remove('hidden');
+            btnExcel.className = 'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-bold bg-white text-indigo-700 shadow-xs transition';
+            btnForm.className = 'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
+        }
+    }
+
+    function addAllocationRow(data = null) {
+        allocRowIndex++;
+        const tbody = document.getElementById('allocation-table-body');
+        const tr = document.createElement('tr');
+        tr.className = 'alloc-row hover:bg-slate-50/70 transition';
+        tr.id = `alloc-row-${allocRowIndex}`;
+
+        // Options Guru
+        let guruOptions = '<option value="">-- Pilih Guru --</option>';
+        autogenGurus.forEach(g => {
+            const name = g.fullname || g.username;
+            const isSel = (data && (data.teacher_id == g.id || data.teacher_name == name)) ? 'selected' : '';
+            guruOptions += `<option value="${g.id}" ${isSel}>${name}</option>`;
+        });
+
+        // Options Kelas
+        let classOptions = '<option value="">-- Pilih Kelas --</option>';
+        autogenClasses.forEach(c => {
+            const isSel = (data && data.class_name == c) ? 'selected' : '';
+            classOptions += `<option value="${c}" ${isSel}>${c}</option>`;
+        });
+
+        // Options Ruangan
+        let roomOptions = '<option value="">(Tanpa Ruangan / Teori)</option>';
+        autogenRooms.forEach(r => {
+            const isSel = (data && data.room_id == r.id_ruangan) ? 'selected' : '';
+            roomOptions += `<option value="${r.id_ruangan}" ${isSel}>${r.nama_ruangan}</option>`;
+        });
+
+        const subjectVal = data ? (data.subject || '') : '';
+        const jpVal = data ? (data.jp || 2) : 2;
+        const typeNormada = (!data || data.cycle_type !== 'Jurusan') ? 'selected' : '';
+        const typeJurusan = (data && data.cycle_type === 'Jurusan') ? 'selected' : '';
+
+        tr.innerHTML = `
+            <td class="px-3 py-2.5 text-center font-bold text-slate-400 row-num">1</td>
+            <td class="px-3 py-2.5">
+                <select name="allocations[${allocRowIndex}][teacher_id]" required class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-indigo-500 focus:outline-none">
+                    ${guruOptions}
+                </select>
+            </td>
+            <td class="px-3 py-2.5">
+                <input type="text" name="allocations[${allocRowIndex}][subject]" value="${subjectVal}" list="mapel-list" placeholder="Nama Mapel" required class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-indigo-500 focus:outline-none">
+            </td>
+            <td class="px-3 py-2.5">
+                <select name="allocations[${allocRowIndex}][class_name]" required class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2.5 text-xs focus:border-indigo-500 focus:outline-none">
+                    ${classOptions}
+                </select>
+            </td>
+            <td class="px-3 py-2.5">
+                <select name="allocations[${allocRowIndex}][room_id]" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs focus:border-indigo-500 focus:outline-none">
+                    ${roomOptions}
+                </select>
+            </td>
+            <td class="px-3 py-2.5 text-center">
+                <input type="number" name="allocations[${allocRowIndex}][jp]" value="${jpVal}" min="1" max="8" required oninput="recalcAllocSummary()" class="h-9 w-20 mx-auto rounded-lg border border-slate-300 bg-white px-2 text-center text-xs font-bold text-indigo-700 focus:border-indigo-500 focus:outline-none">
+            </td>
+            <td class="px-3 py-2.5 text-center">
+                <select name="allocations[${allocRowIndex}][cycle_type]" class="h-9 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs focus:border-indigo-500 focus:outline-none">
+                    <option value="Normada" ${typeNormada}>Normada</option>
+                    <option value="Jurusan" ${typeJurusan}>Jurusan</option>
+                </select>
+            </td>
+            <td class="px-3 py-2.5 text-center">
+                <button type="button" onclick="removeAllocationRow(${allocRowIndex})" class="h-8 w-8 inline-flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition" title="Hapus baris ini">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </td>
+        `;
+
+        tbody.appendChild(tr);
+        recalcAllocSummary();
+    }
+
+    function removeAllocationRow(index) {
+        const row = document.getElementById(`alloc-row-${index}`);
+        if (row) {
+            row.remove();
+            recalcAllocSummary();
+        }
+    }
+
+    function clearAllAllocationRows() {
+        const tbody = document.getElementById('allocation-table-body');
+        if (tbody) {
+            tbody.innerHTML = '';
+            recalcAllocSummary();
+        }
+    }
+
+    function recalcAllocSummary() {
+        const rows = document.querySelectorAll('#allocation-table-body tr.alloc-row');
+        let totalJp = 0;
+        rows.forEach((r, idx) => {
+            const numEl = r.querySelector('.row-num');
+            if (numEl) numEl.textContent = idx + 1;
+            const jpInput = r.querySelector('input[type="number"]');
+            if (jpInput) {
+                totalJp += parseInt(jpInput.value || 0, 10);
+            }
+        });
+
+        const countEl = document.getElementById('total-alloc-count');
+        const jpEl = document.getElementById('total-alloc-jp');
+        if (countEl) countEl.textContent = rows.length;
+        if (jpEl) jpEl.textContent = totalJp;
+    }
+
+    function loadDemoAllocations() {
+        clearAllAllocationRows();
+
+        const g1 = autogenGurus[0] ? autogenGurus[0].id : '';
+        const g2 = autogenGurus[1] ? autogenGurus[1].id : g1;
+        const g3 = autogenGurus[2] ? autogenGurus[2].id : g1;
+        const g4 = autogenGurus[3] ? autogenGurus[3].id : g1;
+        const g5 = autogenGurus[4] ? autogenGurus[4].id : g1;
+
+        const c1 = autogenClasses[0] || 'X RPL 1';
+        const c2 = autogenClasses[1] || 'XI RPL 1';
+        const c3 = autogenClasses[2] || 'XII RPL 2';
+
+        const r1 = autogenRooms[0] ? autogenRooms[0].id_ruangan : '';
+        const r2 = autogenRooms[1] ? autogenRooms[1].id_ruangan : '';
+
+        const sampleData = [
+            { teacher_id: g1, subject: 'Pemrograman Web & Mobile', class_name: c1, room_id: r1, jp: 4, cycle_type: 'Jurusan' },
+            { teacher_id: g2, subject: 'Matematika', class_name: c1, room_id: '', jp: 3, cycle_type: 'Normada' },
+            { teacher_id: g3, subject: 'Bahasa Indonesia', class_name: c2, room_id: '', jp: 2, cycle_type: 'Normada' },
+            { teacher_id: g4, subject: 'Bahasa Inggris', class_name: c2, room_id: '', jp: 2, cycle_type: 'Normada' },
+            { teacher_id: g5, subject: 'Basis Data', class_name: c3, room_id: r2, jp: 4, cycle_type: 'Jurusan' }
+        ];
+
+        sampleData.forEach(d => addAllocationRow(d));
+    }
+
+    function confirmAutoGen(form) {
+        const mode = document.getElementById('autogen-mode-select').value;
+        const cycle = form.querySelector('[name="cycle_number"]').value;
+        const rows = form.querySelectorAll('#allocation-table-body tr.alloc-row');
+
+        if (rows.length === 0) {
+            alert('Harap tambahkan minimal 1 baris alokasi terlebih dahulu.');
+            return false;
+        }
+
+        if (mode === 'fresh') {
+            return confirm(`PERINGATAN: Mode "Bersihkan & Buat Ulang" akan mereset jadwal lama pada Putaran ${cycle}.\n\nLanjutkan penyusunan jadwal otomatis?`);
+        }
+        return confirm(`Mulai proses penyusunan jadwal otomatis pada Putaran ${cycle}?`);
+    }
+
+    function confirmAutoGenExcel(form) {
+        const mode = form.querySelector('[name="mode"]').value;
+        const cycle = form.querySelector('[name="cycle_number"]').value;
+        if (mode === 'fresh') {
+            return confirm(`PERINGATAN: Mode "Bersihkan & Buat Ulang" akan mereset jadwal lama pada Putaran ${cycle}.\n\nLanjutkan penyusunan jadwal otomatis dari file Excel?`);
+        }
+        return confirm(`Mulai proses penyusunan jadwal otomatis dari file Excel pada Putaran ${cycle}?`);
+    }
+
+    // Muat 3 baris kosong secara default saat halaman dibuka
+    document.addEventListener('DOMContentLoaded', () => {
+        const tbody = document.getElementById('allocation-table-body');
+        if (tbody && tbody.children.length === 0) {
+            addAllocationRow();
+            addAllocationRow();
+            addAllocationRow();
+        }
     });
 </script>
 @endpush

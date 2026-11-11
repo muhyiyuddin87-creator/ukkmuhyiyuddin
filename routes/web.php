@@ -3310,6 +3310,115 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return response()->download($path, 'JADWAL_PUTARAN_2.xlsx');
     })->name('waka.jadwal.download.putaran2');
 
+    Route::get('/waka/jadwal/auto-generate/template', function () {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $sampleTeachers = DB::table('users')->whereIn('role_id', [2, 4])->take(5)->pluck('fullname')->all();
+        $sampleClasses = DB::table('school_classes')->take(5)->pluck('name')->all();
+        if (empty($sampleClasses)) {
+            $sampleClasses = ['X RPL 1', 'XI RPL 1', 'XII RPL 2', 'X TKJ 1', 'XI DKV 1'];
+        }
+        $sampleRooms = DB::table('ruangan')->take(5)->pluck('nama_ruangan')->all();
+
+        $rows = [
+            [$sampleTeachers[0] ?? 'ARIS PURWANTINAH, S.Pd', 'Pemrograman Web & Mobile', $sampleClasses[0] ?? 'X RPL 1', $sampleRooms[0] ?? 'Lab 1', '4', 'Jurusan'],
+            [$sampleTeachers[1] ?? 'SUNARSIH S.Pd', 'Matematika', $sampleClasses[1] ?? 'XI RPL 1', $sampleRooms[1] ?? 'Ruang 10', '3', 'Normada'],
+            [$sampleTeachers[2] ?? 'SRI SUNARTINI, S.Pd', 'Bahasa Indonesia', $sampleClasses[2] ?? 'XII RPL 2', $sampleRooms[2] ?? 'Ruang 11', '2', 'Normada'],
+            [$sampleTeachers[3] ?? 'AMAT SUKARDI, S.Pd', 'Bahasa Inggris', $sampleClasses[3] ?? 'X TKJ 1', '', '2', 'Normada'],
+            [$sampleTeachers[4] ?? 'MUHAMMAD HERU PURNOMO, M.S.I', 'Basis Data', $sampleClasses[4] ?? 'XI DKV 1', $sampleRooms[0] ?? 'Lab 1', '4', 'Jurusan'],
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray([
+            'Nama Guru',
+            'Mata Pelajaran',
+            'Kelas',
+            'Ruangan',
+            'Jumlah JP',
+            'Jenis (Normada/Jurusan)',
+        ], null, 'A1');
+        $sheet->fromArray($rows, null, 'A2');
+
+        foreach (range('A', 'F') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        return response()->streamDownload(
+            fn () => (new Xlsx($spreadsheet))->save('php://output'),
+            'template_alokasi_jadwal_otomatis.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
+    })->name('waka.jadwal.auto.template');
+
+    Route::post('/waka/jadwal/auto-generate', function (Request $request) use ($ensureScheduleConfig, $currentAcademicYear) {
+        abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+
+        $request->validate([
+            'cycle_number' => ['required', 'in:1,2'],
+            'mode' => ['required', 'in:fresh,append'],
+            'file' => ['nullable', 'file', 'max:10240'],
+            'allocations' => ['nullable', 'array'],
+        ]);
+
+        $cycleNumber = (int) $request->input('cycle_number', 1);
+        $fresh = $request->input('mode') === 'fresh';
+
+        $config = $ensureScheduleConfig();
+        $lockCol = $cycleNumber === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
+        if (! empty($config->{$lockCol})) {
+            return back()->withErrors(['auto_gen' => "Putaran {$cycleNumber} sedang dikunci. Buka kunci terlebih dahulu untuk membuat jadwal otomatis."]);
+        }
+
+        $service = new \App\Services\AutoScheduleGeneratorService();
+        $allocations = [];
+
+        // 1. Jika pengguna mengunggah berkas Excel/CSV alokasi
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (! in_array($ext, ['xlsx', 'xls', 'csv'], true)) {
+                return back()->withErrors(['auto_gen' => 'Format file tidak didukung. Harap unggah file .xlsx, .xls, atau .csv.']);
+            }
+            $allocations = $service->parseAllocationFile($file->getRealPath());
+            if (empty($allocations)) {
+                return back()->withErrors(['auto_gen' => 'Berkas alokasi tidak memiliki data yang valid atau nama guru/kelas tidak cocok.']);
+            }
+        } elseif ($request->filled('allocations')) {
+            // 2. Jika input manual dari tabel web
+            $raw = $request->input('allocations');
+            foreach ($raw as $item) {
+                if (! empty($item['teacher_id']) && ! empty($item['subject']) && ! empty($item['class_name'])) {
+                    $allocations[] = [
+                        'teacher_id' => (int) $item['teacher_id'],
+                        'subject' => trim((string) $item['subject']),
+                        'class_name' => trim((string) $item['class_name']),
+                        'room_id' => ! empty($item['room_id']) ? (int) $item['room_id'] : null,
+                        'jp' => max(1, min(8, (int) ($item['jp'] ?? 2))),
+                        'cycle_type' => in_array($item['cycle_type'] ?? '', ['Jurusan', 'Normada', 'Regular'], true) ? $item['cycle_type'] : 'Normada',
+                    ];
+                }
+            }
+        }
+
+        if (empty($allocations)) {
+            return back()->withErrors(['auto_gen' => 'Harap isi minimal 1 baris alokasi guru, mapel, dan kelas.']);
+        }
+
+        $result = $service->generate($allocations, $cycleNumber, $currentAcademicYear, $fresh);
+
+        if (! $result['success'] && $result['scheduled_count'] === 0) {
+            return back()->withErrors(['auto_gen' => 'Gagal menyusun jadwal: slot waktu tidak mencukupi atau terjadi bentrok total.']);
+        }
+
+        $msg = "⚡ Sukses! Berhasil menyusun {$result['scheduled_count']} jadwal ({$result['total_jp']} JP) secara otomatis pada Putaran {$cycleNumber} tanpa bentrok.";
+        if ($result['unassigned_count'] > 0) {
+            $msg .= " Catatan: {$result['unassigned_count']} sesi tidak dapat ditempatkan karena kapasitas slot hari/ruangan penuh.";
+        }
+
+        return redirect()->route('waka.jadwal')->with('success', $msg);
+    })->name('waka.jadwal.auto.generate');
+
     Route::post('/waka/jadwal/import', function (Request $request) use ($ensureScheduleConfig, $findScheduleConflict, $currentAcademicYear) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
 
