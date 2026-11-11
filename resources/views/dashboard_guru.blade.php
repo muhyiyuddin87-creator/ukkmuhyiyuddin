@@ -236,19 +236,90 @@
                 </div>
 
                 <div class="inline-flex items-center rounded-xl bg-white p-1 border border-slate-200">
-                    <button type="button" onclick="switchGuruViewMode('grid')" id="guru-view-grid" class="guru-toggle-btn active inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 transition">
-                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                        <span>Kartu</span>
-                    </button>
-                    <button type="button" onclick="switchGuruViewMode('table')" id="guru-view-table" class="guru-toggle-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
+                    <button type="button" onclick="switchGuruViewMode('table')" id="guru-view-table" class="guru-toggle-btn active inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 transition">
                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                         <span>Tabel</span>
+                    </button>
+                    <button type="button" onclick="switchGuruViewMode('grid')" id="guru-view-grid" class="guru-toggle-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                        <span>Kartu</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Grid Kartu Jadwal Modern (Sama Persis seperti di Siswa) -->
-            <div id="guru-schedule-card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Tampilan Konsep Utama: Tabel Jadwal Resmi Bergaris -->
+            <div id="guru-schedule-table-view" class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
+                <div class="overflow-x-auto table-scroll-container">
+                    <table class="w-full text-left text-xs border-collapse border border-slate-700 min-w-[950px]">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
+                                <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
+                                <th class="border border-slate-700 px-4 py-3 w-28">HARI</th>
+                                <th class="border border-slate-700 px-4 py-3 w-40">WAKTU / JAM</th>
+                                <th class="border border-slate-700 px-4 py-3">MATA PELAJARAN</th>
+                                <th class="border border-slate-700 px-4 py-3">GURU PENGAMPU</th>
+                                <th class="border border-slate-700 px-4 py-3 w-28 text-center">KELAS</th>
+                                <th class="border border-slate-700 px-4 py-3 w-28 text-center">RUANGAN</th>
+                                <th class="border border-slate-700 px-4 py-3 w-24 text-center">JENIS</th>
+                                <th class="border border-slate-700 px-4 py-3 w-32 text-center">STATUS JURNAL</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700" id="guru-schedule-table-body">
+                            @forelse($jadwals as $index => $j)
+                                @php
+                                    $periodLabel = \App\Support\SchoolTimetable::labelFor($j->day_of_week, $j->start_time, $j->end_time);
+                                    $isJournalFilled = isset($schedulesWithJournals) && $schedulesWithJournals->contains($j->id);
+                                @endphp
+                                <tr class="guru-schedule-row {{ $index % 2 === 1 ? 'bg-slate-50/70' : 'bg-white' }} hover:bg-slate-100/70 transition" data-day="{{ $j->day_of_week }}">
+                                    <td class="guru-schedule-row-num border border-slate-700 px-3 py-2.5 text-center font-bold text-slate-800">{{ $index + 1 }}</td>
+                                    <td class="border border-slate-700 px-4 py-2.5 font-bold text-slate-900 whitespace-nowrap">{{ $j->day_of_week }}</td>
+                                    <td class="border border-slate-700 px-4 py-2.5 text-slate-800 whitespace-nowrap">
+                                        <div class="font-bold">{{ substr($j->start_time, 0, 5) }} - {{ substr($j->end_time, 0, 5) }} WIB</div>
+                                        @if($periodLabel)
+                                            <div class="text-[10px] text-slate-500 font-medium">{{ $periodLabel }}</div>
+                                        @endif
+                                    </td>
+                                    <td class="border border-slate-700 px-4 py-2.5 font-bold text-slate-900">{{ $j->subject }}</td>
+                                    <td class="border border-slate-700 px-4 py-2.5 font-medium text-slate-800">{{ $j->guru_name ?? (Auth::user()->fullname ?? Auth::user()->username) }}</td>
+                                    <td class="border border-slate-700 px-4 py-2.5 text-center font-bold text-slate-900 whitespace-nowrap">
+                                        {{ $j->class_name ?? ($j->class_id ? 'Kelas ' . $j->class_id : '-') }}
+                                    </td>
+                                    <td class="border border-slate-700 px-4 py-2.5 text-center text-slate-700 whitespace-nowrap">
+                                        {{ $j->nama_ruangan ?? '-' }}
+                                    </td>
+                                    <td class="border border-slate-700 px-4 py-2.5 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ $j->cycle_type === 'Jurusan' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700' }}">
+                                            {{ $j->cycle_type === 'Regular' ? 'Normada' : ($j->cycle_type ?? 'Normada') }}
+                                        </span>
+                                    </td>
+                                    <td class="border border-slate-700 px-4 py-2.5 text-center whitespace-nowrap">
+                                        @if($isJournalFilled)
+                                            <span class="inline-flex whitespace-nowrap items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 text-xs font-semibold">
+                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                Sudah diisi
+                                            </span>
+                                        @else
+                                            <a href="{{ route('guru.jurnal') }}" class="inline-flex whitespace-nowrap items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 text-xs font-bold hover:bg-amber-200 transition">
+                                                <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                Isi Jurnal
+                                            </a>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="border border-slate-700 px-4 py-8 text-center text-slate-400 italic">
+                                        Belum ada jadwal yang ditetapkan untuk Anda.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Grid Kartu Jadwal Modern (Tampilan Alternatif) -->
+            <div id="guru-schedule-card-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 @forelse ($jadwals as $jadwal)
                     @php
                         $theme = $dayThemes[$jadwal->day_of_week] ?? [
@@ -357,58 +428,6 @@
                         <p class="text-xs text-slate-400 mt-1">Jadwal mengajar resmi ditetapkan oleh Waka Kurikulum.</p>
                     </div>
                 @endforelse
-            </div>
-
-            <!-- Tampilan Tabel Alternatif (Tanpa Text Patah) -->
-            <div id="guru-schedule-table-view" class="hidden overflow-x-auto table-scroll-container">
-                <table class="w-full min-w-[750px] text-left text-sm">
-                    <thead class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 bg-slate-50">
-                        <tr>
-                            <th class="whitespace-nowrap px-4 py-3 rounded-l-lg">Hari</th>
-                            <th class="whitespace-nowrap px-4 py-3">Mata Pelajaran</th>
-                            <th class="whitespace-nowrap px-4 py-3">Waktu Mengajar</th>
-                            <th class="whitespace-nowrap px-4 py-3">Kelas</th>
-                            <th class="whitespace-nowrap px-4 py-3">Jenis</th>
-                            <th class="whitespace-nowrap px-4 py-3 rounded-r-lg text-center">Status Jurnal</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse($jadwals as $j)
-                            <tr class="guru-schedule-row hover:bg-slate-50 transition" data-day="{{ $j->day_of_week }}">
-                                <td class="whitespace-nowrap px-4 py-3.5 font-bold text-slate-800">{{ $j->day_of_week }}</td>
-                                <td class="whitespace-nowrap px-4 py-3.5 font-semibold text-slate-700">{{ $j->subject }}</td>
-                                <td class="whitespace-nowrap px-4 py-3.5 text-slate-600 font-medium">{{ \App\Support\SchoolTimetable::labelFor($j->day_of_week, $j->start_time, $j->end_time) ?? 'Waktu tersimpan' }} · {{ substr($j->start_time,0,5) }} - {{ substr($j->end_time,0,5) }}</td>
-                                <td class="whitespace-nowrap px-4 py-3.5">
-                                    <span class="inline-block whitespace-nowrap rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-100">
-                                        {{ $j->class_name ?? ($j->class_id ? 'Kelas ' . $j->class_id : '-') }}
-                                    </span>
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3.5">
-                                    <span class="inline-flex whitespace-nowrap rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 text-xs font-bold">{{ $j->cycle_type ?? 'Normada' }}</span>
-                                </td>
-                                <td class="whitespace-nowrap px-4 py-3.5 text-center">
-                                    @if(isset($schedulesWithJournals) && $schedulesWithJournals->contains($j->id))
-                                        <span class="inline-flex whitespace-nowrap items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 text-xs font-semibold">
-                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                            Sudah diisi
-                                        </span>
-                                    @else
-                                        <a href="{{ route('guru.jurnal') }}" class="inline-flex whitespace-nowrap items-center gap-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 text-xs font-bold hover:bg-amber-200 transition">
-                                            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                            Belum diisi
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-slate-400 italic">
-                                    Belum ada jadwal yang ditetapkan untuk Anda.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
             </div>
         </section>
 
@@ -534,7 +553,10 @@
 
 @push('scripts')
 <script>
+    let currentGuruDay = 'all';
+
     function filterGuruDay(day) {
+        currentGuruDay = day;
         const cards = document.querySelectorAll('.guru-schedule-card');
         const rows = document.querySelectorAll('.guru-schedule-row');
         const buttons = document.querySelectorAll('.guru-day-btn');
@@ -547,19 +569,25 @@
             }
         });
 
+        // Filter tabel & perbarui nomor urut NO secara dinamis
+        let visibleCount = 0;
+        rows.forEach(row => {
+            if (day === 'all' || row.getAttribute('data-day') === day) {
+                row.style.display = '';
+                visibleCount++;
+                const numCell = row.querySelector('.guru-schedule-row-num');
+                if (numCell) numCell.textContent = visibleCount;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Filter kartu
         cards.forEach(card => {
             if (day === 'all' || card.getAttribute('data-day') === day) {
                 card.style.display = 'flex';
             } else {
                 card.style.display = 'none';
-            }
-        });
-
-        rows.forEach(row => {
-            if (day === 'all' || row.getAttribute('data-day') === day) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
             }
         });
     }
@@ -581,6 +609,8 @@
             btnTable.className = 'guru-toggle-btn active inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 transition';
             btnGrid.className = 'guru-toggle-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-800 transition';
         }
+
+        filterGuruDay(currentGuruDay);
     }
 
     // Dashboard Journal Filter Functions

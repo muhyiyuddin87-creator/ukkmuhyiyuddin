@@ -13,17 +13,55 @@
     </header>
     <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 class="mb-4 text-xl font-bold text-slate-800">Jadwal Kelas</h3>
-        <div class="overflow-x-auto table-scroll-container">
-        <table class="w-full min-w-[700px] text-left text-sm">
-            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-4 py-3">Putaran</th><th class="px-4 py-3">Kelas</th><th class="px-4 py-3">Hari / Waktu</th><th class="px-4 py-3">Mata Pelajaran</th><th class="px-4 py-3">Guru</th></tr></thead>
-            <tbody class="divide-y divide-slate-100">
-                @forelse($schedules as $schedule)
-                    <tr><td class="px-4 py-3">{{ $schedule->cycle_number ?? '-' }}</td><td class="px-4 py-3">{{ $schedule->class_name ?? '-' }}</td><td class="px-4 py-3">{{ $schedule->day_of_week }} · {{ \App\Support\SchoolTimetable::labelFor($schedule->day_of_week, $schedule->start_time, $schedule->end_time) ?? 'Waktu tersimpan' }} · {{ substr($schedule->start_time, 0, 5) }}–{{ substr($schedule->end_time, 0, 5) }}</td><td class="px-4 py-3 font-semibold text-indigo-700">{{ $schedule->subject }}</td><td class="px-4 py-3">{{ $schedule->teacher_name ?? '-' }}</td></tr>
-                @empty
-                    <tr><td colspan="5" class="px-4 py-8 text-center italic text-slate-400">Belum ada jadwal untuk kelas yang ditugaskan.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="overflow-hidden rounded-2xl bg-white shadow-xs border border-slate-700">
+            <div class="overflow-x-auto table-scroll-container">
+                <table class="w-full min-w-[950px] text-left text-xs border-collapse border border-slate-700">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-900 font-bold uppercase tracking-wider border-b border-slate-700">
+                            <th class="border border-slate-700 px-3 py-3 text-center w-12">NO</th>
+                            <th class="border border-slate-700 px-4 py-3 w-28">HARI</th>
+                            <th class="border border-slate-700 px-4 py-3 w-40">WAKTU / JAM</th>
+                            <th class="border border-slate-700 px-4 py-3">MATA PELAJARAN</th>
+                            <th class="border border-slate-700 px-4 py-3">GURU PENGAMPU</th>
+                            <th class="border border-slate-700 px-4 py-3 w-28 text-center">KELAS</th>
+                            <th class="border border-slate-700 px-4 py-3 w-28 text-center">RUANGAN</th>
+                            <th class="border border-slate-700 px-4 py-3 w-24 text-center">JENIS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        @forelse($schedules as $index => $schedule)
+                            @php
+                                $periodLabel = \App\Support\SchoolTimetable::labelFor($schedule->day_of_week, $schedule->start_time, $schedule->end_time);
+                            @endphp
+                            <tr class="{{ $index % 2 === 1 ? 'bg-slate-50/70' : 'bg-white' }} hover:bg-slate-100/70 transition">
+                                <td class="border border-slate-700 px-3 py-2.5 text-center font-bold text-slate-800">{{ $index + 1 }}</td>
+                                <td class="border border-slate-700 px-4 py-2.5 font-bold text-slate-900 whitespace-nowrap">{{ $schedule->day_of_week }}</td>
+                                <td class="border border-slate-700 px-4 py-2.5 text-slate-800 whitespace-nowrap">
+                                    <div class="font-bold">{{ substr($schedule->start_time, 0, 5) }} - {{ substr($schedule->end_time, 0, 5) }} WIB</div>
+                                    @if($periodLabel)
+                                        <div class="text-[10px] text-slate-500 font-medium">{{ $periodLabel }}</div>
+                                    @endif
+                                </td>
+                                <td class="border border-slate-700 px-4 py-2.5 font-bold text-slate-900">{{ $schedule->subject }}</td>
+                                <td class="border border-slate-700 px-4 py-2.5 font-medium text-slate-800">{{ $schedule->teacher_name ?? '-' }}</td>
+                                <td class="border border-slate-700 px-4 py-2.5 text-center font-bold text-slate-900 whitespace-nowrap">{{ $schedule->class_name ?? '-' }}</td>
+                                <td class="border border-slate-700 px-4 py-2.5 text-center text-slate-700 whitespace-nowrap">{{ $schedule->nama_ruangan ?? '-' }}</td>
+                                <td class="border border-slate-700 px-4 py-2.5 text-center whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ ($schedule->cycle_type ?? '') === 'Jurusan' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700' }}">
+                                        {{ ($schedule->cycle_type ?? '') === 'Regular' ? 'Normada' : ($schedule->cycle_type ?? 'Normada') }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="border border-slate-700 px-4 py-8 text-center italic text-slate-400">
+                                    Belum ada jadwal untuk kelas yang ditugaskan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
     <section id="journal-form" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

@@ -66,9 +66,29 @@ class AttendanceApiController extends Controller
         // Otomatis sinkronkan izin disetujui agar rekap kehadiran akurat
         self::syncApprovedLeaves($targetStudentId);
 
-        $query = Attendance::with(['student', 'journal']);
+        $query = Attendance::with(['student', 'journal.schedule']);
 
-        if ($request->has('date')) {
+        // Filter kelas atau kelas yang diwalikan guru (wali kelas)
+        if ($request->has('kelas') && $request->kelas) {
+            $kelas = $request->kelas;
+            $query->whereHas('student', function ($sq) use ($kelas) {
+                $sq->where('kelas', $kelas);
+            });
+        } elseif ($request->has('classes') && $request->classes) {
+            $classes = is_array($request->classes) ? $request->classes : explode(',', $request->classes);
+            $query->whereHas('student', function ($sq) use ($classes) {
+                $sq->whereIn('kelas', $classes);
+            });
+        } elseif ($request->boolean('wali_only') && $user && $user->isWaliKelas()) {
+            $waliClasses = $user->getWaliClasses();
+            $query->whereHas('student', function ($sq) use ($waliClasses) {
+                $sq->whereIn('kelas', $waliClasses);
+            });
+        }
+
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        } elseif ($request->has('date')) {
             $query->where('date', $request->date);
         }
 
@@ -78,6 +98,16 @@ class AttendanceApiController extends Controller
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
+        }
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->whereHas('student', function ($sq) use ($search) {
+                $sq->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('nis', 'like', "%{$search}%");
+                });
+            });
         }
 
         $attendances = $query->latest('date')->get();
