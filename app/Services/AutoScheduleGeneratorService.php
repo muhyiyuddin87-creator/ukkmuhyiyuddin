@@ -458,6 +458,72 @@ class AutoScheduleGeneratorService
     }
 
     /**
+     * Mengambil daftar alokasi secara otomatis dari data yang sudah ada di database/sistem
+     * tanpa mewajibkan pengguna mengunggah berkas Excel secara manual.
+     */
+    public function getAllocationsFromDatabase(?int $sourceCycleNumber = null, ?string $academicYear = null): array
+    {
+        // 1. Prioritaskan pembacaan master alokasi yang tersimpan di sistem project
+        $masterPath = public_path('downloads/DATA_MASTER_DAN_ALOKASI_JADWAL.xlsx');
+        if (file_exists($masterPath)) {
+            $fromMaster = $this->parseAllocationFile($masterPath);
+            if (! empty($fromMaster)) {
+                return $fromMaster;
+            }
+        }
+
+        // 2. Ekstrak langsung dari tabel schedules yang ada di database
+        $query = DB::table('schedules');
+        if ($sourceCycleNumber) {
+            $query->where('cycle_number', $sourceCycleNumber);
+        }
+        if ($academicYear) {
+            $query->where('academic_year', $academicYear);
+        }
+
+        $existing = $query->get();
+        if ($existing->isNotEmpty()) {
+            $allocations = [];
+            foreach ($existing as $s) {
+                if (empty($s->class_name) || empty($s->subject) || empty($s->teacher_id)) {
+                    continue;
+                }
+
+                $day = $s->day_of_week;
+                $start = substr($s->start_time, 0, 5);
+                $end = substr($s->end_time, 0, 5);
+
+                $periods = SchoolTimetable::periodsForDay($day);
+                $jp = 0;
+                foreach ($periods as $code => $p) {
+                    if (in_array($code, ['upacara', 'literasi', 'piket'], true)) continue;
+                    if ($p['start'] < $end && $p['end'] > $start) {
+                        $jp++;
+                    }
+                }
+                if ($jp <= 0) {
+                    $jp = 2;
+                }
+
+                $allocations[] = [
+                    'teacher_id' => (int) $s->teacher_id,
+                    'subject' => mb_substr(trim($s->subject), 0, 100),
+                    'class_name' => mb_substr(trim($s->class_name), 0, 50),
+                    'room_id' => ! empty($s->room_id) ? (int) $s->room_id : null,
+                    'jp' => max(1, min(8, $jp)),
+                    'cycle_type' => in_array($s->cycle_type, ['Jurusan', 'Normada', 'Regular'], true) ? $s->cycle_type : 'Normada',
+                ];
+            }
+
+            if (! empty($allocations)) {
+                return $allocations;
+            }
+        }
+
+        return [];
+    }
+
+    /**
      * Membaca dan memetakan berkas spreadsheet alokasi (.xlsx, .xls, .csv).
      */
     public function parseAllocationFile(string $filePath): array

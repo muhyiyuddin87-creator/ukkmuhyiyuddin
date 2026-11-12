@@ -96,46 +96,32 @@
             </div>
         </section>
 
-        <!-- Section: Generator Jadwal Otomatis dari Excel -->
+        <!-- Section: Generator Jadwal Otomatis (1-Klik) -->
         <section class="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <form method="POST" action="{{ route('waka.jadwal.auto.generate') }}" enctype="multipart/form-data" onsubmit="return confirmAutoGenExcel(this)">
+            <form method="POST" action="{{ route('waka.jadwal.auto.generate') }}" onsubmit="return confirmAutoGenFromDb(this)">
                 @csrf
-                <div class="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Target Putaran</label>
-                        <select name="cycle_number" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
-                            <option value="1" @selected($activeCycle === 1)>Putaran 1 (Aktif: {{ $activeCycle === 1 ? 'Ya' : 'Tidak' }})</option>
-                            <option value="2" @selected($activeCycle === 2)>Putaran 2 (Aktif: {{ $activeCycle === 2 ? 'Ya' : 'Tidak' }})</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Mode Penyusunan</label>
-                        <select name="mode" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
-                            <option value="fresh">Bersihkan & Buat Ulang (Reset jadwal di putaran ini)</option>
-                            <option value="append">Isi Slot Kosong Saja (Pertahankan jadwal lama)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/20 p-5 text-center mb-5">
-                    <h4 class="text-sm font-bold text-slate-800">Pilih Berkas Alokasi Jadwal (.xlsx, .xls, .csv)</h4>
-                    <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="text-xs text-slate-600 file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:text-xs file:font-semibold file:text-white hover:file:bg-indigo-700 focus:outline-none">
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('waka.jadwal.download.master') }}" class="inline-flex items-center rounded-lg bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition shadow-2xs" title="Unduh data gabungan Guru, Mapel, Ruangan, Kelas yang ada di project">
-                                Unduh Data Master (.xlsx)
-                            </a>
-                            <a href="{{ route('waka.jadwal.auto.template') }}" class="inline-flex items-center rounded-lg bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition shadow-2xs">
-                                Template Kosong
-                            </a>
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Target Putaran</label>
+                            <select name="cycle_number" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="1" @selected($activeCycle === 1)>Putaran 1 (Aktif: {{ $activeCycle === 1 ? 'Ya' : 'Tidak' }})</option>
+                                <option value="2" @selected($activeCycle === 2)>Putaran 2 (Aktif: {{ $activeCycle === 2 ? 'Ya' : 'Tidak' }})</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Mode Penyusunan</label>
+                            <select name="mode" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="fresh">Bersihkan & Buat Ulang (Reset jadwal di putaran ini)</option>
+                                <option value="append">Isi Slot Kosong Saja (Pertahankan jadwal lama)</option>
+                            </select>
                         </div>
                     </div>
-                </div>
-
-                <div class="flex items-center justify-end">
-                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition active:scale-95">
-                        Susun Jadwal Otomatis dari Excel
-                    </button>
+                    <div class="flex items-center">
+                        <button type="submit" class="h-10 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition active:scale-95 whitespace-nowrap">
+                            Generate Jadwal Otomatis
+                        </button>
+                    </div>
                 </div>
             </form>
         </section>
@@ -618,13 +604,13 @@
 
     // ==========================================
     // LOGIKA GENERATOR JADWAL OTOMATIS (1-KLIK)
-    function confirmAutoGenExcel(form) {
+    function confirmAutoGenFromDb(form) {
         const mode = form.querySelector('[name="mode"]').value;
         const cycle = form.querySelector('[name="cycle_number"]').value;
         if (mode === 'fresh') {
-            return confirm(`PERINGATAN: Mode "Bersihkan & Buat Ulang" akan mereset jadwal lama pada Putaran ${cycle}.\n\nLanjutkan penyusunan jadwal otomatis dari file Excel?`);
+            return confirm(`PERINGATAN: Mode "Bersihkan & Buat Ulang" akan mereset jadwal lama pada Putaran ${cycle}.\n\nLanjutkan penyusunan jadwal otomatis dari database?`);
         }
-        return confirm(`Mulai proses penyusunan jadwal otomatis dari file Excel pada Putaran ${cycle}?`);
+        return confirm(`Mulai proses penyusunan jadwal otomatis pada Putaran ${cycle}?`);
     }
 
     function openBulkDeleteModal() {

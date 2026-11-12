@@ -3422,10 +3422,19 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                         ];
                     }
                 }
+            } else {
+                // 3. Ambil otomatis dari data guru, mapel, kelas, dan ruangan yang sudah tersimpan di database
+                $allocations = $service->getAllocationsFromDatabase(
+                    $cycleNumber === 2 ? 1 : null,
+                    $currentAcademicYear
+                );
+                if (empty($allocations)) {
+                    $allocations = $service->getAllocationsFromDatabase(null, null);
+                }
             }
 
             if (empty($allocations)) {
-                return back()->withErrors(['auto_gen' => 'Harap isi minimal 1 baris alokasi guru, mapel, dan kelas.']);
+                return back()->withErrors(['auto_gen' => 'Data alokasi guru, mapel, dan kelas belum ditemukan di database untuk disusun otomatis.']);
             }
 
             $result = $service->generate($allocations, $cycleNumber, $currentAcademicYear, $fresh);
