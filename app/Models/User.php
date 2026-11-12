@@ -64,12 +64,21 @@ class User extends Authenticatable
 
     public function getWaliClasses(): array
     {
-        return \Illuminate\Support\Facades\DB::table('user_school_classes')
+        $classes = \Illuminate\Support\Facades\DB::table('user_school_classes')
             ->join('school_classes', 'user_school_classes.school_class_id', '=', 'school_classes.id')
             ->where('user_school_classes.user_id', $this->id)
             ->pluck('school_classes.name')
             ->values()
             ->all();
+
+        if (empty($classes) && $this->class_id) {
+            $single = \Illuminate\Support\Facades\DB::table('school_classes')->where('id', $this->class_id)->value('name');
+            if ($single) {
+                return [$single];
+            }
+        }
+
+        return $classes;
     }
 
     public function isWaliKelas(): bool
@@ -79,6 +88,10 @@ class User extends Authenticatable
         }
 
         if ((int) $this->role_id === 2) {
+            if ($this->class_id) {
+                return true;
+            }
+
             return \Illuminate\Support\Facades\DB::table('user_school_classes')
                 ->where('user_id', $this->id)
                 ->exists();

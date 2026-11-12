@@ -366,6 +366,16 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             ->where('user_school_classes.user_id', $userId)
             ->pluck('school_classes.name');
 
+        if ($classes->isEmpty()) {
+            $userClassId = DB::table('users')->where('id', $userId)->value('class_id');
+            if ($userClassId) {
+                $userClassName = DB::table('school_classes')->where('id', $userClassId)->value('name');
+                if ($userClassName) {
+                    return collect([$userClassName]);
+                }
+            }
+        }
+
         if ($classes->isEmpty() && in_array(Auth::user()->username ?? '', ['guru', 'wali'], true)) {
             $rpl2 = DB::table('school_classes')->where('name', 'XII RPL 2')->value('name');
             if ($rpl2) {
@@ -387,6 +397,9 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             return false;
         }
         $isAssigned = DB::table('user_school_classes')->where('user_id', $userId)->exists();
+        if (! $isAssigned) {
+            $isAssigned = DB::table('users')->where('id', $userId)->whereNotNull('class_id')->exists();
+        }
         if (! $isAssigned && in_array(Auth::user()->username ?? '', ['guru', 'wali'], true)) {
             return true;
         }
@@ -723,7 +736,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 ->pluck('subject')
             : collect();
         $isWaliKelas = in_array($roleId, [2, 5], true)
-            && DB::table('user_school_classes')->where('user_id', $user->getKey())->exists();
+            && (DB::table('user_school_classes')->where('user_id', $user->getKey())->exists() || !empty($user->class_id));
 
         return view('profile', [
             'user' => $user,
@@ -2430,6 +2443,9 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 'created_at' => now(),
             ]);
             $thisClassIds = $data['class_ids'] ?? [];
+            if ($thisClassIds === [] && ! empty($data['class_id'])) {
+                $thisClassIds = [$data['class_id']];
+            }
             if ($thisClassIds !== []) {
                 $now = now();
                 DB::table('user_school_classes')->insert(
@@ -2496,6 +2512,9 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             DB::table('users')->where('id', $id)->update($update);
             DB::table('user_school_classes')->where('user_id', $id)->delete();
             $thisClassIds = $data['class_ids'] ?? [];
+            if ($thisClassIds === [] && ! empty($data['class_id'])) {
+                $thisClassIds = [$data['class_id']];
+            }
             if ($thisClassIds !== []) {
                 $now = now();
                 DB::table('user_school_classes')->insert(
@@ -4846,7 +4865,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         }
 
         $classNames = $waliClassNames($userId);
-        if ($classNames->isEmpty()) {
+        if ($classNames->isEmpty() && ! $isWali) {
             $scheduleClasses = DB::table('schedules')->where('teacher_id', $userId)->pluck('class_name')->filter()->unique();
             if ($scheduleClasses->isNotEmpty()) {
                 $classNames = $scheduleClasses;
