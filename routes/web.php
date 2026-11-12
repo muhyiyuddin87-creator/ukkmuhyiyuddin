@@ -3467,15 +3467,16 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
                 return back()->withErrors(['auto_gen' => 'Gagal menyusun jadwal: slot waktu tidak mencukupi atau terjadi bentrok total.']);
             }
 
-            // Pastikan putaran aktif beralih ke putaran yang baru disusun dan kuncinya dibuka (unlocked) agar jadwal dapat langsung diedit
+            // Otomatis aktifkan kunci jadwal setelah generate (fitur auto-lock):
+            // Putaran target dijadikan putaran aktif dan langsung dikunci (locked) agar jadwal aman dan tidak dapat diedit
             DB::table('system_configurations')->where('id', (int) $config->id)->update([
                 'active_cycle' => $cycleNumber,
-                $lockCol => false,
-                'is_scheduled_locked' => false,
+                $lockCol => true,
+                'is_scheduled_locked' => true,
                 'updated_at' => now(),
             ]);
 
-            $msg = "⚡ Sukses! Berhasil menyusun {$result['scheduled_count']} jadwal ({$result['total_jp']} JP) secara otomatis pada Putaran {$cycleNumber} tanpa bentrok.";
+            $msg = "⚡ Sukses! Berhasil menyusun {$result['scheduled_count']} jadwal ({$result['total_jp']} JP) secara otomatis pada Putaran {$cycleNumber} tanpa bentrok. Jadwal putaran ini telah otomatis dikunci.";
             if ($result['unassigned_count'] > 0) {
                 $msg .= " Catatan: {$result['unassigned_count']} sesi tidak dapat ditempatkan karena kapasitas slot hari/ruangan penuh.";
             }
