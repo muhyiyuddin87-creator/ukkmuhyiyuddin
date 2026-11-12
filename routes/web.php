@@ -3156,6 +3156,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'activeCycle' => $activeCycle,
             'academicYear' => $currentAcademicYear,
             'scheduleLocked' => $scheduleLocked,
+            'cycleOneLocked' => (bool) ($config->cycle_one_locked ?? false),
+            'cycleTwoLocked' => (bool) ($config->cycle_two_locked ?? false),
             'periodsByDay' => collect(SchoolTimetable::DAYS)
                 ->mapWithKeys(fn ($day) => [$day => SchoolTimetable::periodsForDay($day)])
                 ->all(),
@@ -3403,13 +3405,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
             $config = $ensureScheduleConfig();
             $lockCol = $cycleNumber === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
-            // Jika putaran sedang dikunci, buka kuncinya secara otomatis agar jadwal hasil generate langsung aktif dan bisa diedit
-            if (! empty($config->{$lockCol}) || ! empty($config->is_scheduled_locked)) {
-                DB::table('system_configurations')->where('id', (int) $config->id)->update([
-                    $lockCol => false,
-                    'is_scheduled_locked' => false,
-                    'updated_at' => now(),
-                ]);
+            if (! empty($config->{$lockCol})) {
+                return back()->withErrors(['auto_gen' => "Putaran {$cycleNumber} sedang dikunci. Buka kunci putaran terlebih dahulu untuk membuat / men-generate jadwal otomatis."]);
             }
 
             $service = new \App\Services\AutoScheduleGeneratorService();

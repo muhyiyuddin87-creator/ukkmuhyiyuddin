@@ -109,9 +109,9 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
                         <div>
                             <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">Target Putaran</label>
-                            <select name="cycle_number" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
-                                <option value="1" @selected($activeCycle === 1)>Putaran 1 (Aktif: {{ $activeCycle === 1 ? 'Ya' : 'Tidak' }})</option>
-                                <option value="2" @selected($activeCycle === 2)>Putaran 2 (Aktif: {{ $activeCycle === 2 ? 'Ya' : 'Tidak' }})</option>
+                            <select id="auto-gen-cycle" name="cycle_number" onchange="syncAutoGenLockState()" class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none">
+                                <option value="1" @selected($activeCycle === 1)>Putaran 1 (Aktif: {{ $activeCycle === 1 ? 'Ya' : 'Tidak' }}){{ ($cycleOneLocked ?? false) ? ' - [Terkunci]' : '' }}</option>
+                                <option value="2" @selected($activeCycle === 2)>Putaran 2 (Aktif: {{ $activeCycle === 2 ? 'Ya' : 'Tidak' }}){{ ($cycleTwoLocked ?? false) ? ' - [Terkunci]' : '' }}</option>
                             </select>
                         </div>
                         <div>
@@ -123,9 +123,21 @@
                         </div>
                     </div>
                     <div class="flex items-center">
-                        <button type="submit" class="h-10 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition active:scale-95 whitespace-nowrap">
-                            Generate Jadwal Otomatis
+                        <button id="auto-gen-btn" type="submit" class="h-10 inline-flex items-center justify-center rounded-xl px-6 text-sm font-bold shadow-md transition active:scale-95 whitespace-nowrap {{ (($activeCycle === 2 ? ($cycleTwoLocked ?? false) : ($cycleOneLocked ?? false))) ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-indigo-600 text-white shadow-indigo-600/25 hover:bg-indigo-700' }}" {{ (($activeCycle === 2 ? ($cycleTwoLocked ?? false) : ($cycleOneLocked ?? false))) ? 'disabled' : '' }}>
+                            {{ (($activeCycle === 2 ? ($cycleTwoLocked ?? false) : ($cycleOneLocked ?? false))) ? 'Fitur Generate Terkunci' : 'Generate Jadwal Otomatis' }}
                         </button>
+                    </div>
+                </div>
+
+                <div id="auto-gen-locked-msg" class="mt-3.5 {{ (($activeCycle === 2 ? ($cycleTwoLocked ?? false) : ($cycleOneLocked ?? false))) ? '' : 'hidden' }}">
+                    <div class="flex items-center justify-between rounded-xl bg-amber-50 border border-amber-200 px-4 py-2.5 text-xs text-amber-900 font-medium shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <svg class="h-4 w-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span id="auto-gen-locked-text">Putaran {{ $activeCycle }} saat ini terkunci. Fitur generate ikut terkunci dan tidak bisa dijalankan jika belum dibuka kuncinya.</span>
+                        </div>
+                        <a href="{{ route('waka.schedule.lock', ['locked' => 0]) }}" class="ml-3 rounded-lg bg-amber-600 px-3 py-1 font-bold text-white hover:bg-amber-700 transition shrink-0 shadow-xs">Buka Kunci Sekarang</a>
                     </div>
                 </div>
             </form>
@@ -614,10 +626,42 @@
     });
 
     // ==========================================
-    // LOGIKA GENERATOR JADWAL OTOMATIS (1-KLIK)
+    // LOGIKA GENERATOR JADWAL OTOMATIS (1-KLIK & AUTO-LOCK)
+    const cycleLocks = {
+        1: {{ ($cycleOneLocked ?? false) ? 'true' : 'false' }},
+        2: {{ ($cycleTwoLocked ?? false) ? 'true' : 'false' }}
+    };
+
+    function syncAutoGenLockState() {
+        const cycleSelect = document.getElementById('auto-gen-cycle');
+        if (!cycleSelect) return;
+        const cycle = parseInt(cycleSelect.value, 10);
+        const isLocked = Boolean(cycleLocks[cycle]);
+        const btn = document.getElementById('auto-gen-btn');
+        const msg = document.getElementById('auto-gen-locked-msg');
+        const text = document.getElementById('auto-gen-locked-text');
+
+        if (isLocked) {
+            btn.disabled = true;
+            btn.textContent = 'Fitur Generate Terkunci';
+            btn.className = 'h-10 inline-flex items-center justify-center rounded-xl px-6 text-sm font-bold bg-slate-200 text-slate-400 cursor-not-allowed whitespace-nowrap shadow-none';
+            if (msg) msg.classList.remove('hidden');
+            if (text) text.textContent = `Putaran ${cycle} saat ini terkunci. Fitur generate ikut terkunci dan tidak bisa dijalankan jika belum dibuka kuncinya.`;
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'Generate Jadwal Otomatis';
+            btn.className = 'h-10 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 transition active:scale-95 whitespace-nowrap';
+            if (msg) msg.classList.add('hidden');
+        }
+    }
+
     function confirmAutoGenFromDb(form) {
-        const mode = form.querySelector('[name="mode"]').value;
         const cycle = form.querySelector('[name="cycle_number"]').value;
+        if (cycleLocks[parseInt(cycle, 10)]) {
+            alert(`Putaran ${cycle} sedang dikunci! Buka kunci putaran terlebih dahulu untuk men-generate jadwal.`);
+            return false;
+        }
+        const mode = form.querySelector('[name="mode"]').value;
         if (mode === 'fresh') {
             return confirm(`PERINGATAN: Mode "Bersihkan & Buat Ulang" akan mereset jadwal lama pada Putaran ${cycle}.\n\nLanjutkan penyusunan jadwal otomatis dari database?`);
         }
