@@ -37,11 +37,16 @@
                     <span class="text-sm font-semibold text-slate-700">Kunci putaran aktif</span>
                 </label>
                 <button type="submit" class="h-10 rounded-lg bg-slate-900 px-5 text-sm font-semibold text-white hover:bg-slate-700 transition inline-flex items-center justify-center shadow-sm">Simpan Pengaturan</button>
-                <div class="flex h-10 items-center">
+                <div class="flex h-10 items-center gap-2">
                     <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold {{ $scheduleLocked ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
                         <span class="h-1.5 w-1.5 rounded-full {{ $scheduleLocked ? 'bg-rose-500' : 'bg-emerald-500' }}"></span>
                         {{ $scheduleLocked ? 'Putaran terkunci' : 'Putaran terbuka' }}
                     </span>
+                    @if($scheduleLocked)
+                        <a href="{{ route('waka.schedule.lock', ['locked' => 0]) }}" class="inline-flex items-center gap-1 rounded-lg bg-sky-50 px-2.5 py-1 text-xs font-bold text-sky-700 border border-sky-200 hover:bg-sky-100 transition shadow-xs" title="Buka kunci putaran ini agar jadwal dapat diedit">
+                            Buka Kunci
+                        </a>
+                    @endif
                 </div>
             </form>
         </section>
@@ -132,7 +137,10 @@
                 <p class="mt-1 text-sm text-slate-500">Jadwal baru akan masuk ke Tahun Ajaran {{ $academicYear }}, Putaran {{ $activeCycle }}.</p>
             </div>
             @if($scheduleLocked)
-                <p class="rounded-lg bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">Putaran ini terkunci. Buka kunci untuk menambahkan jadwal.</p>
+                <div class="flex items-center justify-between rounded-lg bg-rose-50 px-4 py-3 border border-rose-200">
+                    <p class="text-sm font-medium text-rose-800">Putaran ini sedang terkunci. Klik tombol di kanan untuk membuka kunci agar jadwal dapat diedit atau ditambah.</p>
+                    <a href="{{ route('waka.schedule.lock', ['locked' => 0]) }}" class="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition whitespace-nowrap shadow-xs">Buka Kunci Sekarang</a>
+                </div>
             @else
                 <form method="POST" action="{{ route('waka.jadwal.store') }}" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end schedule-period-row" data-period-row data-default-period="period_1">
                     @csrf
@@ -386,7 +394,10 @@
                                             </form>
                                         </div>
                                     @else
-                                        <span class="text-xs text-slate-400">Terkunci</span>
+                                        <div class="inline-flex items-center gap-1.5">
+                                            <span class="text-xs text-slate-400 font-semibold">Terkunci</span>
+                                            <a href="{{ route('waka.schedule.lock', ['locked' => 0]) }}" class="text-[11px] font-bold text-sky-600 hover:underline" title="Buka kunci putaran untuk mengedit jadwal ini">Buka</a>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>

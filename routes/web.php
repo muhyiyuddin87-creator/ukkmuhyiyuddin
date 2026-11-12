@@ -3403,8 +3403,13 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
             $config = $ensureScheduleConfig();
             $lockCol = $cycleNumber === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
-            if (! empty($config->{$lockCol})) {
-                return back()->withErrors(['auto_gen' => "Putaran {$cycleNumber} sedang dikunci. Buka kunci terlebih dahulu untuk membuat jadwal otomatis."]);
+            // Jika putaran sedang dikunci, buka kuncinya secara otomatis agar jadwal hasil generate langsung aktif dan bisa diedit
+            if (! empty($config->{$lockCol}) || ! empty($config->is_scheduled_locked)) {
+                DB::table('system_configurations')->where('id', (int) $config->id)->update([
+                    $lockCol => false,
+                    'is_scheduled_locked' => false,
+                    'updated_at' => now(),
+                ]);
             }
 
             $service = new \App\Services\AutoScheduleGeneratorService();
@@ -3461,6 +3466,14 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             if (! $result['success'] && $result['scheduled_count'] === 0) {
                 return back()->withErrors(['auto_gen' => 'Gagal menyusun jadwal: slot waktu tidak mencukupi atau terjadi bentrok total.']);
             }
+
+            // Pastikan putaran aktif beralih ke putaran yang baru disusun dan kuncinya dibuka (unlocked) agar jadwal dapat langsung diedit
+            DB::table('system_configurations')->where('id', (int) $config->id)->update([
+                'active_cycle' => $cycleNumber,
+                $lockCol => false,
+                'is_scheduled_locked' => false,
+                'updated_at' => now(),
+            ]);
 
             $msg = "⚡ Sukses! Berhasil menyusun {$result['scheduled_count']} jadwal ({$result['total_jp']} JP) secara otomatis pada Putaran {$cycleNumber} tanpa bentrok.";
             if ($result['unassigned_count'] > 0) {
@@ -4016,7 +4029,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         return redirect()->route('waka.jadwal')->with('success', 'Jadwal berhasil ditambahkan.');
     })->name('waka.jadwal.store');
 
-    Route::patch('/waka/jadwal/{id}', function (Request $request, int $id) use ($ensureScheduleConfig, $findScheduleConflict, $currentAcademicYear) {
+    Route::match(['PATCH', 'POST'], '/waka/jadwal/{id}', function (Request $request, int $id) use ($ensureScheduleConfig, $findScheduleConflict, $currentAcademicYear) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
         if ($request->filled('period_code') && ! $request->filled('start_period_code')) {
             $request->merge([
@@ -4035,16 +4048,19 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $lockColumn = (int) $schedule->cycle_number === 2 ? 'cycle_two_locked' : 'cycle_one_locked';
         abort_if((bool) ($config->{$lockColumn} ?? false), 423, 'Putaran ini sedang dikunci.');
 
-        $classNames = DB::table('siswas')
+        $siswaClasses = DB::table('siswas')
             ->whereNotNull('kelas')
             ->where('kelas', '!=', '')
             ->distinct()
             ->pluck('kelas')
             ->all();
+        $schoolClasses = DB::table('school_classes')->pluck('name')->all();
         $legacyClass = $schedule->class_name ?? $schedule->class_id;
-        $allowedClassNames = $legacyClass === null
-            ? $classNames
-            : array_values(array_unique([...$classNames, (string) $legacyClass]));
+        $allowedClassNames = array_values(array_unique(array_filter([
+            ...$siswaClasses,
+            ...$schoolClasses,
+            (string) $legacyClass,
+        ])));
         $data = $request->validate([
             'teacher_id' => ['required', 'integer', 'exists:users,id'],
             'day_of_week' => ['required', 'string', 'max:20'],
