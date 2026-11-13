@@ -149,6 +149,68 @@ class WakaAccountManagementTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_cannot_input_or_update_account_with_duplicate_email(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $waka = User::where('username', 'waka')->firstOrFail();
+        $this->actingAs($waka);
+
+        // 1. Buat akun pertama dengan email tertentu
+        $this->post(route('waka.accounts.store'), [
+            'fullname' => 'User Pertama',
+            'username' => 'user.pertama',
+            'email' => 'sama@sekolah.sch.id',
+            'password' => 'password123',
+            'role_id' => 2,
+        ])->assertRedirect(route('waka.accounts'));
+
+        $user1 = User::where('username', 'user.pertama')->firstOrFail();
+        $this->assertSame('sama@sekolah.sch.id', $user1->email);
+
+        // 2. Coba INPUT akun baru dengan email yang sama -> HARUS GAGAL
+        $response = $this->post(route('waka.accounts.store'), [
+            'fullname' => 'User Kedua',
+            'username' => 'user.kedua',
+            'email' => 'sama@sekolah.sch.id',
+            'password' => 'password123',
+            'role_id' => 2,
+        ]);
+        $response->assertSessionHasErrors(['email' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.']);
+        $this->assertDatabaseMissing('users', ['username' => 'user.kedua']);
+
+        // 3. Buat akun kedua dengan email berbeda
+        $this->post(route('waka.accounts.store'), [
+            'fullname' => 'User Kedua',
+            'username' => 'user.kedua',
+            'email' => 'kedua@sekolah.sch.id',
+            'password' => 'password123',
+            'role_id' => 2,
+        ])->assertRedirect(route('waka.accounts'));
+        $user2 = User::where('username', 'user.kedua')->firstOrFail();
+
+        // 4. Coba UBAH akun kedua menggunakan email milik user pertama -> HARUS GAGAL
+        $responseUpdate = $this->patch(route('waka.accounts.update', $user2->getKey()), [
+            'fullname' => 'User Kedua Diubah',
+            'username' => 'user.kedua',
+            'email' => 'sama@sekolah.sch.id',
+            'role_id' => 2,
+        ]);
+        $responseUpdate->assertSessionHasErrors(['email' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.']);
+        $user2->refresh();
+        $this->assertSame('kedua@sekolah.sch.id', $user2->email);
+
+        // 5. Coba UBAH akun kedua tetap dengan email miliknya sendiri -> HARUS BERHASIL
+        $this->patch(route('waka.accounts.update', $user2->getKey()), [
+            'fullname' => 'User Kedua Diubah',
+            'username' => 'user.kedua',
+            'email' => 'kedua@sekolah.sch.id',
+            'role_id' => 2,
+        ])->assertRedirect(route('waka.accounts'));
+        $user2->refresh();
+        $this->assertSame('User Kedua Diubah', $user2->fullname);
+        $this->assertSame('kedua@sekolah.sch.id', $user2->email);
+    }
+
     private function createStudent(): int
     {
         return DB::table('siswas')->insertGetId([

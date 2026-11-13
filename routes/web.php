@@ -755,6 +755,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
 
         $rules = [
@@ -782,6 +784,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'fullname.required' => 'Nama lengkap wajib diisi.',
             'username.required' => 'Username wajib diisi.',
             'username.unique' => 'Username ini sudah digunakan.',
+            'email.email' => 'Format email pemulihan tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
             'current_password.required' => 'Password saat ini wajib diisi jika ingin mengganti password.',
             'new_password.min' => 'Password baru minimal 6 karakter.',
             'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
@@ -796,7 +800,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $updateData = [
             'fullname' => $validated['fullname'],
             'username' => $validated['username'],
-            'email' => isset($validated['email']) ? strtolower($validated['email']) : null,
+            'email' => ! empty($validated['email']) ? strtolower(trim((string) $validated['email'])) : null,
             'phone' => $validated['phone'] ?? null,
         ];
         if ((int) $user->role_id === 2) {
@@ -1753,6 +1757,11 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
     Route::post('/waka/data-siswa', function (Request $request) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
+        if ($request->filled('email')) {
+            $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
+        }
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'kelas' => ['required', 'string', 'max:255'],
@@ -1760,11 +1769,17 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'alamat' => ['required', 'string', 'max:2000'],
             'nis' => ['nullable', 'string', 'max:30', 'unique:siswas,nis'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'email' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
+        ], [
+            'name.required' => 'Nama siswa wajib diisi.',
+            'kelas.required' => 'Kelas wajib diisi.',
+            'jurusan.required' => 'Jurusan wajib diisi.',
+            'alamat.required' => 'Alamat wajib diisi.',
+            'nis.unique' => 'NIS ini sudah terdaftar.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
         ]);
-        if (isset($data['email'])) {
-            $data['email'] = strtolower(trim($data['email'])) ?: null;
-        }
+        $data['email'] = ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null;
         DB::table('siswas')->insert([...$data, 'created_at' => now(), 'updated_at' => now()]);
 
         return redirect()->route('waka.siswa')->with('success', 'Data siswa berhasil ditambahkan.');
@@ -1773,6 +1788,12 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
     Route::patch('/waka/data-siswa/{id}', function (Request $request, int $id) {
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
         abort_if(! DB::table('siswas')->where('id', $id)->exists(), 404);
+        if ($request->filled('email')) {
+            $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
+        }
+        $linkedUserId = DB::table('users')->where('student_id', $id)->where('role_id', 3)->value('id');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'kelas' => ['required', 'string', 'max:255'],
@@ -1780,11 +1801,17 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'alamat' => ['required', 'string', 'max:2000'],
             'nis' => ['nullable', 'string', 'max:30', Rule::unique('siswas', 'nis')->ignore($id)],
             'phone' => ['nullable', 'string', 'max:20'],
-            'email' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($linkedUserId)],
+        ], [
+            'name.required' => 'Nama siswa wajib diisi.',
+            'kelas.required' => 'Kelas wajib diisi.',
+            'jurusan.required' => 'Jurusan wajib diisi.',
+            'alamat.required' => 'Alamat wajib diisi.',
+            'nis.unique' => 'NIS ini sudah terdaftar.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
         ]);
-        if (isset($data['email'])) {
-            $data['email'] = strtolower(trim($data['email'])) ?: null;
-        }
+        $data['email'] = ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null;
         DB::table('siswas')->where('id', $id)->update([...$data, 'updated_at' => now()]);
         if (array_key_exists('email', $data)) {
             DB::table('users')->where('student_id', $id)->where('role_id', 3)->update(['email' => $data['email']]);
@@ -2415,6 +2442,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
         $data = $request->validate([
             'fullname' => ['required', 'string', 'max:100'],
@@ -2428,13 +2457,22 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'bk_class_ids.*' => ['required', 'integer', 'distinct', 'exists:school_classes,id'],
             'phone' => ['nullable', 'string', 'max:20'],
             'nip' => ['nullable', 'string', 'max:30', 'unique:users,nip'],
+        ], [
+            'fullname.required' => 'Nama lengkap guru wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'nip.unique' => 'NIP ini sudah terdaftar.',
         ]);
         DB::transaction(function () use ($data) {
             $thisBkClassIds = $data['bk_class_ids'] ?? [];
             $teacherId = DB::table('users')->insertGetId([
                 'fullname' => $data['fullname'],
                 'username' => $data['username'],
-                'email' => isset($data['email']) ? strtolower($data['email']) : null,
+                'email' => ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null,
                 'password' => Hash::make($data['password']),
                 'phone' => $data['phone'] ?? null,
                 'nip' => $data['nip'] ?? null,
@@ -2479,6 +2517,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         abort_if(! $guru, 404);
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
         $data = $request->validate([
             'fullname' => ['required', 'string', 'max:100'],
@@ -2492,11 +2532,19 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'bk_class_ids.*' => ['required', 'integer', 'distinct', 'exists:school_classes,id'],
             'phone' => ['nullable', 'string', 'max:20'],
             'nip' => ['nullable', 'string', 'max:30', Rule::unique('users', 'nip')->ignore($id)],
+        ], [
+            'fullname.required' => 'Nama lengkap guru wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'nip.unique' => 'NIP ini sudah terdaftar.',
         ]);
         $update = [
             'fullname' => $data['fullname'],
             'username' => $data['username'],
-            'email' => isset($data['email']) ? strtolower($data['email']) : null,
+            'email' => ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null,
             'class_id' => $data['class_id'] ?? null,
             'phone' => $data['phone'] ?? null,
             'nip' => $data['nip'] ?? null,
@@ -2606,6 +2654,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
         $data = $request->validate([
             'fullname' => ['required', 'string', 'max:100'],
@@ -2622,7 +2672,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'student_id.exists' => 'Data siswa yang dipilih tidak valid.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
-            'email.unique' => 'Email pemulihan ini sudah digunakan.',
+            'email.email' => 'Format email pemulihan tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
         ]);
 
         DB::table('users')->insert([
@@ -2631,7 +2682,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'student_id' => $data['student_id'],
             'password' => Hash::make($data['password']),
             'phone' => $data['phone'] ?? null,
-            'email' => ! empty($data['email']) ? strtolower($data['email']) : null,
+            'email' => ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null,
             'role_id' => 6,
             'is_active' => true,
             'created_at' => now(),
@@ -2647,6 +2698,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
 
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
         $data = $request->validate([
             'fullname' => ['required', 'string', 'max:100'],
@@ -2663,7 +2716,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'student_id.required' => 'Silakan pilih siswa yang terhubung.',
             'student_id.exists' => 'Data siswa yang dipilih tidak valid.',
             'password.min' => 'Password baru minimal 8 karakter.',
-            'email.unique' => 'Email pemulihan ini sudah digunakan.',
+            'email.email' => 'Format email pemulihan tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
         ]);
 
         $updateData = [
@@ -2671,7 +2725,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'username' => $data['username'],
             'student_id' => $data['student_id'],
             'phone' => $data['phone'] ?? null,
-            'email' => ! empty($data['email']) ? strtolower($data['email']) : null,
+            'email' => ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null,
             'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : (bool) $ortu->is_active,
         ];
         if (! empty($data['password'])) {
@@ -2775,6 +2829,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         abort_unless((int) (Auth::user()->role_id ?? 0) === 1, 403);
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
         $data = $request->validate([
             'fullname' => ['required', 'string', 'max:100'],
@@ -2782,6 +2838,16 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
             'role_id' => ['required', 'integer', 'in:1,2,3,4,6'],
+        ], [
+            'fullname.required' => 'Nama lengkap wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'email.email' => 'Format email pemulihan tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'role_id.required' => 'Role akun wajib dipilih.',
+            'role_id.in' => 'Role akun yang dipilih tidak valid.',
         ]);
         $studentData = $request->validate([
             'student_id' => (int) $data['role_id'] === 3
@@ -2827,7 +2893,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $data['parent_id'] = null;
         $data['class_id'] = null;
         $data['student_id'] = in_array((int) $data['role_id'], [3, 6], true) ? $studentData['student_id'] : null;
-        $data['email'] = isset($data['email']) ? strtolower($data['email']) : null;
+        $data['email'] = ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null;
         $data['created_at'] = now();
 
         DB::transaction(function () use ($data, $classData) {
@@ -2865,6 +2931,8 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         abort_if(! $account, 404);
         if ($request->filled('email')) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        } else {
+            $request->merge(['email' => null]);
         }
 
         $data = $request->validate([
@@ -2874,6 +2942,15 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
             'role_id' => ['required', 'integer', 'in:1,2,3,4,6'],
             'password' => ['nullable', 'string', 'min:8'],
             'is_active' => ['sometimes', 'boolean'],
+        ], [
+            'fullname.required' => 'Nama lengkap wajib diisi.',
+            'username.required' => 'Username wajib diisi.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'email.email' => 'Format email pemulihan tidak valid.',
+            'email.unique' => 'Email ini sudah digunakan oleh akun lain. Silakan gunakan email yang berbeda.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'role_id.required' => 'Role akun wajib dipilih.',
+            'role_id.in' => 'Role akun yang dipilih tidak valid.',
         ]);
 
         if ((int) $id === (int) Auth::user()->getKey() && (int) $data['role_id'] !== 1) {
@@ -2932,7 +3009,7 @@ Route::middleware(['auth', 'active.account', 'password.changed'])->group(functio
         $update = [
             'fullname' => $data['fullname'],
             'username' => $data['username'],
-            'email' => isset($data['email']) ? strtolower($data['email']) : null,
+            'email' => ! empty($data['email']) ? strtolower(trim((string) $data['email'])) : null,
             'role_id' => $data['role_id'],
             'student_id' => in_array((int) $data['role_id'], [3, 6], true) ? $studentData['student_id'] : null,
             'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : $account->is_active,
