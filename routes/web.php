@@ -134,15 +134,15 @@ Route::middleware('guest')->group(function () {
         // Kirim email OTP (otomatis mencoba Brevo/Resend HTTPS API Port 443, lalu SMTP)
         $emailSent = \App\Services\OtpMailService::sendOtp($user, $code);
 
-        if ($emailSent) {
-            $emailParts = explode('@', $user->email);
-            $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
+        $emailParts = explode('@', $user->email);
+        $maskedEmail = substr($emailParts[0], 0, 2) . '***@' . ($emailParts[1] ?? '');
 
+        if ($emailSent) {
             return redirect()->route('password.reset')->with('status', 'Kode OTP 6 digit telah dikirim ke email pemulihan (' . $maskedEmail . '). Silakan periksa kotak masuk atau folder spam email Anda.');
         }
 
-        // Fallback darurat jika seluruh jalur email offline/terhambat firewall VPS
-        return redirect()->route('password.reset')->with('status', 'Kode OTP Akun Anda: ' . $code . ' (Silakan masukkan kode 6-digit di atas untuk mengatur ulang sandi akun Anda).');
+        // Jika seluruh jalur email gagal terkirim, jangan tampilkan kode OTP di layar web demi keamanan
+        return redirect()->route('password.reset')->withErrors(['email' => 'Gagal mengirim email OTP ke (' . $maskedEmail . '). Silakan periksa koneksi email atau hubungi admin sekolah.']);
     })->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password', function () {

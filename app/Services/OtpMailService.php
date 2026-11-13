@@ -68,22 +68,41 @@ class OtpMailService
         // -------------------------------------------------------------
         // JALUR 2: Resend HTTPS REST API (Port 443 - Tidak Pernah Diblokir VPS)
         // -------------------------------------------------------------
-        $resendKey = config('services.resend.key') ?: (env('RESEND_API_KEY') ?: 're_WaDxTmiD_Kh3AgnPYVHwt7wtcjKeJhTxx');
+        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
         if (! empty($resendKey)) {
             try {
                 $fromEmail = config('services.resend.from') ?: (env('RESEND_FROM_EMAIL') ?: 'noreply@tugasukk.web.id');
-                $response = Http::timeout(5)->withHeaders([
+                $htmlContent = view('emails.password_reset_otp', ['code' => $code, 'user' => $user])->render();
+
+                $response = Http::connectTimeout(6)->timeout(12)->withHeaders([
                     'Authorization' => 'Bearer ' . $resendKey,
                     'Content-Type' => 'application/json',
                 ])->post('https://api.resend.com/emails', [
                     'from' => "{$senderName} <{$fromEmail}>",
                     'to' => [$recipientEmail],
                     'subject' => 'Kode OTP Reset Sandi Akun - ' . $code,
-                    'html' => view('emails.password_reset_otp', ['code' => $code, 'user' => $user])->render(),
+                    'html' => $htmlContent,
                 ]);
 
                 if ($response->successful()) {
                     return true;
+                }
+
+                // Jika domain kustom belum terverifikasi di Resend, coba kirim via domain default onboarding
+                if ($response->status() === 403 || str_contains($response->body(), 'domain')) {
+                    $retryResponse = Http::connectTimeout(6)->timeout(12)->withHeaders([
+                        'Authorization' => 'Bearer ' . $resendKey,
+                        'Content-Type' => 'application/json',
+                    ])->post('https://api.resend.com/emails', [
+                        'from' => 'onboarding@resend.dev',
+                        'to' => [$recipientEmail],
+                        'subject' => 'Kode OTP Reset Sandi Akun - ' . $code,
+                        'html' => $htmlContent,
+                    ]);
+
+                    if ($retryResponse->successful()) {
+                        return true;
+                    }
                 }
 
                 Log::warning('Resend API send failed: ' . $response->body());

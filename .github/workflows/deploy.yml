@@ -125,8 +125,10 @@ jobs:
             grep -q "^MAIL_FROM_ADDRESS=" .env && sed -i 's/^MAIL_FROM_ADDRESS=.*/MAIL_FROM_ADDRESS=ukkscp@gmail.com/' .env || echo "MAIL_FROM_ADDRESS=ukkscp@gmail.com" >> .env
             grep -q "^MAIL_FROM_NAME=" .env && sed -i 's/^MAIL_FROM_NAME=.*/MAIL_FROM_NAME="Sistem Informasi Sekolah"/' .env || echo 'MAIL_FROM_NAME="Sistem Informasi Sekolah"' >> .env
 
-            # Pastikan konfigurasi Resend HTTPS API (Port 443) aktif di .env VPS
-            grep -q "^RESEND_API_KEY=" .env && sed -i 's/^RESEND_API_KEY=.*/RESEND_API_KEY=re_WaDxTmiD_Kh3AgnPYVHwt7wtcjKeJhTxx/' .env || echo "RESEND_API_KEY=re_WaDxTmiD_Kh3AgnPYVHwt7wtcjKeJhTxx" >> .env
+            # Sinkronkan RESEND_API_KEY dari GitHub Secret jika tersedia
+            if [ -n "${{ secrets.RESEND_API_KEY }}" ]; then
+                grep -q "^RESEND_API_KEY=" .env && sed -i 's/^RESEND_API_KEY=.*/RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}/' .env || echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
+            fi
             grep -q "^RESEND_FROM_EMAIL=" .env && sed -i 's/^RESEND_FROM_EMAIL=.*/RESEND_FROM_EMAIL=noreply@tugasukk.web.id/' .env || echo "RESEND_FROM_EMAIL=noreply@tugasukk.web.id" >> .env
 
             # Migrasi database TiDB Cloud jika ada perubahan tabel
